@@ -16,7 +16,7 @@
 
 # Serio
 Serio is a C++11 library that makes serialization of C++ containers and other data types and custom classes and structures possible. Features:
-+ Very Fast
++ Fast
 + Easy to Use
 + Endian-Independent
 + Single-Header
@@ -169,3 +169,4 @@ Note: tests takes a long time to compile so please be patient.
 You can report bugs and ask questions on [issues page](../../issues).
 
 # License
+This library is licensed under BSD 3-Clause license. You can read it [here](LICENSE.md)
