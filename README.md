@@ -169,4 +169,4 @@ Note: tests takes a long time to compile so please be patient.
 You can report bugs and ask questions on [issues page](../../issues).
 
 # License
-This library is licensed under BSD 3-Clause license. You can read it [here](LICENSE.md)
+This library is licensed under BSD 3-Clause license. You can read it [here](LICENSE.md).
