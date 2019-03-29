@@ -101,14 +101,14 @@ Calculator& operator<<(Calculator& S, const Custom& C)
     return S;
 }
 
-Serialzer& operator<<(Serialzer& S, const Custom& C)
+Serializer& operator<<(Serializer& S, const Custom& C)
 {
     S << Size(C.size());
     for (const auto& V : C) S << V;
     return S;
 }
 
-Deserialzer& operator>>(Deserialzer& S, Custom& C)
+Deserializer& operator>>(Deserializer& S, Custom& C)
 {
     C.clear();
 
