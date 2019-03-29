@@ -147,13 +147,13 @@ serio.h: error: no member named '_deserialize' in 'class-name'
 This means that you are trying to serialize or deserialize a custom structure or class that you have not registed.
 
 ## Notes
-STL containers can be used interchangably when serializing the deserializing. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::list```. This is both convinient and can speed up operations. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::set``` to get unique items. With maps for example you can serialize a ```std::map<int, int>``` and later deserialize a ```std::vector<std::pair<int, int>>``` or vice versa.
++ STL containers can be used interchangably when serializing the deserializing. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::list```. This is both convinient and can speed up operations. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::set``` to get unique items. With maps for example you can serialize a ```std::map<int, int>``` and later deserialize a ```std::vector<std::pair<int, int>>``` or vice versa.
 
-To be completely machine-independent use fixed size integers.
++ If you want the serialized files to be completely machine-independent use fixed size integers instead of basic data types.
 
-Doing ```using namespace Serio``` is not a good idea(because it may cause conflicts).
++ Doing ```using namespace Serio``` is not a good idea(because it may cause conflicts).
 
-When size of ```long double``` is 16 bytes, it is only supported where 128 integer is available (depends on compiler and hardware. see [this](https://gcc.gnu.org/onlinedocs/gcc-4.6.1/gcc/_005f_005fint128.html)). So be careful using it.
++ When size of ```long double``` is 16 bytes, it is only supported where 128 integer is available (depends on compiler and hardware. see [this](https://gcc.gnu.org/onlinedocs/gcc-4.6.1/gcc/_005f_005fint128.html)). So be careful using it.
 
 # Running the Tests
 you won't have to run the tests but it you want to you have to install google test framework and compile ```tests.cpp``` file. For example with gcc you can do:
