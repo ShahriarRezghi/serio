@@ -128,7 +128,8 @@ Deserializer& operator>>(Deserializer& S, Custom& C)
 ```
 
 Explanation:
-You have to write three functions in the namespace. First one helps the library determine the size of data to be able to allocate data fast. Here we first pass the size of container to SizeCalculator and then every item in the container. The second function serializes the data and works similar to first one. The Third one deserializes the data. Here we first clear the container and then read size and every element.
+
+You have to write three functions in the namespace. First one helps the library determine the size of data to be able to allocate data fast. Here we first pass the size of container to Size Calculator and then every item in the container. The second function serializes the data and works similar to first one. The Third one deserializes the data. Here we first clear the container and then read size and the elements.
 
 Now your container is ready to be serialized and deserialized.
 
