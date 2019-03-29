@@ -161,8 +161,7 @@ you won't have to run the tests but it you want to you have to install google te
 g++ tests.cpp -o tests -lgtest -O2
 ```
 
-Then you can run the tests executable.
-Note: tests takes a long time to compile so please be patient.
+Then you can run the tests executable. Also note that tests might take a long time to compile so please be patient.
 
 # Contribution and Questions
 You can report bugs and ask questions on [issues page](../../issues).
