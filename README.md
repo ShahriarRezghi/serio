@@ -136,15 +136,14 @@ Now your container is ready to be serialized and deserialized.
 Supported types: [C++ containers](http://www.cplusplus.com/reference/stl/), std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::optional(C++17) and any structure that you register. If there are some types missing from this library you can report it on issues page.
 
 ## Debugging
-If you these errors that look like these:
+If you get errors that look like these:
 
 ```
-serio.h: error: no member named '_calculateSize' in 'class-name'
 serio.h: error: no member named '_serialize' in 'class-name'
 serio.h: error: no member named '_deserialize' in 'class-name'
 ```
 
-This means that you are trying to serialize or deserialize a custom structure that you have not registed.
+This means that you are trying to serialize or deserialize a custom structure or class that you have not registed.
 
 ## Notes
 STL containers can be used interchangably when serializing the deserializing. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::list```. This is both convinient and can speed up operations. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::set``` to get unique items. With maps for example you can serialize a ```std::map<int, int>``` and later deserialize a ```std::vector<std::pair<int, int>>``` or vice versa.
