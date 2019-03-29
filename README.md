@@ -70,7 +70,7 @@ You can make Custom classes and structs serializable with just one line of code.
 struct Point
 {
     int x, y;
-    Serio_REGISTER_CLASS(x, y)
+    SERIO_REGISTER_CLASS(x, y)
 };
 
 std::list<Point> points;
