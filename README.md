@@ -10,6 +10,7 @@
   - [Supported Types](#supported-types)
   - [Debugging](#debugging)
   - [Notes](#notes)
+- [Use Cases](#use-cases)
 - [Running the Tests](#running-the-tests)
 - [Contribution and Questions](#contribution-and-questions)
 - [License](#license)
@@ -145,6 +146,9 @@ serio.h: error: no member named '_deserialize' in 'class-name'
 ```
 
 This means that you are trying to serialize or deserialize a custom structure or class that you have not registed.
+
+### Use Cases
+This library can have a lot of applications. It can be used to process and save information on files and read them later. It can be used to turn text files into binary file and read it much faster later on. It can also be used to easily send and recieve data in binary form through sockets(network or otherwise).
 
 ## Notes
 + STL containers can be used interchangably when serializing the deserializing. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::list```. This is both convinient and can speed up operations. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::set``` to get unique items. With maps for example you can serialize a ```std::map<int, int>``` and later deserialize a ```std::vector<std::pair<int, int>>``` or vice versa.
