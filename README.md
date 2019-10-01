@@ -7,7 +7,7 @@
     - [STL Types](#stl-types)
     - [Custom Types](#custom-types)
     - [Custom Containers](#custom-containers)
-    - [Advances Usages](#advanced-usages)
+    - [Advanced Usages](#advanced-usages)
   - [Supported Types](#supported-types)
   - [Debugging](#debugging)
   - [Notes](#notes)
@@ -126,7 +126,7 @@ Here we do the job of SERIO_REGISTER_CLASS manually. We define ```_serialize``` 
 
 Now your container is ready to be serialized and deserialized.
 
-### Advances Usages
+### Advanced Usages
 You can serialize conditional cases using this library! For example if you want to seralize a union of std::vector<int> and std::string you can do the following:
   
 ``` c++
