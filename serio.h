@@ -122,15 +122,9 @@ struct NumberRecurse
 template <typename T>
 struct NumberRecurse<T, 0>
 {
-    static inline void serialize(const T& data, char* buffer)
-    {
-        buffer[0] = char(data);
-    }
+    static inline void serialize(const T& data, char* buffer) { buffer[0] = char(data); }
 
-    static inline void deserialize(T& data, const char* buffer)
-    {
-        data |= T(uint8_t(buffer[0]));
-    }
+    static inline void deserialize(T& data, const char* buffer) { data |= T(uint8_t(buffer[0])); }
 };
 
 template <typename T>
@@ -211,10 +205,7 @@ struct BitsetBitRecurse
 template <size_t N, size_t I>
 struct BitsetBitRecurse<N, I, 0>
 {
-    static inline void serialize(const std::bitset<N>& C, char* buffer)
-    {
-        buffer[I] = C[I * 8];
-    }
+    static inline void serialize(const std::bitset<N>& C, char* buffer) { buffer[I] = C[I * 8]; }
     static inline void deserialize(std::bitset<N>& C, const char* buffer)
     {
         C[I * 8] = buffer[I] & 1;
@@ -269,7 +260,6 @@ inline void deserialize(std::bitset<N>& C, const char* buffer)
 }  // namespace Bitset
 
 using Size = uint64_t;
-using ByteArray = std::basic_string<char>;
 
 template <typename Iter>
 size_t iteratableSize(const Iter& I)
@@ -410,8 +400,7 @@ struct SerializerOps
     }
 
     template <typename T, typename Hash, typename Pred, typename Alloc>
-    inline Derived& operator<<(
-        const std::unordered_set<T, Hash, Pred, Alloc>& C)
+    inline Derived& operator<<(const std::unordered_set<T, Hash, Pred, Alloc>& C)
     {
         return iteratable(C);
     }
@@ -423,8 +412,7 @@ struct SerializerOps
     }
 
     template <typename T, typename Hash, typename Pred, typename Alloc>
-    inline Derived& operator<<(
-        const std::unordered_multiset<T, Hash, Pred, Alloc>& C)
+    inline Derived& operator<<(const std::unordered_multiset<T, Hash, Pred, Alloc>& C)
     {
         return iteratable(C);
     }
@@ -435,10 +423,8 @@ struct SerializerOps
         return iteratable(C);
     }
 
-    template <typename K, typename T, typename Hash, typename Pred,
-              typename Alloc>
-    inline Derived& operator<<(
-        const std::unordered_map<K, T, Hash, Pred, Alloc>& C)
+    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
+    inline Derived& operator<<(const std::unordered_map<K, T, Hash, Pred, Alloc>& C)
     {
         return iteratable(C);
     }
@@ -449,10 +435,8 @@ struct SerializerOps
         return iteratable(C);
     }
 
-    template <typename K, typename T, typename Hash, typename Pred,
-              typename Alloc>
-    inline Derived& operator<<(
-        const std::unordered_multimap<K, T, Hash, Pred, Alloc>& C)
+    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
+    inline Derived& operator<<(const std::unordered_multimap<K, T, Hash, Pred, Alloc>& C)
     {
         return iteratable(C);
     }
@@ -687,8 +671,7 @@ struct DeserializerOps
         return iteratable<decltype(C), std::pair<K, T>>(C);
     }
 
-    template <typename K, typename T, typename Hash, typename Pred,
-              typename Alloc>
+    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
     inline Derived& operator>>(std::unordered_map<K, T, Hash, Pred, Alloc>& C)
     {
         return iteratable<decltype(C), std::pair<K, T>>(C);
@@ -700,10 +683,8 @@ struct DeserializerOps
         return iteratable<decltype(C), std::pair<K, T>>(C);
     }
 
-    template <typename K, typename T, typename Hash, typename Pred,
-              typename Alloc>
-    inline Derived& operator>>(
-        std::unordered_multimap<K, T, Hash, Pred, Alloc>& C)
+    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
+    inline Derived& operator>>(std::unordered_multimap<K, T, Hash, Pred, Alloc>& C)
     {
         return iteratable<decltype(C), std::pair<K, T>>(C);
     }
@@ -918,7 +899,6 @@ struct DeserializerBase
     {
         Bitset::deserialize(C, buffer);
         buffer += size_t(std::ceil(N / 8.0));
-
         return This();
     }
 };
@@ -929,21 +909,20 @@ struct Calculator : CalculatorBase<Calculator>, SerializerOps<Calculator>
     using Ops::operator<<;
     using Base::operator<<;
 };
-
 struct Serializer : SerializerBase<Serializer>, SerializerOps<Serializer>
 {
     using Base::Base;
     using Ops::operator<<;
     using Base::operator<<;
 };
-
-struct Deserializer : DeserializerBase<Deserializer>,
-                      DeserializerOps<Deserializer>
+struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializer>
 {
     using Base::Base;
     using Ops::operator>>;
     using Base::operator>>;
 };
+
+using ByteArray = std::basic_string<char>;
 
 template <typename Head, typename... Tail>
 ByteArray serialize(const Head& head, Tail&&... tail)
@@ -956,13 +935,19 @@ ByteArray serialize(const Head& head, Tail&&... tail)
     serializer.process(head, std::forward<Tail>(tail)...);
     return data;
 }
-
 template <typename Head, typename... Tail>
-bool deserialize(const ByteArray& data, Head& head, Tail&&... tail)
+size_t deserialize(const ByteArray& data, Head& head, Tail&&... tail)
 {
     Deserializer deserializer{&data.front()};
     deserializer.process(head, std::forward<Tail>(tail)...);
-    return size_t(deserializer.buffer - &data.front()) == data.size();
+    return size_t(deserializer.buffer - &data.front());
+}
+template <typename Head, typename... Tail>
+size_t deserialize(const char* data, Head& head, Tail&&... tail)
+{
+    Deserializer deserializer{data};
+    deserializer.process(head, std::forward<Tail>(tail)...);
+    return size_t(deserializer.buffer - data);
 }
 
 inline bool write(const std::string& path, const ByteArray& data)
@@ -978,7 +963,6 @@ inline bool write(const std::string& path, const ByteArray& data)
     stream.close();
     return true;
 }
-
 inline bool read(const std::string& path, ByteArray& data)
 {
     std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
@@ -995,6 +979,20 @@ inline bool read(const std::string& path, ByteArray& data)
     stream.close();
     return true;
 }
+
+template <typename Head, typename... Tail>
+inline bool save(const std::string& path, const Head& head, Tail&&... tail)
+{
+    return write(path, serialize(head, std::forward<Tail>(tail)...));
+}
+template <typename Head, typename... Tail>
+inline bool load(const std::string& path, Head& head, Tail&&... tail)
+{
+    ByteArray A;
+    if (!read(path, A)) return false;
+    return deserialize(A, head, std::forward<Tail>(tail)...) == A.size();
+}
+
 }  // namespace Serio
 
 #undef SERIALIZER_CREATE_TYPE

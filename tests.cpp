@@ -36,11 +36,10 @@
 using namespace std;
 // using namespace Serio;
 
-#define CREATE_INIT(TYPE)                                        \
-    void Init(TYPE& V)                                           \
-    {                                                            \
-        V = static_cast<TYPE>((rand() / double(RAND_MAX) - .5) * \
-                              pow(2, sizeof(TYPE) * 8));         \
+#define CREATE_INIT(TYPE)                                                                   \
+    void Init(TYPE& V)                                                                      \
+    {                                                                                       \
+        V = static_cast<TYPE>((rand() / double(RAND_MAX) - .5) * pow(2, sizeof(TYPE) * 8)); \
     }
 
 #define CREATE_ITER_TEST_TYPE_0_DEPTH(NAME, TYPE, BNAME, BASE_TYPE) \
@@ -104,8 +103,7 @@ using namespace std;
         TestIter(TYPE<BASE_TYPE, TYPE<BASE_TYPE, BASE_TYPE>>()); \
     }
 
-#define CREATE_MAP_TEST(NAME, TYPE) \
-    CREATE_ITER_TEST_BASE(CREATE_MAP_TEST_TYPE, NAME, TYPE)
+#define CREATE_MAP_TEST(NAME, TYPE) CREATE_ITER_TEST_BASE(CREATE_MAP_TEST_TYPE, NAME, TYPE)
 
 CREATE_INIT(char)
 CREATE_INIT(signed char)
@@ -168,26 +166,22 @@ inline void IteratableAdd(std::unordered_set<T, Hash, Pred, Alloc>& I, T& value)
     I.emplace(std::move(value));
 }
 template <typename T, typename Hash, typename Pred, typename Alloc>
-inline void IteratableAdd(std::unordered_multiset<T, Hash, Pred, Alloc>& I,
-                          T& value)
+inline void IteratableAdd(std::unordered_multiset<T, Hash, Pred, Alloc>& I, T& value)
 {
     I.emplace(std::move(value));
 }
 template <typename K, typename T, typename Comp, typename Alloc>
-inline void IteratableAdd(std::map<K, T, Comp, Alloc>& I,
-                          std::pair<K, T>& value)
+inline void IteratableAdd(std::map<K, T, Comp, Alloc>& I, std::pair<K, T>& value)
 {
     I.emplace(std::move(value));
 }
 template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-inline void IteratableAdd(std::unordered_map<K, T, Hash, Pred, Alloc>& I,
-                          std::pair<K, T>& value)
+inline void IteratableAdd(std::unordered_map<K, T, Hash, Pred, Alloc>& I, std::pair<K, T>& value)
 {
     I.emplace(std::move(value));
 }
 template <typename K, typename T, typename Comp, typename Alloc>
-inline void IteratableAdd(std::multimap<K, T, Comp, Alloc>& I,
-                          std::pair<K, T>& value)
+inline void IteratableAdd(std::multimap<K, T, Comp, Alloc>& I, std::pair<K, T>& value)
 {
     I.emplace(std::move(value));
 }
@@ -537,6 +531,5 @@ int main(int argc, char** argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
     srand(time(nullptr));
-
     return RUN_ALL_TESTS();
 }
