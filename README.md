@@ -7,6 +7,7 @@
     - [STL Types](#stl-types)
     - [Custom Types](#custom-types)
     - [Custom Containers](#custom-containers)
+    - [Advances Usages](#advanced-usages)
   - [Supported Types](#supported-types)
   - [Debugging](#debugging)
   - [Notes](#notes)
@@ -29,11 +30,19 @@ If you want a system-wide solution you can copy ```serio.h``` to ```/usr/include
 
 # Usage
 ## API
-The main API consists of two main functions and two helper functions. You can serialize combinations of STL and custom data types with ```serialize``` function and deserialize them with ```deseialize``` function.
-```serialize``` function takes unlimited number of arguements and serializes them and returns an strings of bytes. 
-You can then write the data to a file with ```write``` function. This function takes the path of the file and data and writes the data into the file and returns weather or not it succeeds. 
-You can read the serialized data from file with ```read``` function. This function takes the path of the file and data and reads the contents into data and returns weather or not it succeeds. 
-```deserialize``` function takes the data and the arguements and deserializes data into arguements.
+The main API consists of these functions:
+
+```serialize``` -> takes an unlimited number of arguements (serializable data types) and serializes them into a byte array and returns the result.
+
+```deserialize``` -> takes the byte array or char sequence and an unlimited number of arguements and deserializes the data into the arguements and returns the size of bytes consumed from byte array or char sequence.
+
+```read``` -> reads binary data (the serialized data) from file into a byte array and returns weather it succeeds or not.
+
+```write``` -> writes a byte array into a file and returns weather it succeeds or not.
+
+```save``` -> does the job of ```serialize``` and ```write``` together. serializes arguements and writes them into a file and returns weather it succeeds or not.
+
+```write``` -> does the job of ```read``` and ```deserialize``` together. reads data from file and deserializes it into arguements and returns weather it succeeds or not. 
 
 ### STL Types
 You can serialize and deserialize STL container and other types (see [supported types](#supported-types) for more details). For example:
@@ -85,54 +94,78 @@ Serio::deserialize(data, points);
 Also note that structures or classes must be default constructable.
 
 ### Custom Containers
-With a little bit of work you can use this library to serialize your custom container. For example:
+With a little bit of work you can use this library to serialize your custom containers. For example:
 
 ``` c++
 struct Custom : vector<int>
 {
     using vector<int>::vector;
-};
-
-namespace Serio
-{
-Calculator& operator<<(Calculator& S, const Custom& C)
-{
-    S << Size(C.size());
-    for (const auto& V : C) S << V;
-    return S;
-}
-
-Serializer& operator<<(Serializer& S, const Custom& C)
-{
-    S << Size(C.size());
-    for (const auto& V : C) S << V;
-    return S;
-}
-
-Deserializer& operator>>(Deserializer& S, Custom& C)
-{
-    C.clear();
-
-    Size size;
-    S >> size;
-
-    for (Size i = 0; i < size; ++i)
+    
+    template <typename Derived>
+    inline void _serialize(Serio::SerializerOps<Derived>* C) const
     {
-        int temp;
-        S >> temp;
-        C.push_back(temp);
+        auto& serializer = *static_cast<Derived*>(C);
+        serializer << size();
+        for (const auto& value : *this) serializer << value;
     }
-
-    return S;
-}
-};  // namespace Serio
+    template <typename Derived>
+    inline void _deserialize(Serio::DeserializerOps<Derived>* C)
+    {
+        auto& deserializer = *static_cast<Derived*>(C);
+        size_type size;
+        deserializer >> size;
+        this->resize(size);
+        for (size_type i = 0; i < size; ++i) deserializer >> at(i);
+    }
+};
 ```
 
 Explanation:
 
-You have to write three functions in the namespace. First one helps the library determine the size of data to be able to allocate data fast. Here we first pass the size of container to Size Calculator and then every item in the container. The second function serializes the data and works similar to first one. The Third one deserializes the data. Here we first clear the container and then read size and the elements.
+Here we do the job of SERIO_REGISTER_CLASS manually. We define ```_serialize``` function in your class that serializes size first and then all the items. Then we define ```_deserialize``` function that deserializes size and resizes the container and then deserializes all the items.
 
 Now your container is ready to be serialized and deserialized.
+
+### Advances Usages
+You can serialize conditional cases using this library! For example if you want to seralize a union of std::vector<int> and std::string you can do the following:
+  
+``` c++
+struct Example
+{
+    std::variant<std::string, std::vector<int>> variant;
+
+    template <typename Derived>
+    inline void _serialize(Serio::SerializerOps<Derived>* C) const
+    {
+        auto& serializer = *static_cast<Derived*>(C);
+        auto index = variant.index();
+        serializer << index;
+
+        if (index == 0)
+            serializer << std::get<std::string>(variant);
+        else if (index == 1)
+            serializer << std::get<std::vector<int>>(variant);
+    }
+    template <typename Derived>
+    inline void _deserialize(Serio::DeserializerOps<Derived>* C)
+    {
+        auto& deserializer = *static_cast<Derived*>(C);
+        size_t index;
+        deserializer >> index;
+
+        if (index == 0)
+        {
+            variant = std::string();
+            deserializer >> std::get<std::string>(variant);
+        }
+        else if (index == 1)
+        {
+            variant = std::vector<int>();
+            deserializer >> std::get<std::vector<int>>(variant);
+        }
+    }
+};
+```
 
 ## Supported Types
 Supported types: [C++ containers](http://www.cplusplus.com/reference/stl/), std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::optional(C++17) and any structure that you register. If there are some types missing from this library you can report it on issues page.
@@ -155,7 +188,7 @@ This library can have a lot of applications. It can be used to process and save 
 
 + If you want the serialized files to be completely machine-independent use fixed size integers instead of basic data types.
 
-+ Doing ```using namespace Serio``` is not a good idea(because it may cause conflicts).
++ Doing ```using namespace Serio``` is not a good idea(because it may cause some conflicts).
 
 + When size of ```long double``` is 16 bytes, it is only supported where 128 integer is available (depends on compiler and hardware. see [this](https://gcc.gnu.org/onlinedocs/gcc-4.6.1/gcc/_005f_005fint128.html)). So be careful using it.
 
@@ -169,7 +202,7 @@ g++ tests.cpp -o tests -lgtest -O2
 Then you can run the tests executable. Also note that tests might take a long time to compile so please be patient.
 
 # Contribution and Questions
-You can report bugs and ask questions on [issues page](../../issues).
+You can report bugs and ask questions on [issues page](../../issues). Also if you want to implement a feature you can open an issue and we can discuss it.
 
 # License
 This library is licensed under BSD 3-Clause license. You can read it [here](LICENSE.md).
