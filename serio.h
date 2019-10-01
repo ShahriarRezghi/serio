@@ -593,15 +593,15 @@ struct DeserializerOps
     inline Derived& operator>>(std::vector<bool, Alloc>& C)
     {
         auto& A = This();
-        C.clear();
         Size size;
         A >> size;
+        C.resize(size);
 
         for (Size i = 0; i < size; ++i)
         {
             bool value;
             A >> value;
-            C.emplace_back(std::move(value));
+            C[i] = value;
         }
 
         return A;
