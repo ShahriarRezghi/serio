@@ -28,10 +28,11 @@
 #include <float.h>
 #include <gtest/gtest.h>
 #include <math.h>
+#include <serio.h>
 #include <time.h>
+
 #include <limits>
 #include <random>
-#include "serio.h"
 
 using namespace std;
 // using namespace Serio;
@@ -529,7 +530,7 @@ TEST(Complex, Serio)
 
 int main(int argc, char** argv)
 {
-    ::testing::InitGoogleTest(&argc, argv);
+    testing::InitGoogleTest(&argc, argv);
     srand(time(nullptr));
     return RUN_ALL_TESTS();
 }

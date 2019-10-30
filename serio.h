@@ -31,23 +31,23 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <string>
 
 #include <array>
 #include <bitset>
 #include <chrono>
 #include <complex>
+#include <cstring>
 #include <deque>
 #include <forward_list>
+#include <fstream>
+#include <iostream>
 #include <list>
 #include <map>
 #include <memory>
 #include <queue>
 #include <set>
 #include <stack>
+#include <string>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -56,6 +56,10 @@
 
 #if __cplusplus >= 201703L
 #include <optional>
+#endif
+
+#ifndef SERIO_SIZE
+#define SERIO_SIZE 8
 #endif
 
 #define SERIO_REGISTER_CLASS(...)                                  \
@@ -101,6 +105,16 @@
 
 namespace Serio
 {
+#if SERIO_SIZE == 8
+using Size = uint64_t;
+#elif SERIO_SIZE == 4
+using Size = uint32_t;
+#elif SERIO_SIZE == 2
+using Size = uint16_t;
+#endif
+
+namespace Impl
+{
 namespace Number
 {
 template <typename T, size_t N>
@@ -111,7 +125,6 @@ struct NumberRecurse
         NumberRecurse<T, N - 1>::serialize(data, buffer);
         buffer[N] = char(data >> (N * 8));
     }
-
     static inline void deserialize(T& data, const char* buffer)
     {
         NumberRecurse<T, N - 1>::deserialize(data, buffer);
@@ -123,7 +136,6 @@ template <typename T>
 struct NumberRecurse<T, 0>
 {
     static inline void serialize(const T& data, char* buffer) { buffer[0] = char(data); }
-
     static inline void deserialize(T& data, const char* buffer) { data |= T(uint8_t(buffer[0])); }
 };
 
@@ -156,10 +168,7 @@ void serialize(const T& data, char* buffer)
         _serialize(*reinterpret_cast<const __uint128_t*>(&data), buffer);
 #endif
     else
-    {
-        std::cerr << "Unsupported basic type for serialization" << std::endl;
-        assert(false);
-    }
+        throw std::runtime_error("Basic data type is not supported for serialization");
 }
 
 template <typename T>
@@ -178,10 +187,7 @@ void deserialize(T& data, const char* buffer)
         _deserialize(*reinterpret_cast<__uint128_t*>(&data), buffer);
 #endif
     else
-    {
-        std::cerr << "Unsupported basic type for deserialization" << std::endl;
-        assert(false);
-    }
+        throw std::runtime_error("Basic data type is not supported for deserialization");
 }
 }  // namespace Number
 
@@ -259,8 +265,6 @@ inline void deserialize(std::bitset<N>& C, const char* buffer)
 }
 }  // namespace Bitset
 
-using Size = uint64_t;
-
 template <typename Iter>
 size_t iteratableSize(const Iter& I)
 {
@@ -303,7 +307,6 @@ struct TupleRecurse
         TupleRecurse<Tuple, N - 1>::serialize(C, T);
         C << std::get<N - 1>(T);
     }
-
     template <typename A>
     static inline void deserialize(A& C, Tuple& T)
     {
@@ -320,14 +323,16 @@ struct TupleRecurse<Tuple, 1>
     {
         C << std::get<0>(T);
     }
-
     template <typename A>
     static inline void deserialize(A& C, Tuple& T)
     {
         C >> std::get<0>(T);
     }
 };
+}  // namespace Impl
 
+/// This class breaks higher structurs into simple elements and passes them on to the class that
+/// handles them
 template <typename Derived>
 struct SerializerOps
 {
@@ -339,7 +344,7 @@ struct SerializerOps
     inline Derived& iteratable(const Iter& C)
     {
         auto& A = This();
-        A << Size(iteratableSize(C));
+        A << Size(Impl::iteratableSize(C));
         for (const auto& S : C) A << S;
         return A;
     }
@@ -444,21 +449,21 @@ struct SerializerOps
     template <typename T, typename Sequence>
     inline Derived& operator<<(const std::queue<T, Sequence>& C)
     {
-        const auto* D = reinterpret_cast<const DerivedQueue<T, Sequence>*>(&C);
+        const auto* D = reinterpret_cast<const Impl::DerivedQueue<T, Sequence>*>(&C);
         return iteratable(D->c);
     }
 
     template <typename T, typename Sequence>
     inline Derived& operator<<(const std::priority_queue<T, Sequence>& C)
     {
-        const auto* D = reinterpret_cast<const DerivedPQueue<T, Sequence>*>(&C);
+        const auto* D = reinterpret_cast<const Impl::DerivedPQueue<T, Sequence>*>(&C);
         return iteratable(D->c);
     }
 
     template <typename T, typename Sequence>
     inline Derived& operator<<(const std::stack<T, Sequence>& C)
     {
-        const auto* D = reinterpret_cast<const DerivedStack<T, Sequence>*>(&C);
+        const auto* D = reinterpret_cast<const Impl::DerivedStack<T, Sequence>*>(&C);
         return iteratable(D->c);
     }
 
@@ -472,7 +477,7 @@ struct SerializerOps
     inline Derived& operator<<(const std::tuple<Ts...>& C)
     {
         auto& A = This();
-        TupleRecurse<decltype(C), sizeof...(Ts)>::serialize(A, C);
+        Impl::TupleRecurse<decltype(C), sizeof...(Ts)>::serialize(A, C);
         return A;
     }
 
@@ -522,6 +527,8 @@ struct SerializerOps
     }
 };
 
+/// This class breaks higher structurs into simple elements and passes them on to the class that
+/// handles them
 template <typename Derived>
 struct DeserializerOps
 {
@@ -692,21 +699,21 @@ struct DeserializerOps
     template <typename T, typename Sequence>
     inline Derived& operator>>(std::queue<T, Sequence>& C)
     {
-        auto* D = reinterpret_cast<DerivedQueue<T, Sequence>*>(&C);
+        auto* D = reinterpret_cast<Impl::DerivedQueue<T, Sequence>*>(&C);
         return assignable(D->c);
     }
 
     template <typename T, typename Sequence>
     inline Derived& operator>>(std::priority_queue<T, Sequence>& C)
     {
-        auto* D = reinterpret_cast<DerivedPQueue<T, Sequence>*>(&C);
+        auto* D = reinterpret_cast<Impl::DerivedPQueue<T, Sequence>*>(&C);
         return assignable(D->c);
     }
 
     template <typename T, typename Sequence>
     inline Derived& operator>>(std::stack<T, Sequence>& C)
     {
-        auto* D = reinterpret_cast<DerivedStack<T, Sequence>*>(&C);
+        auto* D = reinterpret_cast<Impl::DerivedStack<T, Sequence>*>(&C);
         return assignable(D->c);
     }
 
@@ -720,7 +727,7 @@ struct DeserializerOps
     inline Derived& operator>>(std::tuple<Ts...>& C)
     {
         auto& A = This();
-        TupleRecurse<decltype(C), sizeof...(Ts)>::deserialize(A, C);
+        Impl::TupleRecurse<decltype(C), sizeof...(Ts)>::deserialize(A, C);
         return A;
     }
 
@@ -784,6 +791,7 @@ struct DeserializerOps
     }
 };
 
+/// This class implements size calculation of basic types
 template <typename Derived>
 struct CalculatorBase
 {
@@ -820,6 +828,7 @@ struct CalculatorBase
     }
 };
 
+/// This class implements serialization of basic types
 template <typename Derived>
 struct SerializerBase
 {
@@ -834,7 +843,7 @@ struct SerializerBase
     template <typename T>
     inline Derived& dataType(const T& C)
     {
-        Number::serialize(C, buffer);
+        Impl::Number::serialize(C, buffer);
         buffer += sizeof(C);
         return This();
     }
@@ -854,13 +863,14 @@ struct SerializerBase
     template <size_t N>
     inline Derived& operator<<(const std::bitset<N>& C)
     {
-        Bitset::serialize(C, buffer);
+        Impl::Bitset::serialize(C, buffer);
         buffer += size_t(std::ceil(N / 8.0));
 
         return This();
     }
 };
 
+/// This class implements deserialization of basic types
 template <typename Derived>
 struct DeserializerBase
 {
@@ -875,7 +885,7 @@ struct DeserializerBase
     template <typename T>
     inline Derived& dataType(T& C)
     {
-        Number::deserialize(C, buffer);
+        Impl::Number::deserialize(C, buffer);
         buffer += sizeof(C);
         return This();
     }
@@ -897,24 +907,29 @@ struct DeserializerBase
     template <size_t N>
     inline Derived& operator>>(std::bitset<N>& C)
     {
-        Bitset::deserialize(C, buffer);
+        Impl::Bitset::deserialize(C, buffer);
         buffer += size_t(std::ceil(N / 8.0));
         return This();
     }
 };
 
+/// This class calculates size of any supported types
 struct Calculator : CalculatorBase<Calculator>, SerializerOps<Calculator>
 {
     using Base::Base;
     using Ops::operator<<;
     using Base::operator<<;
 };
+
+/// This class serializes any of the supported types
 struct Serializer : SerializerBase<Serializer>, SerializerOps<Serializer>
 {
     using Base::Base;
     using Ops::operator<<;
     using Base::operator<<;
 };
+
+/// This class deserializes any of the supported types
 struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializer>
 {
     using Base::Base;
@@ -922,8 +937,11 @@ struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializ
     using Base::operator>>;
 };
 
+/// Array of 8 bit data type
 using ByteArray = std::basic_string<char>;
 
+/// Takes an unlimited number of arguements (serializable data types) and serializes them into a
+/// byte array and returns the result
 template <typename Head, typename... Tail>
 ByteArray serialize(const Head& head, Tail&&... tail)
 {
@@ -935,6 +953,9 @@ ByteArray serialize(const Head& head, Tail&&... tail)
     serializer.process(head, std::forward<Tail>(tail)...);
     return data;
 }
+
+/// Takes a byte array and an unlimited number of arguements and deserializes the data into the
+/// arguements and returns the size of bytes consumed from byte array or char sequence
 template <typename Head, typename... Tail>
 size_t deserialize(const ByteArray& data, Head& head, Tail&&... tail)
 {
@@ -942,6 +963,9 @@ size_t deserialize(const ByteArray& data, Head& head, Tail&&... tail)
     deserializer.process(head, std::forward<Tail>(tail)...);
     return size_t(deserializer.buffer - &data.front());
 }
+
+/// Takes a char sequence and an unlimited number of arguements and deserializes the data into the
+/// arguements and returns the size of bytes consumed from byte array or char sequence
 template <typename Head, typename... Tail>
 size_t deserialize(const char* data, Head& head, Tail&&... tail)
 {
@@ -950,6 +974,7 @@ size_t deserialize(const char* data, Head& head, Tail&&... tail)
     return size_t(deserializer.buffer - data);
 }
 
+/// Writes a byte array into a file and returns weather it succeeds or not
 inline bool write(const std::string& path, const ByteArray& data)
 {
     std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
@@ -963,6 +988,9 @@ inline bool write(const std::string& path, const ByteArray& data)
     stream.close();
     return true;
 }
+
+/// Reads binary data (the serialized data) from file into a byte array and returns weather it
+/// succeeds or not
 inline bool read(const std::string& path, ByteArray& data)
 {
     std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
@@ -980,11 +1008,16 @@ inline bool read(const std::string& path, ByteArray& data)
     return true;
 }
 
+/// Does the job of serialize and write together. serializes arguements and writes them into a file
+/// and returns weather it succeeds or not
 template <typename Head, typename... Tail>
 inline bool save(const std::string& path, const Head& head, Tail&&... tail)
 {
     return write(path, serialize(head, std::forward<Tail>(tail)...));
 }
+
+/// Does the job of read and deserialize together. reads data from file and deserializes it into
+/// arguements and returns weather it succeeds or not
 template <typename Head, typename... Tail>
 inline bool load(const std::string& path, Head& head, Tail&&... tail)
 {
@@ -992,7 +1025,6 @@ inline bool load(const std::string& path, Head& head, Tail&&... tail)
     if (!read(path, A)) return false;
     return deserialize(A, head, std::forward<Tail>(tail)...) == A.size();
 }
-
 }  // namespace Serio
 
 #undef SERIALIZER_CREATE_TYPE
