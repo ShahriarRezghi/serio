@@ -13,6 +13,6 @@ if(BUILD_TESTS)
     include_directories(${GTEST_INCLUDE_DIRS})
 
     add_executable(Tests "tests.cpp")
-    target_link_libraries(Tests gtest gtest_main)
+    target_link_libraries(Tests ${GTEST_LIBRARIES})
     target_link_libraries(Tests ${PROJECT_NAME})
 endif(BUILD_TESTS)
