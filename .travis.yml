@@ -20,16 +20,6 @@ script:
 matrix:
   include:
 
-    - os: linux
-      arch: arm64
-      env: CC=clang-6.0 && export CXX=clang++-6.0
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-xenial-6.0
-          packages:
-            - clang-6.0
-
     # - os: linux
     #   dist: xenial
     #   env: CC=clang-8 && export CXX=clang++-8
@@ -204,3 +194,180 @@ matrix:
     # - os: osx
     #   osx_image: xcode8.3
     #   compiler: clang
+    
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=clang-8 && export CXX=clang++-8
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-8
+          packages:
+            - clang-8
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=clang-7 && export CXX=clang++-7
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-7
+          packages:
+            - clang-7
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=clang-6.0 && export CXX=clang++-6.0
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-6.0
+          packages:
+            - clang-6.0
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=clang-5.0 && export CXX=clang++-5.0
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-5.0
+          packages:
+            - clang-5.0
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=clang-4.0 && export CXX=clang++-4.0
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-4.0
+          packages:
+            - clang-4.0
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=clang-3.9 && export CXX=clang++-3.9
+      addons:
+        apt:
+          packages:
+            - clang-3.9
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=clang-3.8 && export CXX=clang++-3.8
+      addons:
+        apt:
+          packages:
+            - clang-3.8
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=clang-3.7 && export CXX=clang++-3.7
+      addons:
+        apt:
+          packages:
+            - clang-3.7
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=clang-3.6 && export CXX=clang++-3.6
+      addons:
+        apt:
+          packages:
+            - clang-3.6
+
+            
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=gcc-9 && export CXX=g++-9
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-9
+            - gcc-9
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=gcc-8 && export CXX=g++-8
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+            - gcc-8
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=gcc-7 && export CXX=g++-7
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - gcc-7
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=gcc-6 && export CXX=g++-6
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+            - gcc-6
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=gcc-5 && export CXX=g++-5
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+            - gcc-5
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=gcc-4.9 && export CXX=g++-4.9
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+            - gcc-4.9
+
+    - os: linux
+      arch: arm64
+      dist: xenial
+      env: CC=gcc-4.8 && export CXX=g++-4.8
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.8
+            - gcc-4.8
