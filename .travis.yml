@@ -1,5 +1,4 @@
 language: cpp
-dist: xenial
 
 install:
   # Install Gtest
@@ -21,7 +20,19 @@ script:
 matrix:
   include:
 
-    # - env: CC=clang-8 && export CXX=clang++-8
+    - os: linux
+      arch: arm64
+      env: CC=clang-8 && export CXX=clang++-8
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-8
+          packages:
+            - clang-8
+
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=clang-8 && export CXX=clang++-8
     #   addons:
     #     apt:
     #       sources:
@@ -29,7 +40,9 @@ matrix:
     #       packages:
     #         - clang-8
 
-    # - env: CC=clang-7 && export CXX=clang++-7
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=clang-7 && export CXX=clang++-7
     #   addons:
     #     apt:
     #       sources:
@@ -37,7 +50,9 @@ matrix:
     #       packages:
     #         - clang-7
 
-    # - env: CC=clang-6.0 && export CXX=clang++-6.0
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=clang-6.0 && export CXX=clang++-6.0
     #   addons:
     #     apt:
     #       sources:
@@ -45,7 +60,9 @@ matrix:
     #       packages:
     #         - clang-6.0
 
-    # - env: CC=clang-5.0 && export CXX=clang++-5.0
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=clang-5.0 && export CXX=clang++-5.0
     #   addons:
     #     apt:
     #       sources:
@@ -53,7 +70,9 @@ matrix:
     #       packages:
     #         - clang-5.0
 
-    # - env: CC=clang-4.0 && export CXX=clang++-4.0
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=clang-4.0 && export CXX=clang++-4.0
     #   addons:
     #     apt:
     #       sources:
@@ -61,31 +80,43 @@ matrix:
     #       packages:
     #         - clang-4.0
 
-    # - env: CC=clang-3.9 && export CXX=clang++-3.9
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=clang-3.9 && export CXX=clang++-3.9
     #   addons:
     #     apt:
     #       packages:
     #         - clang-3.9
 
-    # - env: CC=clang-3.8 && export CXX=clang++-3.8
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=clang-3.8 && export CXX=clang++-3.8
     #   addons:
     #     apt:
     #       packages:
     #         - clang-3.8
 
-    # - env: CC=clang-3.7 && export CXX=clang++-3.7
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=clang-3.7 && export CXX=clang++-3.7
     #   addons:
     #     apt:
     #       packages:
     #         - clang-3.7
 
-    # - env: CC=clang-3.6 && export CXX=clang++-3.6
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=clang-3.6 && export CXX=clang++-3.6
     #   addons:
     #     apt:
     #       packages:
     #         - clang-3.6
 
-    # - env: CC=gcc-9 && export CXX=g++-9
+            
+
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=gcc-9 && export CXX=g++-9
     #   addons:
     #     apt:
     #       sources:
@@ -94,7 +125,9 @@ matrix:
     #         - g++-9
     #         - gcc-9
 
-    # - env: CC=gcc-8 && export CXX=g++-8
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=gcc-8 && export CXX=g++-8
     #   addons:
     #     apt:
     #       sources:
@@ -103,7 +136,9 @@ matrix:
     #         - g++-8
     #         - gcc-8
 
-    # - env: CC=gcc-7 && export CXX=g++-7
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=gcc-7 && export CXX=g++-7
     #   addons:
     #     apt:
     #       sources:
@@ -112,7 +147,9 @@ matrix:
     #         - g++-7
     #         - gcc-7
 
-    # - env: CC=gcc-6 && export CXX=g++-6
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=gcc-6 && export CXX=g++-6
     #   addons:
     #     apt:
     #       sources:
@@ -121,7 +158,9 @@ matrix:
     #         - g++-6
     #         - gcc-6
 
-    # - env: CC=gcc-5 && export CXX=g++-5
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=gcc-5 && export CXX=g++-5
     #   addons:
     #     apt:
     #       sources:
@@ -130,7 +169,9 @@ matrix:
     #         - g++-5
     #         - gcc-5
 
-    # - env: CC=gcc-4.9 && export CXX=g++-4.9
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=gcc-4.9 && export CXX=g++-4.9
     #   addons:
     #     apt:
     #       sources:
@@ -139,7 +180,9 @@ matrix:
     #         - g++-4.9
     #         - gcc-4.9
 
-    # - env: CC=gcc-4.8 && export CXX=g++-4.8
+    # - os: linux
+    #   dist: xenial
+    #   env: CC=gcc-4.8 && export CXX=g++-4.8
     #   addons:
     #     apt:
     #       sources:
@@ -148,47 +191,16 @@ matrix:
     #         - g++-4.8
     #         - gcc-4.8
 
-    - os: osx
-      compiler: gcc
-      osx_image: xcode8.3
-      env: CC=gcc-4.8 && CXX=g++-4.8
 
-    - os: osx
-      compiler: gcc
-      osx_image: xcode8.3
-      env: CC=gcc-4.9 && CXX=g++-4.9
-
-    - os: osx
-      compiler: gcc
-      osx_image: xcode8.3
-      env: CC=gcc-5 && CXX=g++-5
-
-    - os: osx
-      compiler: gcc
-      osx_image: xcode8.3
-      env: CC=gcc-6 && CXX=g++-6
-
-    - os: osx
-      compiler: gcc
-      osx_image: xcode8.3
-      env: CC=gcc-7 && CXX=g++-7
-
-    - os: osx
-      compiler: gcc
-      osx_image: xcode8.3
-      env: CC=gcc-8 && CXX=g++-8
-
-    - os: osx
-      compiler: gcc
-      osx_image: xcode8.3
-      env: CC=gcc-9 && CXX=g++-9
-
-
-    # - os: osx
-    #   osx_image: xcode9.4
-    #   compiler: clang
 
     # - os: osx
     #   osx_image: xcode10.1
     #   compiler: clang
             
+    # - os: osx
+    #   osx_image: xcode9.4
+    #   compiler: clang
+
+    # - os: osx
+    #   osx_image: xcode8.3
+    #   compiler: clang
