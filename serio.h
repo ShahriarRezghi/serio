@@ -79,30 +79,6 @@
         C->process(__VA_ARGS__);                                   \
     }
 
-#define SERIALIZER_CREATE_TYPE(TYPE) \
-    inline Derived& operator<<(const TYPE& C) { return dataType(C); }
-
-#define DESERIALIZER_CREATE_TYPE(TYPE) \
-    inline Derived& operator>>(TYPE& C) { return dataType(C); }
-
-#define FUNC_FOR_TYPES(FUNC) \
-    FUNC(char)               \
-    FUNC(signed char)        \
-    FUNC(short)              \
-    FUNC(int)                \
-    FUNC(long)               \
-    FUNC(long long)          \
-    FUNC(unsigned char)      \
-    FUNC(unsigned short)     \
-    FUNC(unsigned int)       \
-    FUNC(unsigned long)      \
-    FUNC(unsigned long long) \
-    FUNC(wchar_t)            \
-    FUNC(bool)               \
-    FUNC(float)              \
-    FUNC(double)             \
-    FUNC(long double)
-
 namespace Serio
 {
 #if SERIO_SIZE == 8
@@ -270,7 +246,6 @@ size_t iteratableSize(const Iter& I)
 {
     return I.size();
 }
-
 template <typename T, typename Alloc>
 size_t iteratableSize(const std::forward_list<T, Alloc>& I)
 {
@@ -334,10 +309,8 @@ struct TupleRecurse<Tuple, 1>
 /// This class breaks higher structurs into simple elements and passes them on to the class that
 /// handles them
 template <typename Derived>
-struct SerializerOps
+class SerializerOps
 {
-    using Ops = SerializerOps;
-
     inline Derived& This() { return *static_cast<Derived*>(this); }
 
     template <typename Iter>
@@ -349,8 +322,9 @@ struct SerializerOps
         return A;
     }
 
+public:
     template <typename T>
-    inline Derived operator<<(const T& C)
+    inline typename std::enable_if<std::is_class<T>::value, Derived&>::type operator<<(const T& C)
     {
         C._serialize(this);
         return This();
@@ -530,10 +504,8 @@ struct SerializerOps
 /// This class breaks higher structurs into simple elements and passes them on to the class that
 /// handles them
 template <typename Derived>
-struct DeserializerOps
+class DeserializerOps
 {
-    using Ops = DeserializerOps;
-
     inline Derived& This() { return *static_cast<Derived*>(this); }
 
     template <typename Iter, typename T>
@@ -577,8 +549,9 @@ struct DeserializerOps
         return A;
     }
 
+public:
     template <typename T>
-    inline Derived& operator>>(T& C)
+    inline typename std::enable_if<std::is_class<T>::value, Derived&>::type operator>>(T& C)
     {
         C._deserialize(this);
         return This();
@@ -793,24 +766,23 @@ struct DeserializerOps
 
 /// This class implements size calculation of basic types
 template <typename Derived>
-struct CalculatorBase
+class CalculatorBase
 {
-    using Base = CalculatorBase;
-    size_t size{0};
-
-    CalculatorBase() {}
-    CalculatorBase(size_t size) { this->size = size; }
-
     inline Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
+public:
+    size_t size;
+
+    CalculatorBase(size_t size = 0) : size(size) {}
+
     template <typename T>
-    inline Derived& dataType(const T& C)
+    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
+                                   Derived&>::type
+    operator<<(const T& C)
     {
         size += sizeof(C);
         return This();
     }
-
-    FUNC_FOR_TYPES(SERIALIZER_CREATE_TYPE)
 
     template <typename Traits, typename Alloc>
     inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
@@ -832,23 +804,22 @@ struct CalculatorBase
 template <typename Derived>
 struct SerializerBase
 {
-    using Base = SerializerBase;
-    char* buffer{nullptr};
-
-    SerializerBase() {}
-    SerializerBase(char* buffer) { this->buffer = buffer; }
-
     inline Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
+public:
+    char* buffer;
+
+    SerializerBase(char* buffer = nullptr) : buffer(buffer) {}
+
     template <typename T>
-    inline Derived& dataType(const T& C)
+    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
+                                   Derived&>::type
+    operator<<(const T& C)
     {
         Impl::Number::serialize(C, buffer);
         buffer += sizeof(C);
         return This();
     }
-
-    FUNC_FOR_TYPES(SERIALIZER_CREATE_TYPE)
 
     template <typename Traits, typename Alloc>
     inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
@@ -874,23 +845,22 @@ struct SerializerBase
 template <typename Derived>
 struct DeserializerBase
 {
-    using Base = DeserializerBase;
-    const char* buffer{nullptr};
-
-    DeserializerBase() {}
-    DeserializerBase(const char* buffer) { this->buffer = buffer; }
-
     inline Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
+public:
+    const char* buffer;
+
+    DeserializerBase(const char* buffer = nullptr) : buffer(buffer) {}
+
     template <typename T>
-    inline Derived& dataType(T& C)
+    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
+                                   Derived&>::type
+    operator>>(T& C)
     {
         Impl::Number::deserialize(C, buffer);
         buffer += sizeof(C);
         return This();
     }
-
-    FUNC_FOR_TYPES(DESERIALIZER_CREATE_TYPE)
 
     template <typename Traits, typename Alloc>
     inline Derived& operator>>(std::basic_string<char, Traits, Alloc>& C)
@@ -916,6 +886,8 @@ struct DeserializerBase
 /// This class calculates size of any supported types
 struct Calculator : CalculatorBase<Calculator>, SerializerOps<Calculator>
 {
+    using Base = CalculatorBase<Calculator>;
+    using Ops = SerializerOps<Calculator>;
     using Base::Base;
     using Ops::operator<<;
     using Base::operator<<;
@@ -924,6 +896,8 @@ struct Calculator : CalculatorBase<Calculator>, SerializerOps<Calculator>
 /// This class serializes any of the supported types
 struct Serializer : SerializerBase<Serializer>, SerializerOps<Serializer>
 {
+    using Base = SerializerBase<Serializer>;
+    using Ops = SerializerOps<Serializer>;
     using Base::Base;
     using Ops::operator<<;
     using Base::operator<<;
@@ -932,6 +906,8 @@ struct Serializer : SerializerBase<Serializer>, SerializerOps<Serializer>
 /// This class deserializes any of the supported types
 struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializer>
 {
+    using Base = DeserializerBase<Deserializer>;
+    using Ops = DeserializerOps<Deserializer>;
     using Base::Base;
     using Ops::operator>>;
     using Base::operator>>;
@@ -1026,9 +1002,5 @@ inline bool load(const std::string& path, Head& head, Tail&&... tail)
     return deserialize(A, head, std::forward<Tail>(tail)...) == A.size();
 }
 }  // namespace Serio
-
-#undef SERIALIZER_CREATE_TYPE
-#undef DESERIALIZER_CREATE_TYPE
-#undef FUNC_FOR_TYPES
 
 #endif  // SSERIALIZATION_H
