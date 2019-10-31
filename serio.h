@@ -124,6 +124,7 @@ struct NumberRecurse
         NumberRecurse<T, N - 1>::serialize(data, buffer);
         buffer[N] = char(data >> (N * 8));
     }
+
     static inline void deserialize(T& data, const char* buffer)
     {
         NumberRecurse<T, N - 1>::deserialize(data, buffer);
@@ -135,6 +136,7 @@ template <typename T>
 struct NumberRecurse<T, 0>
 {
     static inline void serialize(const T& data, char* buffer) { buffer[0] = char(data); }
+
     static inline void deserialize(T& data, const char* buffer) { data |= T(uint8_t(buffer[0])); }
 };
 
@@ -200,6 +202,7 @@ struct BitsetBitRecurse
         BitsetBitRecurse<N, I, J - 1>::serialize(C, buffer);
         if (I + J < N) buffer[I] |= (C[I * 8 + J] << J) & (1 << J);
     }
+
     static inline void deserialize(std::bitset<N>& C, const char* buffer)
     {
         BitsetBitRecurse<N, I, J - 1>::deserialize(C, buffer);
@@ -211,6 +214,7 @@ template <size_t N, size_t I>
 struct BitsetBitRecurse<N, I, 0>
 {
     static inline void serialize(const std::bitset<N>& C, char* buffer) { buffer[I] = C[I * 8]; }
+
     static inline void deserialize(std::bitset<N>& C, const char* buffer)
     {
         C[I * 8] = buffer[I] & 1;
@@ -225,6 +229,7 @@ struct BitsetCharRecurse
         BitsetCharRecurse<N, I - 1>::serialize(C, buffer);
         BitsetBitRecurse<N, I, 7>::serialize(C, buffer);
     }
+
     static inline void deserialize(std::bitset<N>& C, const char* buffer)
     {
         BitsetCharRecurse<N, I - 1>::deserialize(C, buffer);
@@ -239,6 +244,7 @@ struct BitsetCharRecurse<N, 0>
     {
         BitsetBitRecurse<N, 0, 7>::serialize(C, buffer);
     }
+
     static inline void deserialize(std::bitset<N>& C, const char* buffer)
     {
         BitsetBitRecurse<N, 0, 7>::deserialize(C, buffer);
@@ -269,6 +275,7 @@ size_t iteratableSize(const Iter& I)
 {
     return I.size();
 }
+
 template <typename T, typename Alloc>
 size_t iteratableSize(const std::forward_list<T, Alloc>& I)
 {
@@ -305,6 +312,7 @@ struct TupleRecurse
         TupleRecurse<Tuple, N - 1>::serialize(C, T);
         C << std::get<N - 1>(T);
     }
+
     template <typename A>
     static inline void deserialize(A& C, Tuple& T)
     {
@@ -321,6 +329,7 @@ struct TupleRecurse<Tuple, 1>
     {
         C << std::get<0>(T);
     }
+
     template <typename A>
     static inline void deserialize(A& C, Tuple& T)
     {
@@ -589,13 +598,13 @@ public:
     }
 #endif
 
-    inline void process() {}
+    inline Derived& process() { return This(); }
 
     template <typename Head, typename... Tail>
-    inline void process(const Head& head, Tail&&... tail)
+    inline Derived& process(const Head& head, Tail&&... tail)
     {
         This() << head;
-        process(std::forward<Tail>(tail)...);
+        return process(std::forward<Tail>(tail)...);
     }
 };
 
@@ -854,13 +863,13 @@ public:
     }
 #endif
 
-    inline void process() {}
+    inline Derived& process() { return This(); }
 
     template <typename Head, typename... Tail>
-    inline void process(Head& head, Tail&&... tail)
+    inline Derived& process(Head& head, Tail&&... tail)
     {
         This() >> head;
-        process(std::forward<Tail>(tail)...);
+        return process(std::forward<Tail>(tail)...);
     }
 };
 
@@ -1026,9 +1035,7 @@ struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializ
 template <typename Head, typename... Tail>
 inline size_t size(const Head& head, Tail&&... tail)
 {
-    Calculator calculator;
-    calculator.process(head, std::forward<Tail>(tail)...);
-    return calculator.size;
+    return Calculator().process(head, std::forward<Tail>(tail)...).size;
 }
 
 /// Serializes and unlimited number of input arguments (serializable data types).
@@ -1044,12 +1051,33 @@ inline size_t size(const Head& head, Tail&&... tail)
 /// @param data Destination of serialized data
 /// @param head First parameter to be serialized
 /// @param tail Rest of the parameters to be serialized
+/// @returns The number of bytes written to sequence
 /// @see serialize()
 template <typename Head, typename... Tail>
-inline void fill(char* data, const Head& head, Tail&&... tail)
+inline size_t fill(char* data, const Head& head, Tail&&... tail)
 {
-    Serializer serializer{data};
-    serializer.process(head, std::forward<Tail>(tail)...);
+    return size_t(Serializer(data).process(head, std::forward<Tail>(tail)...).buffer - data);
+}
+
+/// Deserializes and unlimited number of input arguments (deserializable data types).
+///
+/// Example:
+/// @code
+/// int A, B;
+/// std::vector<int> C;
+/// const char *data; // Must contain the serialized data
+/// auto size = Serio::deserialize(data, A, B, C);
+/// @endcode
+///
+/// @param data Sequence of bytes containing serialized data
+/// @param head First parameter to be deserialized
+/// @param tail Rest of the parameters to be deserialized
+/// @returns The number of bytes consumed from char sequence
+/// @see serialize(), deserialize()
+template <typename Head, typename... Tail>
+inline size_t deserialize(const char* data, Head& head, Tail&&... tail)
+{
+    return size_t(Deserializer(data).process(head, std::forward<Tail>(tail)...).buffer - data);
 }
 
 /// Serializes and unlimited number of input arguments (serializable data types).
@@ -1071,29 +1099,6 @@ inline ByteArray serialize(const Head& head, Tail&&... tail)
     ByteArray data(size(head, std::forward<Tail>(tail)...), 0);
     fill(&data.front(), head, std::forward<Tail>(tail)...);
     return data;
-}
-
-/// Deserializes and unlimited number of input arguments (deserializable data types).
-///
-/// Example:
-/// @code
-/// int A, B;
-/// std::vector<int> C;
-/// const char *data; // Must contain the serialized data
-/// auto size = Serio::deserialize(data, A, B, C);
-/// @endcode
-///
-/// @param data Sequence of bytes containing serialized data
-/// @param head First parameter to be deserialized
-/// @param tail Rest of the parameters to be deserialized
-/// @returns The number of bytes consumed from char sequence
-/// @see serialize(), deserialize()
-template <typename Head, typename... Tail>
-inline size_t deserialize(const char* data, Head& head, Tail&&... tail)
-{
-    Deserializer deserializer{data};
-    deserializer.process(head, std::forward<Tail>(tail)...);
-    return size_t(deserializer.buffer - data);
 }
 
 /// Deserializes and unlimited number of input arguments (deserializable data types).

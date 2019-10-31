@@ -13,8 +13,6 @@
 + Add tests for priority queue
 + Add tests for time point
 + Add tests for optional
-+ Add tests for optional
-+ Add tests for char 16 and 32
 + Add tests for save and load
 + Write stream serializer and deserializer
 + Update README

@@ -49,6 +49,8 @@ using namespace std;
 #ifdef __SIZEOF_INT128__
 #define CREATE_ITER_TEST_BASE(MACRO, NAME, TYPE)               \
     MACRO(NAME, TYPE, char, char);                             \
+    MACRO(NAME, TYPE, char16, char16_t);                       \
+    MACRO(NAME, TYPE, char32, char32_t);                       \
     MACRO(NAME, TYPE, signed_char, signed char);               \
     MACRO(NAME, TYPE, short, short);                           \
     MACRO(NAME, TYPE, int, int);                               \
@@ -66,6 +68,8 @@ using namespace std;
 #else
 #define CREATE_ITER_TEST_BASE(MACRO, NAME, TYPE)               \
     MACRO(NAME, TYPE, char, char);                             \
+    MACRO(NAME, TYPE, char16, char16_t);                       \
+    MACRO(NAME, TYPE, char32, char32_t);                       \
     MACRO(NAME, TYPE, signed_char, signed char);               \
     MACRO(NAME, TYPE, short, short);                           \
     MACRO(NAME, TYPE, int, int);                               \
