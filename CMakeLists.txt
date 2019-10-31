@@ -6,7 +6,7 @@ include_directories(.)
 add_library(${PROJECT_NAME} INTERFACE)
 install(FILES "serio.h" DESTINATION ${CMAKE_INSTALL_PREFIX}/include/${PROJECT_NAME})
 
-option(BUILD_TESTS "Build tests" OFF)
+option(BUILD_TESTS "Build tests" ON)
 
 if(BUILD_TESTS)
     add_executable(Tests "tests.cpp")

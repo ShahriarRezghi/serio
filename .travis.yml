@@ -1,0 +1,46 @@
+language: cpp
+dist: xenial
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-xenial-8
+    packages:
+      - g++-9
+      - gcc-9
+      - cmake
+      - clang-8
+      - clang-format-8
+
+install:
+  # Install Gtest
+  - sudo wget https://github.com/google/googletest/archive/release-1.8.1.tar.gz
+  - sudo tar xf release-1.8.1.tar.gz
+  - cd googletest-release-1.8.1
+  - sudo cmake -DBUILD_SHARED_LIBS=ON .
+  - sudo make -j8
+  - sudo cp -a googletest/include/gtest /usr/include
+  - sudo cp -a googlemock/gtest/libgtest_main.so googlemock/gtest/libgtest.so /usr/lib/
+  - cd -
+
+matrix:
+  include:
+    - env: Run Clang Tests
+      before_script:
+        - export CC=clang-8 && export CXX=clang++-8
+        - mkdir build && cd build
+        - cmake .. && make -j8
+      script:
+        - ./Tests
+    - env: Run GCC Tests
+      before_script:
+        - export CC=gcc-9 && export CXX=g++-9
+        - mkdir build && cd build
+        - cmake .. && make -j8
+      script:
+        - ./Tests
+    - env: Clang Format Check
+      install: skip
+      script: 
+        - ./3rd/run-clang-format/run-clang-format.py -r src test
