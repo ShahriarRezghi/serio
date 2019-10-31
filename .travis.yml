@@ -1,26 +1,26 @@
 language: cpp
 dist: xenial
 
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-xenial-8
-      - llvm-toolchain-xenial-7
-    packages:
-      - g++-9
-      - g++-8
-      - g++-7
-      - g++-6
-      - g++-5
-      - gcc-9
-      - gcc-8
-      - gcc-7
-      - gcc-6
-      - gcc-5
-      - clang-8
-      - clang-7
-      - cmake
+# addons:
+#   apt:
+#     sources:
+#       - ubuntu-toolchain-r-test
+#       - llvm-toolchain-xenial-8
+#       - llvm-toolchain-xenial-7
+#     packages:
+#       - g++-9
+#       - g++-8
+#       - g++-7
+#       - g++-6
+#       - g++-5
+#       - gcc-9
+#       - gcc-8
+#       - gcc-7
+#       - gcc-6
+#       - gcc-5
+#       - clang-8
+#       - clang-7
+#       - cmake
 
 install:
   # Install Gtest
@@ -28,7 +28,7 @@ install:
   - tar xf release-1.10.0.tar.gz && cd googletest-release-1.10.0
   - mkdir build && cd build
   - cmake .. && make -j$(nproc)
-  - sudo make install
+  - sudo make install && cd ../..
  
 before_script:
   - pwd
@@ -42,10 +42,26 @@ script:
 
 matrix:
   include:
+
     - env: export CC=clang-8 && export CXX=clang++-8
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-8
+          packages:
+            - clang-8
+
     - env: export CC=clang-7 && export CXX=clang++-7
-    - env: CC=gcc-9 && export CXX=g++-9
-    - env: CC=gcc-8 && export CXX=g++-8
-    - env: CC=gcc-7 && export CXX=g++-7
-    - env: CC=gcc-6 && export CXX=g++-6
-    - env: CC=gcc-5 && export CXX=g++-5
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-7
+          packages:
+            - clang-7
+
+    # - env: export CC=clang-7 && export CXX=clang++-7
+    # - env: CC=gcc-9 && export CXX=g++-9
+    # - env: CC=gcc-8 && export CXX=g++-8
+    # - env: CC=gcc-7 && export CXX=g++-7
+    # - env: CC=gcc-6 && export CXX=g++-6
+    # - env: CC=gcc-5 && export CXX=g++-5
