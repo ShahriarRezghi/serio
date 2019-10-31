@@ -147,6 +147,7 @@ matrix:
 
     - os: linux
       dist: xenial
+      env:
         - Linux AMD64 GCC 98
         - CC=gcc-8
         - CXX=g++-8
@@ -160,6 +161,7 @@ matrix:
 
     - os: linux
       dist: xenial
+      env:
         - Linux AMD64 GCC 7 
         - CC=gcc-7
         - CXX=g++-7
@@ -173,6 +175,7 @@ matrix:
 
     - os: linux
       dist: xenial
+      env:
         - Linux AMD64 GCC 6
         - CC=gcc-6
         - CXX=g++-6
@@ -186,6 +189,7 @@ matrix:
 
     - os: linux
       dist: xenial
+      env:
         - Linux AMD64 GCC 5
         - CC=gcc-5
         - CXX=g++-5
@@ -199,6 +203,7 @@ matrix:
 
     - os: linux
       dist: xenial
+      env:
         - Linux AMD64 GCC 4.9
         - CC=gcc-4.9
         - CXX=g++-4.9
@@ -212,6 +217,7 @@ matrix:
 
     - os: linux
       dist: xenial
+      env:
         - Linux AMD64 GCC 4.8
         - CC=gcc-4.8
         - CXX=g++-4.8
