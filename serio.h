@@ -443,7 +443,7 @@ public:
     }
 
     template <typename Alloc>
-    inline Derived& operator<<(const std::vector<bool>& C)
+    inline Derived& operator<<(const std::vector<bool, Alloc>& C)
     {
         This() << Size(Impl::iteratableSize(C));
         for (bool S : C) This() << S;
