@@ -22,13 +22,13 @@ matrix:
 
     - os: linux
       arch: arm64
-      env: CC=clang && export CXX=clang++
+      env: CC=clang-6.0 && export CXX=clang++-6.0
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial
+            - llvm-toolchain-xenial-6.0
           packages:
-            - clang
+            - clang-6.0
 
     # - os: linux
     #   dist: xenial
