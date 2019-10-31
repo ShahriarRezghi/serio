@@ -35,7 +35,6 @@
 #include <random>
 
 using namespace std;
-// using namespace Serio;
 
 #define CREATE_INIT(TYPE)                                                                   \
     void Init(TYPE& V)                                                                      \
@@ -340,7 +339,7 @@ struct A
         return x && y;
     }
 
-    SERIO_REGISTER_CLASS(a, b)
+    SERIO_REGISTER(a, b)
 };
 
 struct B
@@ -356,7 +355,7 @@ struct B
         return x && y && this->c == other.c;
     }
 
-    SERIO_REGISTER_CLASS(a, b, c)
+    SERIO_REGISTER(a, b, c)
 };
 
 struct C
@@ -368,7 +367,7 @@ struct C
         return abs(this->a - other.a) < numeric_limits<double>::epsilon();
     }
 
-    SERIO_REGISTER_CLASS(a)
+    SERIO_REGISTER(a)
 };
 
 struct D : C
@@ -382,7 +381,7 @@ struct D : C
         return x && y;
     }
 
-    SERIO_REGISTER_CLASS(a, b)
+    SERIO_REGISTER(a, b)
 };
 
 void Init(A& a)

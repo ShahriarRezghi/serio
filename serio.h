@@ -62,11 +62,25 @@
 #define SERIO_SIZE 8
 #endif
 
-#define SERIO_REGISTER_CLASS(...)                                  \
+/// @brief Macro for registering custom classes.
+///
+/// This macro simplifies the process of serializing and deserializing of custom classes. In order
+/// to make nearly all of the custom classes usable This macro can be used (there are some rare
+/// cases when you have to implement _serialize() and _deserialize() functions yourself.
+///
+/// Example:
+/// @code
+/// struct Point
+/// {
+///     int x, y;
+///     SERIO_REGISTER_CLASS(x, y)
+/// };
+/// @endcode
+#define SERIO_REGISTER(...)                                        \
     template <typename Derived>                                    \
-    friend struct Serio::SerializerOps;                            \
+    friend class Serio::SerializerOps;                             \
     template <typename Derived>                                    \
-    friend struct Serio::DeserializerOps;                          \
+    friend class Serio::DeserializerOps;                           \
                                                                    \
     template <typename Derived>                                    \
     inline void _serialize(Serio::SerializerOps<Derived>* C) const \
@@ -82,12 +96,18 @@
 namespace Serio
 {
 #if SERIO_SIZE == 8
+/// Data type of the size of containers and such that is serialized and deserialized.
 using Size = uint64_t;
 #elif SERIO_SIZE == 4
+/// Data type of the size of containers and such that is serialized and deserialized.
 using Size = uint32_t;
 #elif SERIO_SIZE == 2
+/// Data type of the size of containers and such that is serialized and deserialized.
 using Size = uint16_t;
 #endif
+
+/// Array of 8 bit types.
+using ByteArray = std::basic_string<char>;
 
 namespace Impl
 {
@@ -304,10 +324,79 @@ struct TupleRecurse<Tuple, 1>
         C >> std::get<0>(T);
     }
 };
+
+/// Reads binary data from a file.
+///
+/// @param path Path of the file to be read
+/// @param data Destination of the data that is read from the file
+/// @returns True if succeeds otherwise false
+inline bool read(const std::string& path, ByteArray& data)
+{
+    std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
+    if (!stream.is_open()) return false;
+
+    stream.seekg(0, std::ios::end);
+    auto size = stream.tellg();
+    stream.seekg(0, std::ios::beg);
+
+    data.assign(size_t(size), 0);
+    auto rsize = stream.rdbuf()->sgetn(&data.front(), std::streamsize(size));
+    if (rsize != size) return false;
+
+    stream.close();
+    return true;
+}
+
+/// Writes a byte array into a file and returns weather it succeeds or not.
+///
+/// @param path Path of the file to be writen.
+/// @param data The data that needs to be written into the file
+/// @returns True if succeeds otherwise false
+inline bool write(const std::string& path, const ByteArray& data)
+{
+    std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
+    if (!stream.is_open()) return false;
+
+    auto dsize = std::streamsize(data.size());
+    auto size = stream.rdbuf()->sputn(data.data(), dsize);
+    if (size != dsize) return false;
+
+    stream.flush();
+    stream.close();
+    return true;
+}
 }  // namespace Impl
 
+///@brief Wrapper for raw array.
+///
+/// This class wraps the raw arrays so they can be serialized and deserialized too.
+///
+/// Example:
+/// @code
+/// int A[3] = {1, 2, 3};
+/// auto result = Serio::serialize(Serio::Array<int>(3, A));
+/// @endcode
+///
+/// Another example:
+/// @code
+/// struct A
+/// {
+///     int B[3];
+///     SERIO_REGISTER(Serio::Array<int>(3, B))
+/// };
+/// @endcode
+template <typename T>
+struct Array
+{
+    size_t size;
+    T* data;
+    inline Array(size_t size, const T* data) : size(size), data(const_cast<T*>(data)) {}
+};
+
+/// @brief Processes higher structures for serialization and size calculation.
+///
 /// This class breaks higher structurs into simple elements and passes them on to the class that
-/// handles them
+/// handles them to calculate size of data or serialize it.
 template <typename Derived>
 class SerializerOps
 {
@@ -316,10 +405,9 @@ class SerializerOps
     template <typename Iter>
     inline Derived& iteratable(const Iter& C)
     {
-        auto& A = This();
-        A << Size(Impl::iteratableSize(C));
-        for (const auto& S : C) A << S;
-        return A;
+        This() << Size(Impl::iteratableSize(C));
+        for (const auto& S : C) This() << S;
+        return This();
     }
 
 public:
@@ -370,6 +458,14 @@ public:
     inline Derived& operator<<(const std::valarray<T>& C)
     {
         return iteratable(C);
+    }
+
+    template <typename T>
+    inline Derived& operator<<(Array<T> C)
+    {
+        This() << Size(C.size);
+        for (size_t i = 0; i < C.size; ++i) This() << C.data[i];
+        return This();
     }
 
     template <typename T, typename Comp, typename Alloc>
@@ -484,10 +580,9 @@ public:
     template <typename T>
     inline Derived& operator<<(const std::optional<T>& C)
     {
-        auto& A = This();
-        A << C.has_value();
-        if (C.has_value()) A << C.value();
-        return A;
+        This() << C.has_value();
+        if (C.has_value()) This() << C.value();
+        return This();
     }
 #endif
 
@@ -501,8 +596,10 @@ public:
     }
 };
 
+/// @brief Processes higher structures for deserialization.
+///
 /// This class breaks higher structurs into simple elements and passes them on to the class that
-/// handles them
+/// handles them to deserialize the data.
 template <typename Derived>
 class DeserializerOps
 {
@@ -511,42 +608,39 @@ class DeserializerOps
     template <typename Iter, typename T>
     Derived& assignable(Iter& C)
     {
-        auto& A = This();
         Size size;
-        A >> size;
+        This() >> size;
 
         C.resize(size);
-        for (auto& value : C) A >> value;
-        return A;
+        for (auto& value : C) This() >> value;
+        return This();
     }
 
     template <typename Iter, typename T>
     Derived& iteratable(Iter& C)
     {
-        auto& A = This();
         C.clear();
         Size size;
-        A >> size;
+        This() >> size;
 
         auto it = C.begin();
         for (Size i = 0; i < size; ++i)
         {
             T value;
-            A >> value;
+            This() >> value;
             it = C.emplace_hint(it, std::move(value));
         }
 
-        return A;
+        return This();
     }
 
     template <typename Ptr, typename T>
     inline Derived& pointer(const Ptr& C)
     {
-        auto& A = This();
         T* value = new T();
-        A >> *value;
+        This() >> *value;
         C = value;
-        return A;
+        return This();
     }
 
 public:
@@ -572,19 +666,18 @@ public:
     template <typename Alloc>
     inline Derived& operator>>(std::vector<bool, Alloc>& C)
     {
-        auto& A = This();
         Size size;
-        A >> size;
+        This() >> size;
         C.resize(size);
 
         for (Size i = 0; i < size; ++i)
         {
             bool value;
-            A >> value;
+            This() >> value;
             C[i] = value;
         }
 
-        return A;
+        return This();
     }
 
     template <typename T, typename Alloc>
@@ -608,17 +701,24 @@ public:
     template <typename T, size_t N>
     inline Derived& operator>>(std::array<T, N>& C)
     {
-        auto& A = This();
         Size size;
-        A >> size;
+        This() >> size;
         for (Size i = 0; i < size; ++i) (*this) >> C[i];
-        return A;
+        return This();
     }
 
     template <typename T>
     inline Derived& operator>>(std::valarray<T>& C)
     {
         return assignable<decltype(C), T>(C);
+    }
+
+    template <typename T>
+    inline Derived& operator>>(Array<T> C)
+    {
+        This() >> Size(C.size);
+        for (size_t i = 0; i < C.size; ++i) This() >> C.data[i];
+        return This();
     }
 
     template <typename T, typename Comp, typename Alloc>
@@ -699,9 +799,8 @@ public:
     template <typename... Ts>
     inline Derived& operator>>(std::tuple<Ts...>& C)
     {
-        auto& A = This();
-        Impl::TupleRecurse<decltype(C), sizeof...(Ts)>::deserialize(A, C);
-        return A;
+        Impl::TupleRecurse<decltype(C), sizeof...(Ts)>::deserialize(This(), C);
+        return This();
     }
 
     template <typename T>
@@ -719,11 +818,10 @@ public:
     template <typename T>
     inline Derived& operator>>(std::complex<T>& C)
     {
-        auto& A = This();
         T real, imag;
-        A >> real >> imag;
+        This() >> real >> imag;
         C = std::complex<T>(real, imag);
-        return A;
+        return This();
     }
 
     template <typename Clock, typename Dur>
@@ -737,20 +835,19 @@ public:
     template <typename T>
     inline Derived& operator>>(std::optional<T>& C)
     {
-        auto& A = This();
         bool has;
-        A >> has;
+        This() >> has;
 
         if (has)
         {
             T value;
-            A >> value;
+            This() >> value;
             C.emplace(std::move(value));
         }
         else
             C.reset();
 
-        return A;
+        return This();
     }
 #endif
 
@@ -764,7 +861,7 @@ public:
     }
 };
 
-/// This class implements size calculation of basic types
+/// @brief This class implements the size calculation of basic data types.
 template <typename Derived>
 class CalculatorBase
 {
@@ -800,7 +897,7 @@ public:
     }
 };
 
-/// This class implements serialization of basic types
+/// @brief This class implements the serialization of basic data types.
 template <typename Derived>
 struct SerializerBase
 {
@@ -824,11 +921,10 @@ public:
     template <typename Traits, typename Alloc>
     inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
     {
-        auto& A = This();
-        A << Size(C.size());
+        This() << Size(C.size());
         std::memcpy(buffer, C.data(), C.size());
         buffer += C.size();
-        return A;
+        return This();
     }
 
     template <size_t N>
@@ -836,12 +932,11 @@ public:
     {
         Impl::Bitset::serialize(C, buffer);
         buffer += size_t(std::ceil(N / 8.0));
-
         return This();
     }
 };
 
-/// This class implements deserialization of basic types
+/// @brief This class implements the deserialization of basic data types.
 template <typename Derived>
 struct DeserializerBase
 {
@@ -865,13 +960,12 @@ public:
     template <typename Traits, typename Alloc>
     inline Derived& operator>>(std::basic_string<char, Traits, Alloc>& C)
     {
-        auto& A = This();
         Size size;
-        A >> size;
+        This() >> size;
         C.resize(size);
         std::memcpy(&C.front(), buffer, size);
         buffer += size;
-        return A;
+        return This();
     }
 
     template <size_t N>
@@ -883,7 +977,7 @@ public:
     }
 };
 
-/// This class calculates size of any supported types
+/// @brief This class calculates size of any supported types.
 struct Calculator : CalculatorBase<Calculator>, SerializerOps<Calculator>
 {
     using Base = CalculatorBase<Calculator>;
@@ -893,7 +987,7 @@ struct Calculator : CalculatorBase<Calculator>, SerializerOps<Calculator>
     using Base::operator<<;
 };
 
-/// This class serializes any of the supported types
+/// @brief This class serializes any of the supported types.
 struct Serializer : SerializerBase<Serializer>, SerializerOps<Serializer>
 {
     using Base = SerializerBase<Serializer>;
@@ -903,7 +997,7 @@ struct Serializer : SerializerBase<Serializer>, SerializerOps<Serializer>
     using Base::operator<<;
 };
 
-/// This class deserializes any of the supported types
+/// @brief This class deserializes any of the supported types.
 struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializer>
 {
     using Base = DeserializerBase<Deserializer>;
@@ -913,11 +1007,19 @@ struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializ
     using Base::operator>>;
 };
 
-/// Array of 8 bit data type
-using ByteArray = std::basic_string<char>;
-
-/// Takes an unlimited number of arguements (serializable data types) and serializes them into a
-/// byte array and returns the result
+/// Serializes and unlimited number of input arguments (serializable data types).
+///
+/// Example:
+/// @code
+/// int A, B;
+/// std::vector<int> C = {1, 2, 3, 4};
+/// auto data = Serio::serialize(A, B, C);
+/// @endcode
+///
+/// @param head First parameter to be serialized
+/// @param tail Rest of the parameters to be serialized
+/// @returns Array of bytes containing the serialized data
+/// @see deserialize()
 template <typename Head, typename... Tail>
 ByteArray serialize(const Head& head, Tail&&... tail)
 {
@@ -930,8 +1032,21 @@ ByteArray serialize(const Head& head, Tail&&... tail)
     return data;
 }
 
-/// Takes a byte array and an unlimited number of arguements and deserializes the data into the
-/// arguements and returns the size of bytes consumed from byte array or char sequence
+/// Deserializes and unlimited number of input arguments (deserializable data types).
+///
+/// Example:
+/// @code
+/// int A, B;
+/// std::vector<int> C;
+/// Serio::ByteArray data; // Must contain the serialized data
+/// auto size = Serio::deserialize(data, A, B, C);
+/// @endcode
+///
+/// @param data Array of bytes containing serialized data
+/// @param head First parameter to be deserialized
+/// @param tail Rest of the parameters to be deserialized
+/// @returns The number of bytes consumed from byte array
+/// @see serialize(), deserialize()
 template <typename Head, typename... Tail>
 size_t deserialize(const ByteArray& data, Head& head, Tail&&... tail)
 {
@@ -940,8 +1055,21 @@ size_t deserialize(const ByteArray& data, Head& head, Tail&&... tail)
     return size_t(deserializer.buffer - &data.front());
 }
 
-/// Takes a char sequence and an unlimited number of arguements and deserializes the data into the
-/// arguements and returns the size of bytes consumed from byte array or char sequence
+/// Deserializes and unlimited number of input arguments (deserializable data types).
+///
+/// Example:
+/// @code
+/// int A, B;
+/// std::vector<int> C;
+/// const char *data; // Must contain the serialized data
+/// auto size = Serio::deserialize(data, A, B, C);
+/// @endcode
+///
+/// @param data Sequence of bytes containing serialized data
+/// @param head First parameter to be deserialized
+/// @param tail Rest of the parameters to be deserialized
+/// @returns The number of bytes consumed from char sequence
+/// @see serialize(), deserialize()
 template <typename Head, typename... Tail>
 size_t deserialize(const char* data, Head& head, Tail&&... tail)
 {
@@ -950,55 +1078,48 @@ size_t deserialize(const char* data, Head& head, Tail&&... tail)
     return size_t(deserializer.buffer - data);
 }
 
-/// Writes a byte array into a file and returns weather it succeeds or not
-inline bool write(const std::string& path, const ByteArray& data)
-{
-    std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
-    if (!stream.is_open()) return false;
-
-    auto dsize = std::streamsize(data.size());
-    auto size = stream.rdbuf()->sputn(data.data(), dsize);
-    if (size != dsize) return false;
-
-    stream.flush();
-    stream.close();
-    return true;
-}
-
-/// Reads binary data (the serialized data) from file into a byte array and returns weather it
-/// succeeds or not
-inline bool read(const std::string& path, ByteArray& data)
-{
-    std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
-    if (!stream.is_open()) return false;
-
-    stream.seekg(0, std::ios::end);
-    auto size = stream.tellg();
-    stream.seekg(0, std::ios::beg);
-
-    data.assign(size_t(size), 0);
-    auto rsize = stream.rdbuf()->sgetn(&data.front(), std::streamsize(size));
-    if (rsize != size) return false;
-
-    stream.close();
-    return true;
-}
-
-/// Does the job of serialize and write together. serializes arguements and writes them into a file
-/// and returns weather it succeeds or not
+/// Serializes and unlimited number of input arguments (serializable data types) and writes it to a
+/// file.
+///
+/// Example:
+/// @code
+/// int A, B;
+/// std::vector<int> C = {1, 2, 3, 4};
+/// assert(Serio::save("file", A, B, C));
+/// @endcode
+///
+/// @param path Path of the file to be writen.
+/// @param head First parameter to be serialized
+/// @param tail Rest of the parameters to be serialized
+/// @returns True if succeeds otherwise false
+/// @see serialize()
 template <typename Head, typename... Tail>
 inline bool save(const std::string& path, const Head& head, Tail&&... tail)
 {
-    return write(path, serialize(head, std::forward<Tail>(tail)...));
+    return Impl::write(path, serialize(head, std::forward<Tail>(tail)...));
 }
 
-/// Does the job of read and deserialize together. reads data from file and deserializes it into
-/// arguements and returns weather it succeeds or not
+/// Reads data from a file and deserializes and unlimited number of input arguments (deserializable
+/// data types).
+///
+/// Example:
+/// @code
+/// int A, B;
+/// std::vector<int> C;
+/// Serio::ByteArray data; // Must contain the serialized data
+/// assert(Serio::load("file", A, B, C));
+/// @endcode
+///
+/// @param path Path of the file to be read
+/// @param head First parameter to be deserialized
+/// @param tail Rest of the parameters to be deserialized
+/// @returns True if succeeds otherwise false
+/// @see deserialize()
 template <typename Head, typename... Tail>
 inline bool load(const std::string& path, Head& head, Tail&&... tail)
 {
     ByteArray A;
-    if (!read(path, A)) return false;
+    if (!Impl::read(path, A)) return false;
     return deserialize(A, head, std::forward<Tail>(tail)...) == A.size();
 }
 }  // namespace Serio
