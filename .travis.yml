@@ -37,6 +37,48 @@ matrix:
           packages:
             - clang-7
 
+    - env: CC=clang-6 && export CXX=clang++-6
+      addons:
+        apt:
+          packages:
+            - clang-6
+
+    - env: CC=clang-5 && export CXX=clang++-5
+      addons:
+        apt:
+          packages:
+            - clang-5
+
+    - env: CC=clang-4 && export CXX=clang++-4
+      addons:
+        apt:
+          packages:
+            - clang-4
+
+    - env: CC=clang-3.9 && export CXX=clang++-3.9
+      addons:
+        apt:
+          packages:
+            - clang-3.9
+
+    - env: CC=clang-3.8 && export CXX=clang++-3.8
+      addons:
+        apt:
+          packages:
+            - clang-3.8
+
+    - env: CC=clang-3.7 && export CXX=clang++-3.7
+      addons:
+        apt:
+          packages:
+            - clang-3.7
+
+    - env: CC=clang-3.6 && export CXX=clang++-3.6
+      addons:
+        apt:
+          packages:
+            - clang-3.6
+
     - env: CC=gcc-9 && export CXX=g++-9
       addons:
         apt:
@@ -76,3 +118,19 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-5
+
+    - env: CC=gcc-4.9 && export CXX=g++-4.9
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+
+    - env: CC=gcc-4.8 && export CXX=g++-4.8
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.8
