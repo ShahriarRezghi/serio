@@ -32,6 +32,7 @@ install:
  
 before_script:
   - $CXX --version
+  - cmake --version
   - mkdir build && cd build
   - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
 
