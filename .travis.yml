@@ -22,13 +22,13 @@ matrix:
 
     - os: linux
       arch: arm64
-      env: CC=clang-8 && export CXX=clang++-8
+      env: CC=clang && export CXX=clang++
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-8
+            - llvm-toolchain-xenial
           packages:
-            - clang-8
+            - clang
 
     # - os: linux
     #   dist: xenial
