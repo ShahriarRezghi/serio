@@ -442,6 +442,14 @@ public:
         return iteratable(C);
     }
 
+    template <typename Alloc>
+    inline Derived& operator<<(const std::vector<bool>& C)
+    {
+        This() << Size(Impl::iteratableSize(C));
+        for (bool S : C) This() << S;
+        return This();
+    }
+
     template <typename T, typename Alloc>
     inline Derived& operator<<(const std::deque<T, Alloc>& C)
     {
