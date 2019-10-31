@@ -922,7 +922,7 @@ public:
     }
 
     template <typename Traits, typename Alloc>
-    inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
     {
         This() << Size(C.size());
         std::memcpy(buffer, C.data(), C.size());
@@ -961,7 +961,7 @@ public:
     }
 
     template <typename Traits, typename Alloc>
-    inline Derived& operator>>(std::basic_string<char, Traits, Alloc>& C)
+    Derived& operator>>(std::basic_string<char, Traits, Alloc>& C)
     {
         Size size;
         This() >> size;
@@ -1010,6 +1010,48 @@ struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializ
     using Base::operator>>;
 };
 
+/// Calculates the size of unlimited number of input arguments (serializable data types).
+///
+/// Example:
+/// @code
+/// int A, B;
+/// std::vector<int> C = {1, 2, 3, 4};
+/// auto size = Serio::size(A, B, C);
+/// @endcode
+///
+/// @param head First parameter to be serialized
+/// @param tail Rest of the parameters to be serialized
+/// @returns number of bytes that the input arguments will consume
+/// @see deserialize()
+template <typename Head, typename... Tail>
+inline size_t size(const Head& head, Tail&&... tail)
+{
+    Calculator calculator;
+    calculator.process(head, std::forward<Tail>(tail)...);
+    return calculator.size;
+}
+
+/// Serializes and unlimited number of input arguments (serializable data types).
+///
+/// Example:
+/// @code
+/// int A, B;
+/// std::vector<int> C = {1, 2, 3, 4};
+/// char data[Serio::size(A,B,C)];
+/// Serio::fill(data, A, B, C);
+/// @endcode
+///
+/// @param data Destination of serialized data
+/// @param head First parameter to be serialized
+/// @param tail Rest of the parameters to be serialized
+/// @see serialize()
+template <typename Head, typename... Tail>
+inline void fill(char* data, const Head& head, Tail&&... tail)
+{
+    Serializer serializer{data};
+    serializer.process(head, std::forward<Tail>(tail)...);
+}
+
 /// Serializes and unlimited number of input arguments (serializable data types).
 ///
 /// Example:
@@ -1024,38 +1066,11 @@ struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializ
 /// @returns Array of bytes containing the serialized data
 /// @see deserialize()
 template <typename Head, typename... Tail>
-ByteArray serialize(const Head& head, Tail&&... tail)
+inline ByteArray serialize(const Head& head, Tail&&... tail)
 {
-    Calculator calculator;
-    calculator.process(head, std::forward<Tail>(tail)...);
-    ByteArray data(calculator.size, 0);
-
-    Serializer serializer{&data.front()};
-    serializer.process(head, std::forward<Tail>(tail)...);
+    ByteArray data(size(head, std::forward<Tail>(tail)...), 0);
+    fill(&data.front(), head, std::forward<Tail>(tail)...);
     return data;
-}
-
-/// Deserializes and unlimited number of input arguments (deserializable data types).
-///
-/// Example:
-/// @code
-/// int A, B;
-/// std::vector<int> C;
-/// Serio::ByteArray data; // Must contain the serialized data
-/// auto size = Serio::deserialize(data, A, B, C);
-/// @endcode
-///
-/// @param data Array of bytes containing serialized data
-/// @param head First parameter to be deserialized
-/// @param tail Rest of the parameters to be deserialized
-/// @returns The number of bytes consumed from byte array
-/// @see serialize(), deserialize()
-template <typename Head, typename... Tail>
-size_t deserialize(const ByteArray& data, Head& head, Tail&&... tail)
-{
-    Deserializer deserializer{&data.front()};
-    deserializer.process(head, std::forward<Tail>(tail)...);
-    return size_t(deserializer.buffer - &data.front());
 }
 
 /// Deserializes and unlimited number of input arguments (deserializable data types).
@@ -1074,11 +1089,32 @@ size_t deserialize(const ByteArray& data, Head& head, Tail&&... tail)
 /// @returns The number of bytes consumed from char sequence
 /// @see serialize(), deserialize()
 template <typename Head, typename... Tail>
-size_t deserialize(const char* data, Head& head, Tail&&... tail)
+inline size_t deserialize(const char* data, Head& head, Tail&&... tail)
 {
     Deserializer deserializer{data};
     deserializer.process(head, std::forward<Tail>(tail)...);
     return size_t(deserializer.buffer - data);
+}
+
+/// Deserializes and unlimited number of input arguments (deserializable data types).
+///
+/// Example:
+/// @code
+/// int A, B;
+/// std::vector<int> C;
+/// Serio::ByteArray data; // Must contain the serialized data
+/// auto size = Serio::deserialize(data, A, B, C);
+/// @endcode
+///
+/// @param data Array of bytes containing serialized data
+/// @param head First parameter to be deserialized
+/// @param tail Rest of the parameters to be deserialized
+/// @returns The number of bytes consumed from byte array
+/// @see serialize(), deserialize()
+template <typename Head, typename... Tail>
+inline size_t deserialize(const ByteArray& data, Head& head, Tail&&... tail)
+{
+    return deserialize(&data.front(), head, std::forward<Tail>(tail)...);
 }
 
 /// Serializes and unlimited number of input arguments (serializable data types) and writes it to a
