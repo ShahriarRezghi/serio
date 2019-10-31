@@ -20,25 +20,28 @@ script:
 matrix:
   include:
 
-    # - os: linux
-    #   dist: xenial
-    #   env: CC=clang-8 && export CXX=clang++-8
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - llvm-toolchain-xenial-8
-    #       packages:
-    #         - clang-8
+    - os: linux
+      dist: xenial
+      env: 
+        - Arm64 Clang 8
+        - CC=clang-8
+        - CXX=clang++-8
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-8
+          packages:
+            - clang-8
 
-    # - os: linux
-    #   dist: xenial
-    #   env: CC=clang-7 && export CXX=clang++-7
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - llvm-toolchain-xenial-7
-    #       packages:
-    #         - clang-7
+    - os: linux
+      dist: xenial
+      env: CC=clang-7 && export CXX=clang++-7
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-7
+          packages:
+            - clang-7
 
     # - os: linux
     #   dist: xenial
@@ -194,29 +197,6 @@ matrix:
     # - os: osx
     #   osx_image: xcode8.3
     #   compiler: clang
-    
-    - os: linux
-      arch: arm64
-      dist: xenial
-      env: Arm64 Clang 8
-        - CC=clang-8 && export CXX=clang++-8
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-xenial-8
-          packages:
-            - clang-8
-
-    # - os: linux
-    #   arch: arm64
-    #   dist: xenial
-    #   env: CC=clang-7 && export CXX=clang++-7
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - llvm-toolchain-xenial-7
-    #       packages:
-    #         - clang-7
 
     # - os: linux
     #   arch: arm64
@@ -278,28 +258,7 @@ matrix:
     #       packages:
     #         - clang-3.7
 
-    # - os: linux
-    #   arch: arm64
-    #   dist: xenial
-    #   env: CC=clang-3.6 && export CXX=clang++-3.6
-    #   addons:
-    #     apt:
-    #       packages:
-    #         - clang-3.6
-
             
-
-    # - os: linux
-    #   arch: arm64
-    #   dist: xenial
-    #   env: CC=gcc-9 && export CXX=g++-9
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #       packages:
-    #         - g++-9
-    #         - gcc-9
 
     # - os: linux
     #   arch: arm64
