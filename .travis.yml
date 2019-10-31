@@ -13,13 +13,11 @@ addons:
       - g++-7
       - g++-6
       - g++-5
-      - g++-4
       - gcc-9
       - gcc-8
       - gcc-7
       - gcc-6
       - gcc-5
-      - gcc-4
       - clang-8
       - clang-7
       - cmake
@@ -33,6 +31,7 @@ install:
   - sudo make install
  
 before_script:
+  - $CXX --version
   - mkdir build && cd build
   - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
 
@@ -42,52 +41,9 @@ script:
 matrix:
   include:
     - env: export CC=clang-8 && export CXX=clang++-8
-    - env: Clang 7 Tests
-      before_script:
-        - export CC=clang-7 && export CXX=clang++-7
-        - mkdir build && cd build
-        - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
-      script:
-        - ./Tests
-    - env: GCC 9 Tests
-      before_script:
-        - export CC=gcc-9 && export CXX=g++-9
-        - mkdir build && cd build
-        - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
-      script:
-        - ./Tests
-    - env: GCC 8 Tests
-      before_script:
-        - export CC=gcc-8 && export CXX=g++-8
-        - mkdir build && cd build
-        - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
-      script:
-        - ./Tests
-    - env: GCC 7 Tests
-      before_script:
-        - export CC=gcc-7 && export CXX=g++-7
-        - mkdir build && cd build
-        - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
-      script:
-        - ./Tests
-    - env: GCC 6 Tests
-      before_script:
-        - export CC=gcc-6 && export CXX=g++-6
-        - mkdir build && cd build
-        - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
-      script:
-        - ./Tests
-    - env: GCC 5 Tests
-      before_script:
-        - export CC=gcc-5 && export CXX=g++-5
-        - mkdir build && cd build
-        - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
-      script:
-        - ./Tests
-    - env: GCC 4 Tests
-      before_script:
-        - export CC=gcc-4 && export CXX=g++-4
-        - mkdir build && cd build
-        - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
-      script:
-        - ./Tests
+    - env: export CC=clang-7 && export CXX=clang++-7
+    - env: CC=gcc-9 && export CXX=g++-9
+    - env: CC=gcc-8 && export CXX=g++-8
+    - env: CC=gcc-7 && export CXX=g++-7
+    - env: CC=gcc-6 && export CXX=g++-6
+    - env: CC=gcc-5 && export CXX=g++-5
