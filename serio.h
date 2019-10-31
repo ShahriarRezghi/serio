@@ -76,7 +76,7 @@
 /// struct Point
 /// {
 ///     int x, y;
-///     SERIO_REGISTER_CLASS(x, y)
+///     SERIO_REGISTER(x, y)
 /// };
 /// @endcode
 #define SERIO_REGISTER(...)                                        \

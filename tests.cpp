@@ -36,12 +36,6 @@
 
 using namespace std;
 
-#define CREATE_INIT(TYPE)                                                                   \
-    void Init(TYPE& V)                                                                      \
-    {                                                                                       \
-        V = static_cast<TYPE>((rand() / double(RAND_MAX) - .5) * pow(2, sizeof(TYPE) * 8)); \
-    }
-
 #define CREATE_ITER_TEST_TYPE_0_DEPTH(NAME, TYPE, BNAME, BASE_TYPE) \
     TEST(NAME##_##BNAME, Serio) { TestIter(TYPE<BASE_TYPE>()); }
 
@@ -70,7 +64,6 @@ using namespace std;
     MACRO(NAME, TYPE, double, double);                         \
     MACRO(NAME, TYPE, long_double, long double);
 #else
-
 #define CREATE_ITER_TEST_BASE(MACRO, NAME, TYPE)               \
     MACRO(NAME, TYPE, char, char);                             \
     MACRO(NAME, TYPE, signed_char, signed char);               \
@@ -104,228 +97,6 @@ using namespace std;
     }
 
 #define CREATE_MAP_TEST(NAME, TYPE) CREATE_ITER_TEST_BASE(CREATE_MAP_TEST_TYPE, NAME, TYPE)
-
-CREATE_INIT(char)
-CREATE_INIT(signed char)
-CREATE_INIT(short)
-CREATE_INIT(int)
-CREATE_INIT(long)
-CREATE_INIT(long long)
-CREATE_INIT(unsigned char)
-CREATE_INIT(unsigned short)
-CREATE_INIT(unsigned int)
-CREATE_INIT(unsigned long)
-CREATE_INIT(unsigned long long)
-CREATE_INIT(wchar_t)
-CREATE_INIT(bool)
-CREATE_INIT(float)
-CREATE_INIT(double)
-#ifdef __SIZEOF_INT128__
-CREATE_INIT(long double)
-#endif
-
-template <typename T>
-inline void IteratableAdd(std::valarray<T>& I, T& value)
-{
-    I.resize(I.size() + 1);
-    I[I.size() - 1] = value;
-}
-template <typename T, typename Alloc>
-inline void IteratableAdd(std::vector<T, Alloc>& I, T& value)
-{
-    I.push_back(std::move(value));
-}
-template <typename T, typename Alloc>
-inline void IteratableAdd(std::list<T, Alloc>& I, T& value)
-{
-    I.push_back(std::move(value));
-}
-template <typename T, typename Alloc>
-inline void IteratableAdd(std::deque<T, Alloc>& I, T& value)
-{
-    I.push_back(std::move(value));
-}
-template <typename T, typename Alloc>
-inline void IteratableAdd(std::forward_list<T, Alloc>& I, T& value)
-{
-    I.emplace_after(I.before_begin(), std::move(value));
-}
-template <typename T, typename Comp, typename Alloc>
-inline void IteratableAdd(std::set<T, Comp, Alloc>& I, T& value)
-{
-    I.emplace(std::move(value));
-}
-template <typename T, typename Comp, typename Alloc>
-inline void IteratableAdd(std::multiset<T, Comp, Alloc>& I, T& value)
-{
-    I.emplace(std::move(value));
-}
-template <typename T, typename Hash, typename Pred, typename Alloc>
-inline void IteratableAdd(std::unordered_set<T, Hash, Pred, Alloc>& I, T& value)
-{
-    I.emplace(std::move(value));
-}
-template <typename T, typename Hash, typename Pred, typename Alloc>
-inline void IteratableAdd(std::unordered_multiset<T, Hash, Pred, Alloc>& I, T& value)
-{
-    I.emplace(std::move(value));
-}
-template <typename K, typename T, typename Comp, typename Alloc>
-inline void IteratableAdd(std::map<K, T, Comp, Alloc>& I, std::pair<K, T>& value)
-{
-    I.emplace(std::move(value));
-}
-template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-inline void IteratableAdd(std::unordered_map<K, T, Hash, Pred, Alloc>& I, std::pair<K, T>& value)
-{
-    I.emplace(std::move(value));
-}
-template <typename K, typename T, typename Comp, typename Alloc>
-inline void IteratableAdd(std::multimap<K, T, Comp, Alloc>& I, std::pair<K, T>& value)
-{
-    I.emplace(std::move(value));
-}
-template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-inline void IteratableAdd(std::unordered_multimap<K, T, Hash, Pred, Alloc>& I,
-                          std::pair<K, T>& value)
-{
-    I.emplace(std::move(value));
-}
-template <typename T, typename Traits, typename Alloc>
-inline void IteratableAdd(std::basic_string<T, Traits, Alloc>& I, T& value)
-{
-    I.push_back(std::move(value));
-}
-
-template <typename T>
-void Init(complex<T>& C);
-
-template <typename Iter>
-void Init(Iter& I)
-{
-    auto size = size_t(rand() % 1000);
-    for (size_t i = 0; i < size; ++i)
-    {
-        auto V = typename Iter::value_type();
-        Init(V);
-        IteratableAdd(I, V);
-    }
-}
-
-template <typename T>
-void Init(complex<T>& C)
-{
-    T real, imag;
-    Init(real);
-    Init(imag);
-    C = complex<T>(real, imag);
-}
-
-template <typename K, typename T>
-void Init(pair<K, T>& pair);
-
-template <typename K, typename T, typename Comp, typename Alloc>
-void Init(std::map<K, T, Comp, Alloc>& I);
-
-template <typename K, typename T, typename Comp, typename Alloc>
-void Init(std::multimap<K, T, Comp, Alloc>& I);
-
-template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-void Init(std::unordered_map<K, T, Hash, Pred, Alloc>& I);
-
-template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-void Init(std::unordered_multimap<K, T, Hash, Pred, Alloc>& I);
-
-template <typename Iter>
-void InitMap(Iter& I)
-{
-    auto size = size_t(rand() % 100);
-    for (size_t i = 0; i < size; ++i)
-    {
-        pair<typename Iter::key_type, typename Iter::mapped_type> V;
-        V.first = i;
-        Init(V.second);
-        IteratableAdd(I, V);
-    }
-}
-
-template <typename K, typename T, typename Comp, typename Alloc>
-void Init(std::map<K, T, Comp, Alloc>& I)
-{
-    InitMap(I);
-}
-
-template <typename K, typename T, typename Comp, typename Alloc>
-void Init(std::multimap<K, T, Comp, Alloc>& I)
-{
-    InitMap(I);
-}
-
-template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-void Init(std::unordered_map<K, T, Hash, Pred, Alloc>& I)
-{
-    InitMap(I);
-}
-
-template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-void Init(std::unordered_multimap<K, T, Hash, Pred, Alloc>& I)
-{
-    InitMap(I);
-}
-
-template <typename K, typename T>
-void Init(pair<K, T>& pair)
-{
-    Init(pair.first);
-    Init(pair.second);
-}
-
-template <typename Iter>
-void TestBasic()
-{
-    Iter I;
-    Init(I);
-    Iter copy = I;
-
-    auto S = Serio::serialize(I);
-    I = 0;
-    Serio::deserialize(S, I);
-
-    EXPECT_EQ(I, copy);
-}
-
-template <typename Iter>
-void TestIter(Iter I)
-{
-    Init(I);
-    Iter copy = I;
-
-    auto S = Serio::serialize(I);
-    I.clear();
-    Serio::deserialize(S, I);
-
-    EXPECT_EQ(I, copy);
-}
-
-template <typename T>
-void TestValArray()
-{
-    valarray<T> I;
-    Init(I);
-    valarray<T> copy = I;
-
-    auto S = Serio::serialize(I);
-    I.resize(0);
-    Serio::deserialize(S, I);
-
-    valarray<bool> V = (I == copy);
-    bool x = true;
-
-    for (const auto& B : V)
-        if (!B) x = false;
-
-    EXPECT_EQ(x, true);
-}
 
 struct A
 {
@@ -384,29 +155,225 @@ struct D : C
     SERIO_REGISTER(a, b)
 };
 
-void Init(A& a)
+class INIT
 {
-    Init(a.a);
-    Init(a.b);
+    template <typename T>
+    static void IteratableAdd(std::valarray<T>& I, T& value)
+    {
+        I.resize(I.size() + 1);
+        I[I.size() - 1] = value;
+    }
+    template <typename T, typename Alloc>
+    static void IteratableAdd(std::vector<T, Alloc>& I, T& value)
+    {
+        I.push_back(std::move(value));
+    }
+    template <typename T, typename Alloc>
+    static void IteratableAdd(std::list<T, Alloc>& I, T& value)
+    {
+        I.push_back(std::move(value));
+    }
+    template <typename T, typename Alloc>
+    static void IteratableAdd(std::deque<T, Alloc>& I, T& value)
+    {
+        I.push_back(std::move(value));
+    }
+    template <typename T, typename Alloc>
+    static void IteratableAdd(std::forward_list<T, Alloc>& I, T& value)
+    {
+        I.emplace_after(I.before_begin(), std::move(value));
+    }
+    template <typename T, typename Comp, typename Alloc>
+    static void IteratableAdd(std::set<T, Comp, Alloc>& I, T& value)
+    {
+        I.emplace(std::move(value));
+    }
+    template <typename T, typename Comp, typename Alloc>
+    static void IteratableAdd(std::multiset<T, Comp, Alloc>& I, T& value)
+    {
+        I.emplace(std::move(value));
+    }
+    template <typename T, typename Hash, typename Pred, typename Alloc>
+    static void IteratableAdd(std::unordered_set<T, Hash, Pred, Alloc>& I, T& value)
+    {
+        I.emplace(std::move(value));
+    }
+    template <typename T, typename Hash, typename Pred, typename Alloc>
+    static void IteratableAdd(std::unordered_multiset<T, Hash, Pred, Alloc>& I, T& value)
+    {
+        I.emplace(std::move(value));
+    }
+    template <typename K, typename T, typename Comp, typename Alloc>
+    static void IteratableAdd(std::map<K, T, Comp, Alloc>& I, std::pair<K, T>& value)
+    {
+        I.emplace(std::move(value));
+    }
+    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
+    static void IteratableAdd(std::unordered_map<K, T, Hash, Pred, Alloc>& I,
+                              std::pair<K, T>& value)
+    {
+        I.emplace(std::move(value));
+    }
+    template <typename K, typename T, typename Comp, typename Alloc>
+    static void IteratableAdd(std::multimap<K, T, Comp, Alloc>& I, std::pair<K, T>& value)
+    {
+        I.emplace(std::move(value));
+    }
+    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
+    static void IteratableAdd(std::unordered_multimap<K, T, Hash, Pred, Alloc>& I,
+                              std::pair<K, T>& value)
+    {
+        I.emplace(std::move(value));
+    }
+    template <typename T, typename Traits, typename Alloc>
+    static void IteratableAdd(std::basic_string<T, Traits, Alloc>& I, T& value)
+    {
+        I.push_back(std::move(value));
+    }
+
+public:
+    template <typename T>
+    static typename std::enable_if<std::is_arithmetic<T>::value, void>::type Init(T& V)
+    {
+        V = static_cast<T>((rand() / double(RAND_MAX) - .5) * pow(2, sizeof(T) * 8));
+    }
+
+    template <typename T>
+    static void Init(complex<T>& C)
+    {
+        T real, imag;
+        Init(real);
+        Init(imag);
+        C = complex<T>(real, imag);
+    }
+
+    template <typename K, typename T>
+    static void Init(pair<K, T>& pair)
+    {
+        Init(pair.first);
+        Init(pair.second);
+    }
+
+    template <typename Iter>
+    static typename std::enable_if<!std::is_arithmetic<Iter>::value, void>::type Init(Iter& I)
+    {
+        auto size = size_t(rand() % 1000);
+        for (size_t i = 0; i < size; ++i)
+        {
+            auto V = typename Iter::value_type();
+            Init(V);
+            IteratableAdd(I, V);
+        }
+    }
+
+    template <typename Iter>
+    static void InitMap(Iter& I)
+    {
+        auto size = size_t(rand() % 100);
+        for (size_t i = 0; i < size; ++i)
+        {
+            pair<typename Iter::key_type, typename Iter::mapped_type> V;
+            V.first = typename Iter::key_type(i);
+            Init(V.second);
+            IteratableAdd(I, V);
+        }
+    }
+
+    template <typename K, typename T, typename Comp, typename Alloc>
+    static void Init(std::map<K, T, Comp, Alloc>& I)
+    {
+        InitMap(I);
+    }
+
+    template <typename K, typename T, typename Comp, typename Alloc>
+    static void Init(std::multimap<K, T, Comp, Alloc>& I)
+    {
+        InitMap(I);
+    }
+
+    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
+    static void Init(std::unordered_map<K, T, Hash, Pred, Alloc>& I)
+    {
+        InitMap(I);
+    }
+
+    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
+    static void Init(std::unordered_multimap<K, T, Hash, Pred, Alloc>& I)
+    {
+        InitMap(I);
+    }
+
+    static void Init(A& a)
+    {
+        Init(a.a);
+        Init(a.b);
+    }
+
+    static void Init(B& a)
+    {
+        Init(a.a);
+        Init(a.b);
+        Init(a.c);
+    }
+
+    static void Init(D& a)
+    {
+        Init(a.a);
+        Init(a.b);
+    }
+};
+
+template <typename Iter>
+void TestBasic()
+{
+    Iter I;
+    INIT::Init(I);
+    Iter copy = I;
+
+    auto S = Serio::serialize(I);
+    I = 0;
+    Serio::deserialize(S, I);
+
+    EXPECT_EQ(I, copy);
 }
 
-void Init(B& a)
+template <typename Iter>
+void TestIter(Iter I)
 {
-    Init(a.a);
-    Init(a.b);
-    Init(a.c);
+    INIT::Init(I);
+    Iter copy = I;
+
+    auto S = Serio::serialize(I);
+    I.clear();
+    Serio::deserialize(S, I);
+
+    EXPECT_EQ(I, copy);
 }
 
-void Init(D& a)
+template <typename T>
+void TestValArray()
 {
-    Init(a.a);
-    Init(a.b);
+    valarray<T> I;
+    INIT::Init(I);
+    valarray<T> copy = I;
+
+    auto S = Serio::serialize(I);
+    I.resize(0);
+    Serio::deserialize(S, I);
+
+    valarray<bool> V = (I == copy);
+    bool x = true;
+
+    for (const auto& B : V)
+        if (!B) x = false;
+
+    EXPECT_EQ(x, true);
 }
 
 void TestA()
 {
     A I;
-    Init(I);
+    INIT::Init(I);
     A copy = I;
 
     auto S = Serio::serialize(I);
@@ -420,7 +387,7 @@ void TestA()
 void TestB()
 {
     B I;
-    Init(I);
+    INIT::Init(I);
     B copy = I;
 
     auto S = Serio::serialize(I);
@@ -436,7 +403,7 @@ void TestB()
 void TestD()
 {
     D I;
-    Init(I);
+    INIT::Init(I);
     D copy = I;
 
     auto S = Serio::serialize(I);
@@ -530,6 +497,6 @@ TEST(Complex, Serio)
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);
-    srand(time(nullptr));
+    srand(static_cast<unsigned int>(time(nullptr)));
     return RUN_ALL_TESTS();
 }
