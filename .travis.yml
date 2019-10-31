@@ -149,14 +149,46 @@ matrix:
     #         - gcc-4.8
 
     - os: osx
+      compiler: clang
       osx_image: xcode8.3
-      compiler: clang
+      env: CC=gcc-4.8 && CXX=g++-4.8
 
     - os: osx
-      osx_image: xcode9.4
       compiler: clang
+      osx_image: xcode8.3
+      env: CC=gcc-4.9 && CXX=g++-4.9
 
     - os: osx
-      osx_image: xcode10.1
       compiler: clang
+      osx_image: xcode8.3
+      env: CC=gcc-5 && CXX=g++-5
+
+    - os: osx
+      compiler: clang
+      osx_image: xcode8.3
+      env: CC=gcc-6 && CXX=g++-6
+
+    - os: osx
+      compiler: clang
+      osx_image: xcode8.3
+      env: CC=gcc-7 && CXX=g++-7
+
+    - os: osx
+      compiler: clang
+      osx_image: xcode8.3
+      env: CC=gcc-8 && CXX=g++-8
+
+    - os: osx
+      compiler: clang
+      osx_image: xcode8.3
+      env: CC=gcc-9 && CXX=g++-9
+
+
+    # - os: osx
+    #   osx_image: xcode9.4
+    #   compiler: clang
+
+    # - os: osx
+    #   osx_image: xcode10.1
+    #   compiler: clang
             
