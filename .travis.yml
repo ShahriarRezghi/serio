@@ -31,17 +31,18 @@ install:
   - mkdir build && cd build
   - cmake .. && make -j$(nproc)
   - sudo make install
+ 
+before_script:
+  - mkdir build && cd build
+  - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
+
+script:
+  - ./Tests
 
 matrix:
   include:
-    - env: Clang 8 Tests
-      before_script:
-        - export CC=clang-8 && export CXX=clang++-8
-        - mkdir build && cd build
-        - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
-      script:
-        - ./Tests
-    - env: Clang 8 Tests
+    - env: export CC=clang-8 && export CXX=clang++-8
+    - env: Clang 7 Tests
       before_script:
         - export CC=clang-7 && export CXX=clang++-7
         - mkdir build && cd build
