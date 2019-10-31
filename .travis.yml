@@ -31,10 +31,11 @@ install:
   - sudo make install
  
 before_script:
+  - pwd
   - $CXX --version
   - cmake --version
   - mkdir build && cd build
-  - cmake -DBUILD_TESTS=ON .. && make -j$(nproc)
+  - cmake .. && make -j$(nproc)
 
 script:
   - ./Tests
