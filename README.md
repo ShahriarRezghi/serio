@@ -210,9 +210,10 @@ This library can have a lot of applications. It can be used to process and save 
 + When size of ```long double``` is 16 bytes, it is only supported where 128 integer is available (depends on compiler and hardware. see [this](https://gcc.gnu.org/onlinedocs/gcc-4.6.1/gcc/_005f_005fint128.html)). So be careful using it.
 
 # Running the Tests
-you won't have to run the tests but it you want to you have to install google test framework and run cmake:
+you won't have to run the tests but it you want to you have to install google test framework and run cmake. Do these in the project directory:
 
 ``` shell
+mkdir build && cd build
 cmake -DBUILD_TESTS=ON ..
 make && ./Tests
 ```
