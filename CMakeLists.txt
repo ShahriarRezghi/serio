@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 include_directories(.)
 add_library(${PROJECT_NAME} INTERFACE)
-install(FILES "serio.h" DESTINATION ${CMAKE_INSTALL_PREFIX}/include/${PROJECT_NAME})
+install(FILES "serio.h" DESTINATION ${CMAKE_INSTALL_PREFIX}/include/serio/)
 
 option(BUILD_TESTS "Build tests" ON)
 
