@@ -1,8 +1,5 @@
 + Add change log
 + Add version to library
-+ Setup travis ci
-+ Add more documentation
-+ Write better code for tests
 + Add tests for array
 + Add tests for raw array
 + Add tests for tuple
