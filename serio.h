@@ -79,21 +79,21 @@
 ///     SERIO_REGISTER(x, y)
 /// };
 /// @endcode
-#define SERIO_REGISTER(...)                                        \
-    template <typename Derived>                                    \
-    friend class Serio::SerializerOps;                             \
-    template <typename Derived>                                    \
-    friend class Serio::DeserializerOps;                           \
-                                                                   \
-    template <typename Derived>                                    \
-    inline void _serialize(Serio::SerializerOps<Derived>* C) const \
-    {                                                              \
-        C->process(__VA_ARGS__);                                   \
-    }                                                              \
-    template <typename Derived>                                    \
-    inline void _deserialize(Serio::DeserializerOps<Derived>* C)   \
-    {                                                              \
-        C->process(__VA_ARGS__);                                   \
+#define SERIO_REGISTER(...)                     \
+    template <typename Derived>                 \
+    friend class Serio::SerializerOps;          \
+    template <typename Derived>                 \
+    friend class Serio::DeserializerOps;        \
+                                                \
+    template <typename Serializer>              \
+    inline void _serialize(Serializer& C) const \
+    {                                           \
+        C.process(__VA_ARGS__);                 \
+    }                                           \
+    template <typename Deserializer>            \
+    inline void _deserialize(Deserializer& C)   \
+    {                                           \
+        C.process(__VA_ARGS__);                 \
     }
 
 namespace Serio
@@ -426,7 +426,7 @@ public:
     template <typename T>
     inline typename std::enable_if<std::is_class<T>::value, Derived&>::type operator<<(const T& C)
     {
-        C._serialize(this);
+        C._serialize(This());
         return This();
     }
 
@@ -667,7 +667,7 @@ public:
     template <typename T>
     inline typename std::enable_if<std::is_class<T>::value, Derived&>::type operator>>(T& C)
     {
-        C._deserialize(this);
+        C._deserialize(This());
         return This();
     }
 
