@@ -96,12 +96,6 @@ struct D : C
 
 class INIT
 {
-    template <typename T>
-    static void add(std::valarray<T>& I, T& value)
-    {
-        I.resize(I.size() + 1);
-        I[I.size() - 1] = value;
-    }
     template <typename T, typename Alloc>
     static void add(std::vector<T, Alloc>& I, T& value)
     {
@@ -199,6 +193,14 @@ public:
         }
     }
     template <typename T>
+    static void init(std::valarray<T>& I)
+    {
+        auto size = size_t(rand() % 100);
+        I = std::valarray<T>(T(), size);
+        for (auto& value : I) init(value);
+    }
+
+    template <typename T>
     static void init(complex<T>& C)
     {
         T real, imag;
@@ -273,7 +275,7 @@ struct Process<std::valarray<T>>
         INIT::init(value1);
         auto data = Serio::serialize(value1);
         EXPECT_EQ(Serio::deserialize(data, value2), data.size());
-        EXPECT_TRUE((value1 == value2).min());
+        EXPECT_TRUE((value1.size() == 0 && value2.size() == 0) || (value1 == value2).min());
     }
 };
 
@@ -306,9 +308,15 @@ using FullTypes = ::testing::Types<bool, char, wchar_t, char16_t, char32_t, sign
     CREATE_ITER_TEST_0(TEST, NAME, TYPE)   \
     CREATE_ITER_TEST_1(TEST, NAME, TYPE)
 
-#define CREATE_MAP_TEST(TEST, NAME, TYPE)                                     \
-    TYPED_TEST(TEST, NAME##Depth0) { Process<TYPE<TypeParam, TypeParam>>(); } \
+#define CREATE_MAP_TEST_0(TEST, NAME, TYPE) \
+    TYPED_TEST(TEST, NAME##Depth0) { Process<TYPE<TypeParam, TypeParam>>(); }
+
+#define CREATE_MAP_TEST_1(TEST, NAME, TYPE) \
     TYPED_TEST(TEST, NAME##Depth1) { Process<TYPE<TypeParam, TYPE<TypeParam, TypeParam>>>(); }
+
+#define CREATE_MAP_TEST(TEST, NAME, TYPE) \
+    CREATE_MAP_TEST_0(TEST, NAME, TYPE)   \
+    CREATE_MAP_TEST_1(TEST, NAME, TYPE)
 
 template <typename T>
 struct Type1 : public ::testing::Test
@@ -328,7 +336,7 @@ CREATE_ITER_TEST(Type1, Multiset, std::multiset);
 CREATE_ITER_TEST_0(Type1, Unorderedset, std::unordered_set);
 CREATE_ITER_TEST_0(Type1, UnorderedMultiset, std::unordered_multiset);
 CREATE_MAP_TEST(Type1, Map, std::map);
-CREATE_MAP_TEST(Type1, Multimap, std::multimap);
+CREATE_MAP_TEST_0(Type1, Multimap, std::multimap);
 CREATE_MAP_TEST(Type1, UnorderedMap, std::unordered_map);
 CREATE_MAP_TEST(Type1, UnorderedMultimap, std::unordered_multimap);
 
