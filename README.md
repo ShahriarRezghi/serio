@@ -3,16 +3,15 @@
 - [Serio](#serio)
 - [Installation](#installation)
 - [Usage](#usage)
-  - [API](#api)
-    - [STL Types](#stl-types)
-    - [Custom Types](#custom-types)
-    - [Custom Containers](#custom-containers)
-    - [Advanced Usages](#advanced-usages)
+  - [STL Types](#stl-types)
+  - [Custom Types](#custom-types)
+  - [Custom Containers](#custom-containers)
+  - [Advanced Usages](#advanced-usages)
 - [Notes](#notes)
   - [Supported Types](#supported-types)
   - [Debugging](#debugging)
   - [Use Cases](#use-cases)
-- [Running the Tests](#running-the-tests)
+- [Tests](#tests)
 - [Contribution and Questions](#contribution-and-questions)
 - [TODO](#todo)
 - [License](#license)
@@ -36,7 +35,6 @@ cmake .. && cmake --install .
 Or you can copy ```serio.h``` file into your project directory and if you want a system-wide solution you can copy ```serio.h``` to ```/usr/include``` or ```/usr/local/include``` on your Linux (the second location is recommended).
 
 # Usage
-## API
 The main API consists of these functions. The functions are well documented so here is a brief introduction:
 
 ```Serio::size``` -> Calculates the size of unlimited number of input arguments (serializable data types).
@@ -51,7 +49,7 @@ The main API consists of these functions. The functions are well documented so h
 
 ```Serio::load``` -> Reads data from a file and deserializes and unlimited number of input arguments (deserializable data types).
 
-### STL Types
+## STL Types
 You can serialize and deserialize STL container and other types (see [supported types](#supported-types) for more details). For example:
 
 ``` c++
@@ -80,7 +78,7 @@ Serio::deserialize(newData, vector2, i, d);
 
 You can use some types interchangably when serializing and deserializing. See [Notes](#notes) section for more details.
 
-### Custom Types
+## Custom Types
 You can make Custom classes and structs serializable with just one line of code. For example:
 
 ``` c++
@@ -100,7 +98,7 @@ Serio::deserialize(data, points);
  
 Also note that structures or classes must be default constructable.
 
-### Custom Containers
+## Custom Containers
 With a little bit of work you can use this library to serialize your custom containers. For example:
 
 ``` c++
@@ -137,7 +135,7 @@ Explanation:
 
 Here we do the job of SERIO_REGISTER_CLASS manually. We define ```_serialize``` function in your class that serializes size first and then all the items. Then we define ```_deserialize``` function that deserializes size and resizes the container and then deserializes all the items. Now your container is ready to be serialized and deserialized.
 
-### Advanced Usages
+## Advanced Usages
 You can serialize conditional cases using this library! For example if you want to seralize a union of std::vector<int> and std::string you can do the following:
   
 ``` c++
@@ -207,11 +205,11 @@ serio.h: error: no member named '_deserialize' in 'class-name'
 This means that you are trying to serialize or deserialize a custom structure or class that you have not registed.
 
 ## Use Cases
-This library can have a lot of applications. It can be used to process and save information on files and read them later. It can be used to turn text files into binary file and read it much faster later on. It can also be used to easily send and recieve data in binary form through sockets(network or otherwise). It can also save program options and restore them on startup.
+This library can have a lot of applications. It can be used to process and save information on files and read them later. It can be used to turn text files into binary file and read it much faster later on. It can also be used to easily send and recieve data in binary form through sockets(network or otherwise). It can also be used to save program options and restore them on startup.
 
 
-# Running the Tests
-you won't have to run the tests but it you want to you have to install google test framework and run cmake. Do these in the project directory:
+# Tests
+The tests are written with ```Google Test``` library. You won't have to run the tests but if you want to you have to install google test framework and run cmake. Do these in the project directory:
 
 ``` shell
 mkdir build && cd build
