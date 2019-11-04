@@ -13,3 +13,4 @@
 + Add tests for save and load
 + Write stream serializer and deserializer
 + Update README
++ Move usage to wiki page
