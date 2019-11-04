@@ -8,16 +8,16 @@
     - [Custom Types](#custom-types)
     - [Custom Containers](#custom-containers)
     - [Advanced Usages](#advanced-usages)
+- [Notes](#notes)
   - [Supported Types](#supported-types)
   - [Debugging](#debugging)
-  - [Notes](#notes)
-- [Use Cases](#use-cases)
+  - [Use Cases](#use-cases)
 - [Running the Tests](#running-the-tests)
 - [Contribution and Questions](#contribution-and-questions)
 - [TODO](#todo)
 - [License](#license)
 
-# Serio
+# Serio 
 Serio is a C++11 library that makes serialization of C++ containers and other data types and custom classes and structures possible. Features:
 + Fast
 + Easy to Use
@@ -184,6 +184,15 @@ private:
 };
 ```
 
+# Notes
++ STL containers can be used interchangably when serializing the deserializing. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::list```. This is both convinient and can speed up operations. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::set``` to get unique items. With maps for example you can serialize a ```std::map<int, int>``` and later deserialize a ```std::vector<std::pair<int, int>>``` or vice versa.
+
++ If you want the serialized files to be completely machine-independent use fixed size integers instead of basic data types.
+
++ Doing ```using namespace Serio``` is not a good idea(because it may cause some conflicts).
+
++ When size of ```long double``` is 16 bytes, it is only supported where 128 integer is available (depends on compiler and hardware. see [this](https://gcc.gnu.org/onlinedocs/gcc-4.6.1/gcc/_005f_005fint128.html)). So be careful using it.
+
 ## Supported Types
 Supported types: [C++ containers](http://www.cplusplus.com/reference/stl/), std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::optional(C++17) and any structure that you register. If there are some types missing from this library you can report it on issues page.
 
@@ -197,17 +206,9 @@ serio.h: error: no member named '_deserialize' in 'class-name'
 
 This means that you are trying to serialize or deserialize a custom structure or class that you have not registed.
 
-### Use Cases
+## Use Cases
 This library can have a lot of applications. It can be used to process and save information on files and read them later. It can be used to turn text files into binary file and read it much faster later on. It can also be used to easily send and recieve data in binary form through sockets(network or otherwise). It can also save program options and restore them on startup.
 
-## Notes
-+ STL containers can be used interchangably when serializing the deserializing. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::list```. This is both convinient and can speed up operations. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::set``` to get unique items. With maps for example you can serialize a ```std::map<int, int>``` and later deserialize a ```std::vector<std::pair<int, int>>``` or vice versa.
-
-+ If you want the serialized files to be completely machine-independent use fixed size integers instead of basic data types.
-
-+ Doing ```using namespace Serio``` is not a good idea(because it may cause some conflicts).
-
-+ When size of ```long double``` is 16 bytes, it is only supported where 128 integer is available (depends on compiler and hardware. see [this](https://gcc.gnu.org/onlinedocs/gcc-4.6.1/gcc/_005f_005fint128.html)). So be careful using it.
 
 # Running the Tests
 you won't have to run the tests but it you want to you have to install google test framework and run cmake. Do these in the project directory:
