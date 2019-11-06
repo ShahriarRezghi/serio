@@ -254,6 +254,19 @@ public:
     }
 };
 
+static Serio::ByteArray temporary;
+
+template <typename... Ts>
+void save(Ts&&... ts)
+{
+    temporary = Serio::serialize(std::forward<Ts>(ts)...);
+}
+template <typename... Ts>
+void load(Ts&&... ts)
+{
+    ASSERT_EQ(Serio::deserialize(temporary, std::forward<Ts>(ts)...), temporary.size());
+}
+
 template <typename T>
 struct Process
 {
@@ -261,8 +274,8 @@ struct Process
     {
         T value1, value2;
         INIT::init(value1);
-        auto data = Serio::serialize(value1);
-        EXPECT_EQ(Serio::deserialize(data, value2), data.size());
+        save(value1);
+        load(value2);
         EXPECT_EQ(value1, value2);
     }
 };
@@ -273,8 +286,8 @@ struct Process<std::valarray<T>>
     {
         std::valarray<T> value1, value2;
         INIT::init(value1);
-        auto data = Serio::serialize(value1);
-        EXPECT_EQ(Serio::deserialize(data, value2), data.size());
+        save(value1);
+        load(value2);
         EXPECT_TRUE((value1.size() == 0 && value2.size() == 0) || (value1 == value2).min());
     }
 };

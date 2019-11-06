@@ -342,7 +342,7 @@ struct TupleRecurse<Tuple, 1>
 /// @param path Path of the file to be read
 /// @param data Destination of the data that is read from the file
 /// @returns True if succeeds otherwise false
-inline bool read(const std::string& path, ByteArray& data)
+bool read(const std::string& path, ByteArray& data)
 {
     std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
     if (!stream.is_open()) return false;
@@ -364,7 +364,7 @@ inline bool read(const std::string& path, ByteArray& data)
 /// @param path Path of the file to be writen.
 /// @param data The data that needs to be written into the file
 /// @returns True if succeeds otherwise false
-inline bool write(const std::string& path, const ByteArray& data)
+bool write(const std::string& path, const ByteArray& data)
 {
     std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
     if (!stream.is_open()) return false;
@@ -684,7 +684,7 @@ public:
     }
 
     template <typename Alloc>
-    inline Derived& operator>>(std::vector<bool, Alloc>& C)
+    Derived& operator>>(std::vector<bool, Alloc>& C)
     {
         Size size;
         This() >> size;
@@ -853,7 +853,7 @@ public:
 
 #if __cplusplus >= 201703L
     template <typename T>
-    inline Derived& operator>>(std::optional<T>& C)
+    Derived& operator>>(std::optional<T>& C)
     {
         bool has;
         This() >> has;
@@ -890,7 +890,7 @@ class CalculatorBase
 public:
     size_t size;
 
-    CalculatorBase(size_t size = 0) : size(size) {}
+    inline CalculatorBase(size_t size = 0) : size(size) {}
 
     template <typename T>
     inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
@@ -926,7 +926,7 @@ struct SerializerBase
 public:
     char* buffer;
 
-    SerializerBase(char* buffer = nullptr) : buffer(buffer) {}
+    inline SerializerBase(char* buffer = nullptr) : buffer(buffer) {}
 
     template <typename T>
     inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
@@ -939,7 +939,7 @@ public:
     }
 
     template <typename Traits, typename Alloc>
-    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
     {
         This() << Size(C.size());
         std::memcpy(buffer, C.data(), C.size());
@@ -965,7 +965,7 @@ struct DeserializerBase
 public:
     const char* buffer;
 
-    DeserializerBase(const char* buffer = nullptr) : buffer(buffer) {}
+    inline DeserializerBase(const char* buffer = nullptr) : buffer(buffer) {}
 
     template <typename T>
     inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
