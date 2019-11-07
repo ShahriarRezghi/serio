@@ -342,7 +342,7 @@ struct TupleRecurse<Tuple, 1>
 /// @param path Path of the file to be read
 /// @param data Destination of the data that is read from the file
 /// @returns True if succeeds otherwise false
-bool read(const std::string& path, ByteArray& data)
+inline bool read(const std::string& path, ByteArray& data)
 {
     std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
     if (!stream.is_open()) return false;
@@ -364,7 +364,7 @@ bool read(const std::string& path, ByteArray& data)
 /// @param path Path of the file to be writen.
 /// @param data The data that needs to be written into the file
 /// @returns True if succeeds otherwise false
-bool write(const std::string& path, const ByteArray& data)
+inline bool write(const std::string& path, const ByteArray& data)
 {
     std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
     if (!stream.is_open()) return false;
