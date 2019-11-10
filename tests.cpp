@@ -51,6 +51,7 @@ struct A
         auto y = abs(this->b - other.b) < numeric_limits<double>::epsilon();
         return x && y;
     }
+    bool operator!=(const A& other) const { return !(*this == other); }
 
     SERIO_REGISTER(a, b)
 };
@@ -66,6 +67,7 @@ struct B
         auto y = abs(this->b - other.b) < numeric_limits<double>::epsilon();
         return x && y && this->c == other.c;
     }
+    bool operator!=(const B& other) const { return !(*this == other); }
 
     SERIO_REGISTER(a, b, c)
 };
@@ -77,6 +79,7 @@ struct C
     {
         return abs(this->a - other.a) < numeric_limits<double>::epsilon();
     }
+    bool operator!=(const C& other) const { return !(*this == other); }
 
     SERIO_REGISTER(a)
 };
@@ -90,6 +93,7 @@ struct D : C
         auto y = abs(this->b - other.b) < numeric_limits<double>::epsilon();
         return x && y;
     }
+    bool operator!=(const D& other) const { return !(*this == other); }
 
     SERIO_REGISTER(a, b)
 };
