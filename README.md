@@ -220,7 +220,7 @@ make && ./Tests
 Then you can run the tests executable. Also note that tests might take a long time to compile so please be patient.
 
 # Contribution and Questions
-You can report bugs and ask questions on [issues page](../../issues). Also if you want to implement a feature or fix a bug you can open an issue and we can discuss it.
+You can report bugs and ask questions on [issues page](../../issues). Also if you want to implement a feature or fix a bug please open an issue about it first.
 
 # TODO
 You can view the TODO file [here](TODO.md).
