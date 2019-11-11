@@ -14,3 +14,4 @@
 + Write stream serializer and deserializer
 + Update README
 + Move usage to wiki page
++ Add tests for different SERIO_SIZE's

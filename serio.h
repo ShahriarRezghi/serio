@@ -96,6 +96,7 @@
         C.process(__VA_ARGS__);                 \
     }
 
+/// Main namespace of the library.
 namespace Serio
 {
 #if SERIO_SIZE == 8
@@ -112,6 +113,7 @@ using Size = uint16_t;
 /// Array of 8 bit types.
 using ByteArray = std::basic_string<char>;
 
+/// Details of the namespace is in this namespace.
 namespace Impl
 {
 namespace Number
