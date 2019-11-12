@@ -95,11 +95,6 @@ matrix:
       compiler: clang
       env: OSX 7.3 AMD64 Clang
 
-    - os: osx
-      osx_image: xcode6.4
-      compiler: clang
-      env: OSX 6.4 AMD64 Clang
-
 
 
     - os: linux
