@@ -280,6 +280,7 @@ struct Process
         INIT::init(value1);
         save(value1);
         load(value2);
+        cout << value1 == value2 << endl;
         EXPECT_EQ(value1, value2);
     }
 };
