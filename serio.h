@@ -31,14 +31,13 @@
 #ifndef SSERIALIZATION_H
 #define SSERIALIZATION_H
 
-#include <assert.h>
-#include <stdint.h>
-#include <stdio.h>
-
 #include <array>
 #include <bitset>
+#include <cassert>
 #include <chrono>
 #include <complex>
+#include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <deque>
 #include <forward_list>

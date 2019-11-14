@@ -28,13 +28,13 @@
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <float.h>
 #include <gtest/gtest-typed-test.h>
 #include <gtest/gtest.h>
-#include <math.h>
 #include <serio.h>
-#include <time.h>
 
+#include <cfloat>
+#include <cmath>
+#include <ctime>
 #include <limits>
 #include <random>
 
