@@ -575,13 +575,17 @@ public:
     template <typename T>
     inline Derived& operator<<(const std::shared_ptr<T>& C)
     {
-        return This() << *C.get();
+        This() << bool(C);
+        if (C) This() << *C.get();
+        return This();
     }
 
     template <typename T>
     inline Derived& operator<<(const std::unique_ptr<T>& C)
     {
-        return This() << *C.get();
+        This() << bool(C);
+        if (C) This() << *C.get();
+        return This();
     }
 
     template <typename T>
@@ -658,9 +662,18 @@ class DeserializerOps
     template <typename Ptr, typename T>
     inline Derived& pointer(const Ptr& C)
     {
-        T* value = new T();
-        This() >> *value;
-        C = value;
+        bool has;
+        This() >> has;
+
+        if (has)
+        {
+            T* value = new T();
+            This() >> *value;
+            C = value;
+        }
+        else
+            C.reset();
+
         return This();
     }
 
