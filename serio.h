@@ -998,6 +998,89 @@ public:
     }
 };
 
+template <typename Derived>
+struct StreamSerializerBase
+{
+    inline Derived& This() { return *reinterpret_cast<Derived*>(this); }
+
+public:
+    std::basic_ostream<char>* stream;
+
+    inline StreamSerializerBase(std::basic_ostream<char>* stream) : stream(stream) {}
+
+    template <typename T>
+    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
+                                   Derived&>::type
+    operator<<(const T& C)
+    {
+        char buffer[sizeof(C)];
+        Impl::Number::serialize(C, buffer);
+        stream->rdbuf()->sputn(buffer, sizeof(C));
+        return This();
+    }
+
+    template <typename Traits, typename Alloc>
+    inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    {
+        stream->rdbuf()->sputn(C.data(), C.size());
+        return This();
+    }
+
+    template <size_t N>
+    inline Derived& operator<<(const std::bitset<N>& C)
+    {
+        size_t size = std::ceil(N / 8.0);
+        ByteArray buffer(size, 0);
+        Impl::Bitset::serialize(C, &buffer.front());
+        stream->rdbuf()->sputn(buffer.data(), buffer.size());
+        return This();
+    }
+};
+
+template <typename Derived>
+struct StreamDeserializerBase
+{
+    inline Derived& This() { return *reinterpret_cast<Derived*>(this); }
+
+public:
+    std::basic_istream<char>* stream;
+
+    inline StreamDeserializerBase(std::basic_istream<char>* stream = nullptr) : stream(stream) {}
+
+    void fill() {}
+
+    template <typename T>
+    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
+                                   Derived&>::type
+    operator>>(T& C)
+    {
+        ByteArray buffer(sizeof(C), 0);
+        stream->rdbuf()->sgetn(&buffer.front(), sizeof(C));
+        Impl::Number::deserialize(C, buffer.data());
+        return This();
+    }
+
+    template <typename Traits, typename Alloc>
+    Derived& operator>>(std::basic_string<char, Traits, Alloc>& C)
+    {
+        Size size;
+        This() >> size;
+        C.resize(size);
+        stream->rdbuf()->sputn(&C.front(), size);
+        return This();
+    }
+
+    template <size_t N>
+    inline Derived& operator>>(std::bitset<N>& C)
+    {
+        size_t size = std::ceil(N / 8.0);
+        ByteArray buffer(size, 0);
+        stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
+        Impl::Bitset::deserialize(C, buffer.data());
+        return This();
+    }
+};
+
 /// @brief This class calculates size of any supported types.
 struct Calculator : CalculatorBase<Calculator>, SerializerOps<Calculator>
 {
@@ -1023,6 +1106,24 @@ struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializ
 {
     using Base = DeserializerBase<Deserializer>;
     using Ops = DeserializerOps<Deserializer>;
+    using Base::Base;
+    using Ops::operator>>;
+    using Base::operator>>;
+};
+
+struct StreamSerializer : StreamSerializerBase<StreamSerializer>, SerializerOps<StreamSerializer>
+{
+    using Base = StreamSerializerBase<StreamSerializer>;
+    using Ops = SerializerOps<StreamSerializer>;
+    using Base::Base;
+    using Ops::operator<<;
+    using Base::operator<<;
+};
+struct StreamDeserializer : StreamDeserializerBase<StreamDeserializer>,
+                            DeserializerOps<StreamDeserializer>
+{
+    using Base = StreamDeserializerBase<StreamDeserializer>;
+    using Ops = DeserializerOps<StreamDeserializer>;
     using Base::Base;
     using Ops::operator>>;
     using Base::operator>>;
@@ -1174,6 +1275,19 @@ inline bool load(const std::string& path, Head& head, Tail&&... tail)
     ByteArray A;
     if (!Impl::read(path, A)) return false;
     return deserialize(A, head, std::forward<Tail>(tail)...) == A.size();
+}
+
+template <typename Head, typename... Tail>
+inline void streamSerialize(std::basic_ostream<char>* stream, const Head& head, Tail&&... tail)
+{
+    StreamSerializer serializer(stream);
+    serializer.process(head, std::forward<Tail>(tail)...);
+}
+template <typename Head, typename... Tail>
+inline void streamDeserialize(std::basic_istream<char>* stream, Head& head, Tail&&... tail)
+{
+    StreamDeserializer deserializer(stream);
+    deserializer.process(head, std::forward<Tail>(tail)...);
 }
 }  // namespace Serio
 

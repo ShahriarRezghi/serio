@@ -261,14 +261,29 @@ public:
 static Serio::ByteArray temporary;
 
 template <typename... Ts>
-void save(Ts&&... ts)
+void save1(Ts&&... ts)
 {
     temporary = Serio::serialize(std::forward<Ts>(ts)...);
 }
 template <typename... Ts>
-void load(Ts&&... ts)
+void load1(Ts&&... ts)
 {
     ASSERT_EQ(Serio::deserialize(temporary, std::forward<Ts>(ts)...), temporary.size());
+}
+
+template <typename... Ts>
+void save2(Ts&&... ts)
+{
+    ofstream file("temp");
+    ASSERT_TRUE(file.is_open());
+    Serio::streamSerialize(&file, std::forward<Ts>(ts)...);
+}
+template <typename... Ts>
+void load2(Ts&&... ts)
+{
+    ifstream file("temp");
+    ASSERT_TRUE(file.is_open());
+    Serio::streamDeserialize(&file, std::forward<Ts>(ts)...);
 }
 
 template <typename T>
@@ -278,8 +293,11 @@ struct Process
     {
         T value1, value2;
         INIT::init(value1);
-        save(value1);
-        load(value2);
+        save1(value1);
+        load1(value2);
+        EXPECT_EQ(value1, value2);
+        save2(value1);
+        load2(value2);
         EXPECT_EQ(value1, value2);
     }
 };
@@ -290,8 +308,11 @@ struct Process<std::valarray<T>>
     {
         std::valarray<T> value1, value2;
         INIT::init(value1);
-        save(value1);
-        load(value2);
+        save1(value1);
+        load1(value2);
+        EXPECT_TRUE((value1.size() == 0 && value2.size() == 0) || (value1 == value2).min());
+        save2(value1);
+        load2(value2);
         EXPECT_TRUE((value1.size() == 0 && value2.size() == 0) || (value1 == value2).min());
     }
 };
