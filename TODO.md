@@ -16,3 +16,4 @@
 + Add tests for different SERIO_SIZE's
 + Add tests for Windows platform
 + Update README
++ Find a better way to support 16 byte or more basic types
