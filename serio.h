@@ -58,6 +58,7 @@
 
 #if __cplusplus >= 201703L
 #include <optional>
+#include <variant>
 #endif
 
 #ifndef SERIO_SIZE
@@ -118,40 +119,37 @@ namespace Impl
 namespace Number
 {
 template <typename T, size_t N>
-struct NumberRecurse
+struct Number
 {
     static inline void serialize(const T& data, char* buffer)
     {
-        NumberRecurse<T, N - 1>::serialize(data, buffer);
+        Number<T, N - 1>::serialize(data, buffer);
         buffer[N] = char(data >> (N * 8));
     }
-
     static inline void deserialize(T& data, const char* buffer)
     {
-        NumberRecurse<T, N - 1>::deserialize(data, buffer);
+        Number<T, N - 1>::deserialize(data, buffer);
         data |= T(uint8_t(buffer[N])) << (N * 8);
     }
 };
 
 template <typename T>
-struct NumberRecurse<T, 0>
+struct Number<T, 0>
 {
     static inline void serialize(const T& data, char* buffer) { buffer[0] = char(data); }
-
     static inline void deserialize(T& data, const char* buffer) { data |= T(uint8_t(buffer[0])); }
 };
 
 template <typename T>
 inline void _serialize(const T& data, char* buffer)
 {
-    NumberRecurse<T, sizeof(T) - 1>::serialize(data, buffer);
+    Number<T, sizeof(T) - 1>::serialize(data, buffer);
 }
-
 template <typename T>
 inline void _deserialize(T& data, const char* buffer)
 {
     data = 0;
-    NumberRecurse<T, sizeof(T) - 1>::deserialize(data, buffer);
+    Number<T, sizeof(T) - 1>::deserialize(data, buffer);
 }
 
 template <typename T>
@@ -172,7 +170,6 @@ void serialize(const T& data, char* buffer)
     else
         throw std::runtime_error("Basic data type is not supported for serialization");
 }
-
 template <typename T>
 void deserialize(T& data, const char* buffer)
 {
@@ -196,26 +193,24 @@ void deserialize(T& data, const char* buffer)
 namespace Bitset
 {
 template <size_t N, size_t I, size_t J>
-struct BitsetBitRecurse
+struct Bit
 {
     static inline void serialize(const std::bitset<N>& C, char* buffer)
     {
-        BitsetBitRecurse<N, I, J - 1>::serialize(C, buffer);
+        Bit<N, I, J - 1>::serialize(C, buffer);
         if (I + J < N) buffer[I] |= (C[I * 8 + J] << J) & (1 << J);
     }
-
     static inline void deserialize(std::bitset<N>& C, const char* buffer)
     {
-        BitsetBitRecurse<N, I, J - 1>::deserialize(C, buffer);
+        Bit<N, I, J - 1>::deserialize(C, buffer);
         if (I + J < N) C[I * 8 + J] = (buffer[I] >> J) & 1;
     }
 };
 
 template <size_t N, size_t I>
-struct BitsetBitRecurse<N, I, 0>
+struct Bit<N, I, 0>
 {
     static inline void serialize(const std::bitset<N>& C, char* buffer) { buffer[I] = C[I * 8]; }
-
     static inline void deserialize(std::bitset<N>& C, const char* buffer)
     {
         C[I * 8] = buffer[I] & 1;
@@ -223,32 +218,30 @@ struct BitsetBitRecurse<N, I, 0>
 };
 
 template <size_t N, size_t I>
-struct BitsetCharRecurse
+struct Char
 {
     static inline void serialize(const std::bitset<N>& C, char* buffer)
     {
-        BitsetCharRecurse<N, I - 1>::serialize(C, buffer);
-        BitsetBitRecurse<N, I, 7>::serialize(C, buffer);
+        Char<N, I - 1>::serialize(C, buffer);
+        Bit<N, I, 7>::serialize(C, buffer);
     }
-
     static inline void deserialize(std::bitset<N>& C, const char* buffer)
     {
-        BitsetCharRecurse<N, I - 1>::deserialize(C, buffer);
-        BitsetBitRecurse<N, I, 7>::deserialize(C, buffer);
+        Char<N, I - 1>::deserialize(C, buffer);
+        Bit<N, I, 7>::deserialize(C, buffer);
     }
 };
 
 template <size_t N>
-struct BitsetCharRecurse<N, 0>
+struct Char<N, 0>
 {
     static inline void serialize(const std::bitset<N>& C, char* buffer)
     {
-        BitsetBitRecurse<N, 0, 7>::serialize(C, buffer);
+        Bit<N, 0, 7>::serialize(C, buffer);
     }
-
     static inline void deserialize(std::bitset<N>& C, const char* buffer)
     {
-        BitsetBitRecurse<N, 0, 7>::deserialize(C, buffer);
+        Bit<N, 0, 7>::deserialize(C, buffer);
     }
 };
 
@@ -256,27 +249,129 @@ template <size_t N>
 inline void serialize(const std::bitset<N>& C, char* buffer)
 {
     if (N % 8 == 0)
-        BitsetCharRecurse<N, N / 8 - 1>::serialize(C, buffer);
+        Char<N, N / 8 - 1>::serialize(C, buffer);
     else
-        BitsetCharRecurse<N, N / 8>::serialize(C, buffer);
+        Char<N, N / 8>::serialize(C, buffer);
 }
-
 template <size_t N>
 inline void deserialize(std::bitset<N>& C, const char* buffer)
 {
     if (N % 8 == 0)
-        BitsetCharRecurse<N, N / 8 - 1>::deserialize(C, buffer);
+        Char<N, N / 8 - 1>::deserialize(C, buffer);
     else
-        BitsetCharRecurse<N, N / 8>::deserialize(C, buffer);
+        Char<N, N / 8>::deserialize(C, buffer);
 }
 }  // namespace Bitset
+
+namespace Tuple
+{
+template <class Tp, size_t N>
+struct Tuple
+{
+    template <typename Serializer>
+    static inline void serialize(Serializer& C, const Tp& T)
+    {
+        Tuple<Tp, N - 1>::serialize(C, T);
+        C << std::get<N>(T);
+    }
+    template <typename Deserializer>
+    static inline void deserialize(Deserializer& C, Tp& T)
+    {
+        Tuple<Tp, N - 1>::deserialize(C, T);
+        C >> std::get<N>(T);
+    }
+};
+
+template <class Tp>
+struct Tuple<Tp, 0>
+{
+    template <typename Serializer>
+    static inline void serialize(Serializer& C, const Tp& T)
+    {
+        C << std::get<0>(T);
+    }
+    template <typename Deserializer>
+    static inline void deserialize(Deserializer& C, Tp& T)
+    {
+        C >> std::get<0>(T);
+    }
+};
+
+template <typename Serializer, typename... Ts>
+inline void serialize(Serializer& C, const std::tuple<Ts...>& tuple)
+{
+    Tuple<decltype(tuple), sizeof...(Ts) - 1>::serialize(C, tuple);
+}
+template <typename Serializer, typename... Ts>
+inline void deserialize(Serializer& C, std::tuple<Ts...>& tuple)
+{
+    Tuple<decltype(tuple), sizeof...(Ts) - 1>::deserialize(C, tuple);
+}
+}  // namespace Tuple
+
+#if __cplusplus >= 201703L
+namespace Variant
+{
+template <class Tp, size_t N>
+struct Variant
+{
+    template <typename Serializer, typename Vr>
+    static inline void serialize(Serializer& C, const Vr& V)
+    {
+        Variant<Tp, N - 1>::serialize(C, V);
+        if (V.index() == N) C << std::get<N>(V);
+    }
+    template <typename Serializer, typename Vr>
+    static inline void deserialize(Serializer& C, Size index, const Vr& V)
+    {
+        Variant<Tp, N - 1>::deserialize(C, index, V);
+        if (index == N)
+        {
+            std::tuple_element<N, Tp> E;
+            C >> E;
+            V.emplace(std::move(E));
+        }
+    }
+};
+
+template <typename Tp>
+struct Variant<Tp, 0>
+{
+    template <typename Serializer, typename Vr>
+    static inline void serialize(Serializer& C, const Vr& V)
+    {
+        if (V.index() == 0) C << std::get<0>(V);
+    }
+    template <typename Serializer, typename Vr>
+    static inline void deserialize(Serializer& C, Size index, const Vr& V)
+    {
+        if (index == 0)
+        {
+            std::tuple_element<0, Tp> E;
+            C >> E;
+            V.emplace(std::move(E));
+        }
+    }
+};
+
+template <typename Serializer, typename... Ts>
+inline void serialize(Serializer& C, const std::variant<Ts...>& V)
+{
+    Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::serialize(C, V);
+}
+template <typename Serializer, typename... Ts>
+inline void deserialize(Serializer& C, Size index, std::variant<Ts...>& V)
+{
+    Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(C, index, V);
+}
+}  // namespace Variant
+#endif
 
 template <typename Iter>
 size_t iteratableSize(const Iter& I)
 {
     return I.size();
 }
-
 template <typename T, typename Alloc>
 size_t iteratableSize(const std::forward_list<T, Alloc>& I)
 {
@@ -289,53 +384,17 @@ class DerivedQueue : public std::queue<T, Sequence>
 public:
     using std::queue<T, Sequence>::c;
 };
-
 template <typename T, typename Sequence>
 class DerivedPQueue : public std::priority_queue<T, Sequence>
 {
 public:
     using std::priority_queue<T, Sequence>::c;
 };
-
 template <typename T, typename Sequence>
 class DerivedStack : public std::stack<T, Sequence>
 {
 public:
     using std::stack<T, Sequence>::c;
-};
-
-template <class Tuple, size_t N>
-struct TupleRecurse
-{
-    template <typename A>
-    static inline void serialize(A& C, const Tuple& T)
-    {
-        TupleRecurse<Tuple, N - 1>::serialize(C, T);
-        C << std::get<N - 1>(T);
-    }
-
-    template <typename A>
-    static inline void deserialize(A& C, Tuple& T)
-    {
-        TupleRecurse<Tuple, N - 1>::deserialize(C, T);
-        C >> std::get<N - 1>(T);
-    }
-};
-
-template <class Tuple>
-struct TupleRecurse<Tuple, 1>
-{
-    template <typename A>
-    static inline void serialize(A& C, const Tuple& T)
-    {
-        C << std::get<0>(T);
-    }
-
-    template <typename A>
-    static inline void deserialize(A& C, Tuple& T)
-    {
-        C >> std::get<0>(T);
-    }
 };
 
 /// Reads binary data from a file.
@@ -567,9 +626,8 @@ public:
     template <typename... Ts>
     inline Derived& operator<<(const std::tuple<Ts...>& C)
     {
-        auto& A = This();
-        Impl::TupleRecurse<decltype(C), sizeof...(Ts)>::serialize(A, C);
-        return A;
+        Impl::Tuple::serialize(This(), C);
+        return This();
     }
 
     template <typename T>
@@ -607,6 +665,20 @@ public:
     {
         This() << C.has_value();
         if (C.has_value()) This() << C.value();
+        return This();
+    }
+
+    template <typename... Ts>
+    Derived& operator<<(const std::variant<Ts...>& C)
+    {
+        if (C.index() == std::variant_npos)
+            This() << Size(-1);
+        else
+        {
+            This() << Size(C.index());
+            Impl::Variant::serialize(This(), C);
+        }
+
         return This();
     }
 #endif
@@ -833,7 +905,7 @@ public:
     template <typename... Ts>
     inline Derived& operator>>(std::tuple<Ts...>& C)
     {
-        Impl::TupleRecurse<decltype(C), sizeof...(Ts)>::deserialize(This(), C);
+        Impl::Tuple::deserialize(This(), C);
         return This();
     }
 
@@ -880,6 +952,20 @@ public:
         }
         else
             C.reset();
+
+        return This();
+    }
+
+    template <typename... Ts>
+    Derived& operator>>(std::variant<Ts...>& C)
+    {
+        Size index;
+        This() >> index;
+
+        if (index == Size(-1))
+            ;  // TODO reset C somehow
+        else
+            Impl::Variant::deserialize(This(), index, C);
 
         return This();
     }
