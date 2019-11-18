@@ -277,6 +277,21 @@ public:
         initMap(I);
     }
 
+    template <typename T>
+    static void init(std::shared_ptr<T>& I)
+    {
+        auto* value = new T();
+        init(*value);
+        I.reset(value);
+    }
+    template <typename T, typename Deleter>
+    static void init(std::unique_ptr<T, Deleter>& I)
+    {
+        auto* value = new T();
+        init(*value);
+        I.reset(value);
+    }
+
 #if __cplusplus >= 201703L
     template <typename T>
     static void init(std::optional<T>& I)
@@ -348,6 +363,18 @@ void compare(std::priority_queue<T, Seq, Comp> value1, std::priority_queue<T, Se
         value2.pop();
     }
     EXPECT_EQ(value1.empty(), value2.empty());
+}
+template <typename T>
+void compare(const std::shared_ptr<T>& value1, const std::shared_ptr<T>& value2)
+{
+    if (!value1 && !value2) return;
+    compare(*value1.get(), *value2.get());
+}
+template <typename T, typename Deleter>
+void compare(const std::unique_ptr<T, Deleter>& value1, const std::unique_ptr<T, Deleter>& value2)
+{
+    if (!value1 && !value2) return;
+    compare(*value1.get(), *value2.get());
 }
 
 template <typename T>
@@ -430,6 +457,8 @@ TYPED_TEST_CASE(Type1, BasicTypes);
 TYPED_TEST_CASE(Type2, FullTypes);
 
 TYPED_TEST(Type1, Complex) { Process<std::complex<TypeParam>>(); }
+TYPED_TEST(Type2, ShapredPtr) { Process<std::shared_ptr<TypeParam>>(); }
+TYPED_TEST(Type2, UniquePtr) { Process<std::unique_ptr<TypeParam>>(); }
 CREATE_ITER_TEST_0(Type1, ValArray, std::valarray)
 CREATE_ITER_TEST(Type1, Set, std::set);
 CREATE_ITER_TEST(Type1, Multiset, std::multiset);

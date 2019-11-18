@@ -733,16 +733,16 @@ class DeserializerOps
     }
 
     template <typename Ptr, typename T>
-    inline Derived& pointer(const Ptr& C)
+    inline Derived& pointer(Ptr& C)
     {
         bool has;
         This() >> has;
 
         if (has)
         {
-            T* value = new T();
+            auto* value = new T();
             This() >> *value;
-            C = value;
+            C.reset(value);
         }
         else
             C.reset();
@@ -909,13 +909,13 @@ public:
     }
 
     template <typename T>
-    inline Derived& operator>>(const std::shared_ptr<T>& C)
+    inline Derived& operator>>(std::shared_ptr<T>& C)
     {
         return pointer<decltype(C), T>(C);
     }
 
-    template <typename T>
-    inline Derived& operator>>(const std::unique_ptr<T>& C)
+    template <typename T, typename Deleter>
+    inline Derived& operator>>(std::unique_ptr<T, Deleter>& C)
     {
         return pointer<decltype(C), T>(C);
     }
