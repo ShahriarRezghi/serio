@@ -100,6 +100,21 @@ struct D : C
 
 class INIT
 {
+    template <typename T, typename Seq>
+    static void add(std::queue<T, Seq>& I, T& value)
+    {
+        I.push(std::move(value));
+    }
+    template <typename T, typename Seq>
+    static void add(std::stack<T, Seq>& I, T& value)
+    {
+        I.push(std::move(value));
+    }
+    template <typename T, typename Seq, typename Comp>
+    static void add(std::priority_queue<T, Seq, Comp>& I, T& value)
+    {
+        I.push(std::move(value));
+    }
     template <typename T, typename Alloc>
     static void add(std::vector<T, Alloc>& I, T& value)
     {
@@ -169,7 +184,7 @@ class INIT
     template <typename Iter>
     static void initMap(Iter& I)
     {
-        auto size = size_t(rand() % 100);
+        auto size = 10 + size_t(rand() % 90);
         for (size_t i = 0; i < size; ++i)
         {
             pair<typename Iter::key_type, typename Iter::mapped_type> V;
@@ -188,7 +203,7 @@ public:
     template <typename Iter>
     static typename std::enable_if<std::is_class<Iter>::value, void>::type init(Iter& I)
     {
-        auto size = size_t(rand() % 100);
+        auto size = 10 + size_t(rand() % 90);
         for (size_t i = 0; i < size; ++i)
         {
             auto V = typename Iter::value_type();
@@ -199,7 +214,7 @@ public:
     template <typename T>
     static void init(std::valarray<T>& I)
     {
-        auto size = size_t(rand() % 100);
+        auto size = 10 + size_t(rand() % 90);
         I = std::valarray<T>(T(), size);
         for (auto& value : I) init(value);
     }
@@ -287,33 +302,48 @@ void load2(Ts&&... ts)
 }
 
 template <typename T>
+void compare(const T& value1, const T& value2)
+{
+    EXPECT_EQ(value1, value2);
+}
+template <typename T>
+void compare(const std::valarray<T>& value1, const std::valarray<T>& value2)
+{
+    if (value1.size() == 0 && value2.size() == 0) return;
+    EXPECT_TRUE((value1 == value2).min());
+}
+template <typename T, typename Seq, typename Comp>
+void compare(std::priority_queue<T, Seq, Comp> value1, std::priority_queue<T, Seq, Comp> value2)
+{
+    while (!value1.empty() && !value2.empty())
+    {
+        compare(value1.top(), value2.top());
+        value1.pop();
+        value2.pop();
+    }
+    EXPECT_EQ(value1.empty(), value2.empty());
+}
+
+template <typename T>
 struct Process
 {
     Process()
     {
-        T value1, value2;
+        T value1 = T(), value2 = T();
+        save1(value1);
+        load1(value2);
+        compare(value1, value2);
+        save2(value1);
+        load2(value2);
+        compare(value1, value2);
+
         INIT::init(value1);
         save1(value1);
         load1(value2);
-        EXPECT_EQ(value1, value2);
+        compare(value1, value2);
         save2(value1);
         load2(value2);
-        EXPECT_EQ(value1, value2);
-    }
-};
-template <typename T>
-struct Process<std::valarray<T>>
-{
-    Process()
-    {
-        std::valarray<T> value1, value2;
-        INIT::init(value1);
-        save1(value1);
-        load1(value2);
-        EXPECT_TRUE((value1.size() == 0 && value2.size() == 0) || (value1 == value2).min());
-        save2(value1);
-        load2(value2);
-        EXPECT_TRUE((value1.size() == 0 && value2.size() == 0) || (value1 == value2).min());
+        compare(value1, value2);
     }
 };
 
@@ -383,6 +413,10 @@ CREATE_ITER_TEST(Type2, Vector, std::vector);
 CREATE_ITER_TEST(Type2, List, std::list);
 CREATE_ITER_TEST(Type2, Deque, std::deque);
 CREATE_ITER_TEST(Type2, ForwardList, std::forward_list);
+
+CREATE_ITER_TEST_0(Type2, Queue, std::queue);
+CREATE_ITER_TEST_0(Type2, Stack, std::stack);
+CREATE_ITER_TEST_0(Type1, PQueue, std::priority_queue);
 
 int main(int argc, char** argv)
 {

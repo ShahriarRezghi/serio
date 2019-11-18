@@ -599,22 +599,22 @@ public:
     template <typename T, typename Sequence>
     inline Derived& operator<<(const std::queue<T, Sequence>& C)
     {
-        const auto* D = reinterpret_cast<const Impl::DerivedQueue<T, Sequence>*>(&C);
-        return iteratable(D->c);
+        const auto& D = reinterpret_cast<const Impl::DerivedQueue<T, Sequence>&>(C);
+        return This() << D.c;
     }
 
     template <typename T, typename Sequence>
     inline Derived& operator<<(const std::priority_queue<T, Sequence>& C)
     {
-        const auto* D = reinterpret_cast<const Impl::DerivedPQueue<T, Sequence>*>(&C);
-        return iteratable(D->c);
+        const auto& D = reinterpret_cast<const Impl::DerivedPQueue<T, Sequence>&>(C);
+        return This() << D.c;
     }
 
     template <typename T, typename Sequence>
     inline Derived& operator<<(const std::stack<T, Sequence>& C)
     {
-        const auto* D = reinterpret_cast<const Impl::DerivedStack<T, Sequence>*>(&C);
-        return iteratable(D->c);
+        const auto& D = reinterpret_cast<const Impl::DerivedStack<T, Sequence>&>(C);
+        return This() << D.c;
     }
 
     template <typename T1, typename T2>
@@ -878,22 +878,22 @@ public:
     template <typename T, typename Sequence>
     inline Derived& operator>>(std::queue<T, Sequence>& C)
     {
-        auto* D = reinterpret_cast<Impl::DerivedQueue<T, Sequence>*>(&C);
-        return assignable(D->c);
+        auto& D = reinterpret_cast<Impl::DerivedQueue<T, Sequence>&>(C);
+        return This() >> D.c;
     }
 
     template <typename T, typename Sequence>
     inline Derived& operator>>(std::priority_queue<T, Sequence>& C)
     {
-        auto* D = reinterpret_cast<Impl::DerivedPQueue<T, Sequence>*>(&C);
-        return assignable(D->c);
+        auto& D = reinterpret_cast<Impl::DerivedPQueue<T, Sequence>&>(C);
+        return This() >> D.c;
     }
 
     template <typename T, typename Sequence>
     inline Derived& operator>>(std::stack<T, Sequence>& C)
     {
-        auto* D = reinterpret_cast<Impl::DerivedStack<T, Sequence>*>(&C);
-        return assignable(D->c);
+        auto& D = reinterpret_cast<Impl::DerivedStack<T, Sequence>&>(C);
+        return This() >> D.c;
     }
 
     template <typename T1, typename T2>
