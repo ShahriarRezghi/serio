@@ -1305,8 +1305,8 @@ inline size_t deserialize(const char* data, Head& head, Tail&&... tail)
 template <typename Head, typename... Tail>
 inline ByteArray serialize(const Head& head, Tail&&... tail)
 {
-    ByteArray data(size(head, std::forward<Tail>(tail)...), 0);
-    fill(&data.front(), head, std::forward<Tail>(tail)...);
+    ByteArray data(Serio::size(head, std::forward<Tail>(tail)...), 0);
+    Serio::fill(&data.front(), head, std::forward<Tail>(tail)...);
     return data;
 }
 
