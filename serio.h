@@ -531,7 +531,8 @@ public:
     template <typename T, size_t N>
     inline Derived& operator<<(const std::array<T, N>& C)
     {
-        return iteratable(C);
+        for (const auto& S : C) This() << S;
+        return This();
     }
 
     template <typename T>
@@ -807,9 +808,7 @@ public:
     template <typename T, size_t N>
     inline Derived& operator>>(std::array<T, N>& C)
     {
-        Size size;
-        This() >> size;
-        for (Size i = 0; i < size; ++i) This() >> C[i];
+        for (Size i = 0; i < N; ++i) This() >> C[i];
         return This();
     }
 
