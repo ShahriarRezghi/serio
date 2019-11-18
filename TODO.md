@@ -12,3 +12,4 @@
 + Update README
 + Find a better way to support 16 byte or more basic types
 + Find a way to test c++17 in CI
++ Process vector<bool> in a compact way
