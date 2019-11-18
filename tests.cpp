@@ -218,6 +218,11 @@ public:
         I = std::valarray<T>(T(), size);
         for (auto& value : I) init(value);
     }
+    template <typename T, size_t N>
+    static void init(std::array<T, N>& I)
+    {
+        for (auto& value : I) init(value);
+    }
 
     template <typename T>
     static void init(complex<T>& C)
@@ -417,6 +422,10 @@ CREATE_ITER_TEST(Type2, ForwardList, std::forward_list);
 CREATE_ITER_TEST_0(Type2, Queue, std::queue);
 CREATE_ITER_TEST_0(Type2, Stack, std::stack);
 CREATE_ITER_TEST_0(Type1, PQueue, std::priority_queue);
+
+template <typename T>
+using Array = std::array<T, 50>;
+CREATE_ITER_TEST(Type2, Array, Array);
 
 int main(int argc, char** argv)
 {

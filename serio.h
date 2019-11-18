@@ -809,7 +809,7 @@ public:
     {
         Size size;
         This() >> size;
-        for (Size i = 0; i < size; ++i) (*this) >> C[i];
+        for (Size i = 0; i < size; ++i) This() >> C[i];
         return This();
     }
 
