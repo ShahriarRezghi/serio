@@ -276,6 +276,16 @@ public:
     {
         initMap(I);
     }
+
+#if __cplusplus >= 201703L
+    template <typename T>
+    static void init(std::optional<T>& I)
+    {
+        T value;
+        init(value);
+        I.emplace(std::move(value));
+    }
+#endif
 };
 
 static Serio::ByteArray temporary;
@@ -304,6 +314,17 @@ void load2(Ts&&... ts)
     ifstream file("temp");
     ASSERT_TRUE(file.is_open());
     Serio::streamDeserialize(&file, std::forward<Ts>(ts)...);
+}
+
+template <typename... Ts>
+void save3(Ts&&... ts)
+{
+    Serio::save("temp", std::forward<Ts>(ts)...);
+}
+template <typename... Ts>
+void load3(Ts&&... ts)
+{
+    Serio::load("temp", std::forward<Ts>(ts)...);
 }
 
 template <typename T>
@@ -341,6 +362,9 @@ struct Process
         save2(value1);
         load2(value2);
         compare(value1, value2);
+        save3(value1);
+        load3(value2);
+        compare(value1, value2);
 
         INIT::init(value1);
         save1(value1);
@@ -348,6 +372,9 @@ struct Process
         compare(value1, value2);
         save2(value1);
         load2(value2);
+        compare(value1, value2);
+        save3(value1);
+        load3(value2);
         compare(value1, value2);
     }
 };
@@ -426,6 +453,10 @@ CREATE_ITER_TEST_0(Type1, PQueue, std::priority_queue);
 template <typename T>
 using Array = std::array<T, 50>;
 CREATE_ITER_TEST(Type2, Array, Array);
+
+#if __cplusplus >= 201703L
+TYPED_TEST(Type2, Optional) { Process<std::optional<TypeParam>>(); }
+#endif
 
 int main(int argc, char** argv)
 {
