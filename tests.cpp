@@ -293,6 +293,14 @@ public:
     }
     static void init(chrono::steady_clock::time_point& I) { I = chrono::steady_clock::now(); }
 
+    template <typename T>
+    static void init(std::tuple<T, T, T>& I)
+    {
+        init(std::get<0>(I));
+        init(std::get<1>(I));
+        init(std::get<2>(I));
+    }
+
 #if __cplusplus >= 201703L
     template <typename T>
     static void init(std::optional<T>& I)
@@ -459,10 +467,8 @@ struct Type2 : public ::testing::Test
 TYPED_TEST_CASE(Type1, BasicTypes);
 TYPED_TEST_CASE(Type2, FullTypes);
 
+CREATE_ITER_TEST_0(Type1, PQueue, std::priority_queue);
 TYPED_TEST(Type1, Complex) { Process<std::complex<TypeParam>>(); }
-TYPED_TEST(Type2, ShapredPtr) { Process<std::shared_ptr<TypeParam>>(); }
-TYPED_TEST(Type2, UniquePtr) { Process<std::unique_ptr<TypeParam>>(); }
-
 CREATE_ITER_TEST_0(Type1, ValArray, std::valarray)
 CREATE_ITER_TEST(Type1, Set, std::set);
 CREATE_ITER_TEST(Type1, Multiset, std::multiset);
@@ -474,14 +480,15 @@ CREATE_MAP_TEST(Type1, UnorderedMap, std::unordered_map);
 CREATE_MAP_TEST(Type1, UnorderedMultimap, std::unordered_multimap);
 
 TYPED_TEST(Type2, Basic) { Process<TypeParam>(); }
+TYPED_TEST(Type2, Tuple) { Process<std::tuple<TypeParam, TypeParam, TypeParam>>(); }
 CREATE_ITER_TEST(Type2, Vector, std::vector);
 CREATE_ITER_TEST(Type2, List, std::list);
 CREATE_ITER_TEST(Type2, Deque, std::deque);
-CREATE_ITER_TEST(Type2, ForwardList, std::forward_list);
-
 CREATE_ITER_TEST_0(Type2, Queue, std::queue);
 CREATE_ITER_TEST_0(Type2, Stack, std::stack);
-CREATE_ITER_TEST_0(Type1, PQueue, std::priority_queue);
+CREATE_ITER_TEST(Type2, ForwardList, std::forward_list);
+TYPED_TEST(Type2, ShapredPtr) { Process<std::shared_ptr<TypeParam>>(); }
+TYPED_TEST(Type2, UniquePtr) { Process<std::unique_ptr<TypeParam>>(); }
 
 template <typename T>
 using Array = std::array<T, 50>;

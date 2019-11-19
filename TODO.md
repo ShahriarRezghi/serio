@@ -1,7 +1,6 @@
 + Add change log
 + Add version to library
 + Add tests for raw array
-+ Add tests for tuple
 + Add tests for variant
 + Improve stream serializer and deserializer
 + Move usage to wiki page
