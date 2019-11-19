@@ -291,6 +291,7 @@ public:
         init(*value);
         I.reset(value);
     }
+    static void init(chrono::steady_clock::time_point& I) { I = chrono::steady_clock::now(); }
 
 #if __cplusplus >= 201703L
     template <typename T>
@@ -411,18 +412,20 @@ using BasicTypes =
     ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long,
                      long long, unsigned char, unsigned short, unsigned int, unsigned long,
                      unsigned long long, float, double, long double>;
-using FullTypes = ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int,
-                                   long, long long, unsigned char, unsigned short, unsigned int,
-                                   unsigned long, unsigned long long, float, double, long double, A,
-                                   B, D, std::complex<int>, std::complex<float>>;
+using FullTypes =
+    ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long,
+                     long long, unsigned char, unsigned short, unsigned int, unsigned long,
+                     unsigned long long, float, double, long double, A, B, D, std::complex<int>,
+                     std::complex<float>, chrono::steady_clock::time_point>;
 #else
 using BasicTypes = ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short,
                                     int, long, long long, unsigned char, unsigned short,
                                     unsigned int, unsigned long, unsigned long long, float, double>;
-using FullTypes = ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int,
-                                   long, long long, unsigned char, unsigned short, unsigned int,
-                                   unsigned long, unsigned long long, float, double, A, B, D,
-                                   std::complex<int>, std::complex<float>>;
+using FullTypes =
+    ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long,
+                     long long, unsigned char, unsigned short, unsigned int, unsigned long,
+                     unsigned long long, float, double, A, B, D, std::complex<int>,
+                     std::complex<float>, chrono::steady_clock::time_point>;
 #endif
 
 #define CREATE_ITER_TEST_0(TEST, NAME, TYPE) \
@@ -459,6 +462,7 @@ TYPED_TEST_CASE(Type2, FullTypes);
 TYPED_TEST(Type1, Complex) { Process<std::complex<TypeParam>>(); }
 TYPED_TEST(Type2, ShapredPtr) { Process<std::shared_ptr<TypeParam>>(); }
 TYPED_TEST(Type2, UniquePtr) { Process<std::unique_ptr<TypeParam>>(); }
+
 CREATE_ITER_TEST_0(Type1, ValArray, std::valarray)
 CREATE_ITER_TEST(Type1, Set, std::set);
 CREATE_ITER_TEST(Type1, Multiset, std::multiset);

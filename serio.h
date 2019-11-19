@@ -657,7 +657,7 @@ public:
     inline Derived& operator<<(const std::chrono::time_point<Clock, Dur>& C)
     {
         using rep = typename std::chrono::time_point<Clock, Dur>::rep;
-        return This() << *reinterpret_cast<rep*>(&C);
+        return This() << reinterpret_cast<const rep&>(C);
     }
 
 #if __cplusplus >= 201703L
@@ -930,10 +930,10 @@ public:
     }
 
     template <typename Clock, typename Dur>
-    inline Derived& operator>>(const std::chrono::time_point<Clock, Dur>& C)
+    inline Derived& operator>>(std::chrono::time_point<Clock, Dur>& C)
     {
         using rep = typename std::chrono::time_point<Clock, Dur>::rep;
-        return This() >> *reinterpret_cast<rep*>(&C);
+        return This() >> reinterpret_cast<rep&>(C);
     }
 
 #if __cplusplus >= 201703L
