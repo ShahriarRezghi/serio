@@ -302,6 +302,12 @@ public:
         init(std::get<2>(I));
     }
 
+    template <typename T>
+    static void init(Serio::Array<T>& I)
+    {
+        for (size_t i = 0; i < I.size; ++i) init(I.data[i]);
+    }
+
 #if __cplusplus >= 201703L
     template <typename T>
     static void init(std::optional<T>& I)
@@ -412,7 +418,7 @@ template <typename T>
 void compare(const Serio::Array<T>& value1, const Serio::Array<T>& value2)
 {
     EXPECT_EQ(value1.size, value2.size);
-    for (size_t i = 0; i < value1.size; ++i) compare(value1.data[0], value2.data[0]);
+    for (size_t i = 0; i < value1.size; ++i) compare(value1.data[i], value2.data[i]);
 }
 
 template <typename T>
@@ -527,6 +533,7 @@ TYPED_TEST(Type2, RawArray)
 {
     TypeParam V1[50], V2[50];
     Serio::Array<TypeParam> value1(V1, 50), value2(V2, 50);
+    INIT::init(value1);
     save1(value1);
     load1(value2);
     compare(value1, value2);
