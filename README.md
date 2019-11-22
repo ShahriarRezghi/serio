@@ -17,19 +17,24 @@
 - [License](#license)
 
 # Serio 
-Serio is a C++11 library that makes serialization of C++ containers and other data types and custom classes and structures possible. Features:
+Serio is a C++11 library (which supports the new data types like variant and optional introduced in C++17) that makes serialization of C++ containers and other data types and custom classes and structures possible. Features:
 + Fast
 + Easy to Use
-+ Endian-Independent
 + Single-Header
++ Endian-Independent
 + No External Dependencies (Only STL) 
 
 # Installation
-You can usee CMake to install the library (preferred way). Do these in the project directory:
+You can use CMake to install the library (preferred way). Do these in the project directory:
 
 ``` shell
 mkdir build && cd build
 cmake -DBUILD_TESTS=OFF .. && cmake --install .
+```
+
+If you install it this way you can include the library with:
+``` c++
+#include <serio/serio.h>
 ```
 
 Or you can copy ```serio.h``` file into your project directory and if you want a system-wide solution you can copy ```serio.h``` to ```/usr/include``` or ```/usr/local/include``` on your Linux (the second location is recommended).
@@ -192,7 +197,7 @@ private:
 + When size of ```long double``` is 16 bytes, it is only supported where 128 integer is available (depends on compiler and hardware. see [this](https://gcc.gnu.org/onlinedocs/gcc-4.6.1/gcc/_005f_005fint128.html)). So be careful using it.
 
 ## Supported Types
-Supported types: [C++ containers](http://www.cplusplus.com/reference/stl/), std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::optional(C++17) and any structure that you register. If there are some types missing from this library you can report it on issues page.
+Supported types: [C++ containers](http://www.cplusplus.com/reference/stl/), raw arrays,std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::optional(C++17), std::variant(C++17) and any structure that you register. If there is a data type in STL that you want to be supported (and is not) please open an issue on the [issues page](../../issues).
 
 ## Debugging
 If you get errors that look like these:
@@ -205,7 +210,11 @@ serio.h: error: no member named '_deserialize' in 'class-name'
 This means that you are trying to serialize or deserialize a custom structure or class that you have not registed.
 
 ## Use Cases
-This library can have a lot of applications. It can be used to process and save information on files and read them later. It can be used to turn text files into binary file and read it much faster later on. It can also be used to easily send and recieve data in binary form through sockets(network or otherwise). It can also be used to save program options and restore them on startup.
+This library can have a lot of applications. Here is some:
++ It can be used to save prcessed information on files and read them later (e.g. saving processed datasets).
++ It can be used to turn text files into binary file and read it much faster later on.
++ The serialized can be used to easily send and recieve data in binary form through sockets(network or otherwise).
++ It can also be used to save program options and restore them on startup.
 
 
 # Tests
@@ -223,7 +232,7 @@ Then you can run the tests executable. Also note that tests might take a long ti
 You can report bugs and ask questions on [issues page](../../issues). Also if you want to implement a feature or fix a bug please open an issue about it first.
 
 # TODO
-You can view the TODO file [here](TODO.md).
+You can view the TODO file [here](TODO.md) to se what is left to be done.
 
 # License
 This library is licensed under BSD 3-Clause license. You can read it [here](LICENSE.md).
