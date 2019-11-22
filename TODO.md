@@ -1,7 +1,5 @@
 + Add change log
 + Add version to library
-+ Add tests for raw array
-+ Add tests for variant
 + Improve stream serializer and deserializer
 + Move usage to wiki page
 + Add tests for different SERIO_SIZE's
