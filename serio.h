@@ -823,8 +823,7 @@ public:
     {
         Size size;
         This() >> size;
-        C.size = size_t(size);
-        for (size_t i = 0; i < C.size; ++i) This() >> C.data[i];
+        for (size_t i = 0; i < size; ++i) This() >> C.data[i];
         return This();
     }
 
