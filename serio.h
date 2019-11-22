@@ -1020,7 +1020,7 @@ public:
     }
 };
 
-/// @brief This class implements the serialization of basic data types.
+/// @brief This class implements the serialization of basic data types to buffer.
 template <typename Derived>
 struct SerializerBase
 {
@@ -1059,7 +1059,7 @@ public:
     }
 };
 
-/// @brief This class implements the deserialization of basic data types.
+/// @brief This class implements the deserialization of basic data types from buffer.
 template <typename Derived>
 struct DeserializerBase
 {
@@ -1100,6 +1100,7 @@ public:
     }
 };
 
+/// @brief This class implements the serialization of basic data types to stream.
 template <typename Derived>
 struct StreamSerializerBase
 {
@@ -1139,6 +1140,7 @@ public:
     }
 };
 
+/// @brief This class implements the deserialization of basic data types to stream.
 template <typename Derived>
 struct StreamDeserializerBase
 {
