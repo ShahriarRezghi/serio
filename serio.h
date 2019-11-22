@@ -322,14 +322,14 @@ struct Variant
         if (V.index() == N) C << std::get<N>(V);
     }
     template <typename Serializer, typename Vr>
-    static inline void deserialize(Serializer& C, Size index, const Vr& V)
+    static inline void deserialize(Serializer& C, Size index, Vr& V)
     {
         Variant<Tp, N - 1>::deserialize(C, index, V);
         if (index == N)
         {
-            std::tuple_element<N, Tp> E;
+            typename std::tuple_element<N, Tp>::type E;
             C >> E;
-            V.emplace(std::move(E));
+            V = std::move(E);
         }
     }
 };
@@ -343,13 +343,13 @@ struct Variant<Tp, 0>
         if (V.index() == 0) C << std::get<0>(V);
     }
     template <typename Serializer, typename Vr>
-    static inline void deserialize(Serializer& C, Size index, const Vr& V)
+    static inline void deserialize(Serializer& C, Size index, Vr& V)
     {
         if (index == 0)
         {
-            std::tuple_element<0, Tp> E;
+            typename std::tuple_element<0, Tp>::type E;
             C >> E;
-            V.emplace(std::move(E));
+            V = std::move(E);
         }
     }
 };
@@ -462,7 +462,7 @@ struct Array
 {
     size_t size;
     T* data;
-    inline Array(size_t size, const T* data) : size(size), data(const_cast<T*>(data)) {}
+    inline Array(const T* data, size_t size) : size(size), data(const_cast<T*>(data)) {}
 };
 
 /// @brief Processes higher structures for serialization and size calculation.
@@ -542,7 +542,7 @@ public:
     }
 
     template <typename T>
-    inline Derived& operator<<(Array<T> C)
+    inline Derived& operator<<(const Array<T>& C)
     {
         This() << Size(C.size);
         for (size_t i = 0; i < C.size; ++i) This() << C.data[i];
@@ -821,7 +821,9 @@ public:
     template <typename T>
     inline Derived& operator>>(Array<T> C)
     {
-        This() >> Size(C.size);
+        Size size;
+        This() >> size;
+        C.size = size_t(size);
         for (size_t i = 0; i < C.size; ++i) This() >> C.data[i];
         return This();
     }

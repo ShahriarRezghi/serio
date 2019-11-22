@@ -38,8 +38,6 @@
 #include <limits>
 #include <random>
 
-using namespace std;
-
 struct A
 {
     double a;
@@ -47,8 +45,8 @@ struct A
 
     bool operator==(const A& other) const
     {
-        auto x = abs(this->a - other.a) < numeric_limits<double>::epsilon();
-        auto y = abs(this->b - other.b) < numeric_limits<double>::epsilon();
+        auto x = abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
+        auto y = abs(this->b - other.b) < std::numeric_limits<double>::epsilon();
         return x && y;
     }
     bool operator!=(const A& other) const { return !(*this == other); }
@@ -63,8 +61,8 @@ struct B
 
     bool operator==(const B& other) const
     {
-        auto x = abs(this->a - other.a) < numeric_limits<double>::epsilon();
-        auto y = abs(this->b - other.b) < numeric_limits<double>::epsilon();
+        auto x = abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
+        auto y = abs(this->b - other.b) < std::numeric_limits<double>::epsilon();
         return x && y && this->c == other.c;
     }
     bool operator!=(const B& other) const { return !(*this == other); }
@@ -77,7 +75,7 @@ struct C
 
     bool operator==(const C& other) const
     {
-        return abs(this->a - other.a) < numeric_limits<double>::epsilon();
+        return abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
     }
     bool operator!=(const C& other) const { return !(*this == other); }
 
@@ -89,8 +87,8 @@ struct D : C
 
     bool operator==(const D& other) const
     {
-        auto x = abs(this->a - other.a) < numeric_limits<double>::epsilon();
-        auto y = abs(this->b - other.b) < numeric_limits<double>::epsilon();
+        auto x = abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
+        auto y = abs(this->b - other.b) < std::numeric_limits<double>::epsilon();
         return x && y;
     }
     bool operator!=(const D& other) const { return !(*this == other); }
@@ -187,7 +185,7 @@ class INIT
         auto size = 10 + size_t(rand() % 90);
         for (size_t i = 0; i < size; ++i)
         {
-            pair<typename Iter::key_type, typename Iter::mapped_type> V;
+            std::pair<typename Iter::key_type, typename Iter::mapped_type> V;
             V.first = typename Iter::key_type(i);
             init(V.second);
             add(I, V);
@@ -225,15 +223,15 @@ public:
     }
 
     template <typename T>
-    static void init(complex<T>& C)
+    static void init(std::complex<T>& C)
     {
         T real, imag;
         init(real);
         init(imag);
-        C = complex<T>(real, imag);
+        C = std::complex<T>(real, imag);
     }
     template <typename K, typename T>
-    static void init(pair<K, T>& pair)
+    static void init(std::pair<K, T>& pair)
     {
         init(pair.first);
         init(pair.second);
@@ -291,7 +289,10 @@ public:
         init(*value);
         I.reset(value);
     }
-    static void init(chrono::steady_clock::time_point& I) { I = chrono::steady_clock::now(); }
+    static void init(std::chrono::steady_clock::time_point& I)
+    {
+        I = std::chrono::steady_clock::now();
+    }
 
     template <typename T>
     static void init(std::tuple<T, T, T>& I)
@@ -308,6 +309,28 @@ public:
         T value;
         init(value);
         I.emplace(std::move(value));
+    }
+    static void init(std::variant<int, double, std::string>& I)
+    {
+        auto index = rand() % 3;
+        if (index == 0)
+        {
+            int V;
+            init(V);
+            I = V;
+        }
+        else if (index == 1)
+        {
+            double V;
+            init(V);
+            I = V;
+        }
+        else if (index == 2)
+        {
+            std::string V;
+            init(V);
+            I = V;
+        }
     }
 #endif
 };
@@ -328,14 +351,14 @@ void load1(Ts&&... ts)
 template <typename... Ts>
 void save2(Ts&&... ts)
 {
-    ofstream file("temp");
+    std::ofstream file("temp");
     ASSERT_TRUE(file.is_open());
     Serio::streamSerialize(&file, std::forward<Ts>(ts)...);
 }
 template <typename... Ts>
 void load2(Ts&&... ts)
 {
-    ifstream file("temp");
+    std::ifstream file("temp");
     ASSERT_TRUE(file.is_open());
     Serio::streamDeserialize(&file, std::forward<Ts>(ts)...);
 }
@@ -385,6 +408,12 @@ void compare(const std::unique_ptr<T, Deleter>& value1, const std::unique_ptr<T,
     if (!value1 && !value2) return;
     compare(*value1.get(), *value2.get());
 }
+template <typename T>
+void compare(const Serio::Array<T>& value1, const Serio::Array<T>& value2)
+{
+    EXPECT_EQ(value1.size, value2.size);
+    for (size_t i = 0; i < value1.size; ++i) compare(value1.data[0], value2.data[0]);
+}
 
 template <typename T>
 struct Process
@@ -424,7 +453,7 @@ using FullTypes =
     ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long,
                      long long, unsigned char, unsigned short, unsigned int, unsigned long,
                      unsigned long long, float, double, long double, A, B, D, std::complex<int>,
-                     std::complex<float>, chrono::steady_clock::time_point>;
+                     std::complex<float>, std::chrono::steady_clock::time_point>;
 #else
 using BasicTypes = ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short,
                                     int, long, long long, unsigned char, unsigned short,
@@ -494,8 +523,24 @@ template <typename T>
 using Array = std::array<T, 50>;
 CREATE_ITER_TEST(Type2, Array, Array);
 
+TYPED_TEST(Type2, RawArray)
+{
+    TypeParam V1[50], V2[50];
+    Serio::Array<TypeParam> value1(V1, 50), value2(V2, 50);
+    save1(value1);
+    load1(value2);
+    compare(value1, value2);
+    save2(value1);
+    load2(value2);
+    compare(value1, value2);
+    save3(value1);
+    load3(value2);
+    compare(value1, value2);
+}
+
 #if __cplusplus >= 201703L
 TYPED_TEST(Type2, Optional) { Process<std::optional<TypeParam>>(); }
+TEST(Variant, Test) { Process<std::variant<int, double, std::string>>(); }
 #endif
 
 int main(int argc, char** argv)
