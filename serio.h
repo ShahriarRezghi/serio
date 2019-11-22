@@ -1183,7 +1183,7 @@ public:
     }
 };
 
-/// @brief This class calculates size of any supported types.
+/// @brief This class calculates size of any of the supported types.
 struct Calculator : CalculatorBase<Calculator>, SerializerOps<Calculator>
 {
     using Base = CalculatorBase<Calculator>;
@@ -1193,7 +1193,7 @@ struct Calculator : CalculatorBase<Calculator>, SerializerOps<Calculator>
     using Base::operator<<;
 };
 
-/// @brief This class serializes any of the supported types.
+/// @brief This class serializes any of the supported types to buffer.
 struct Serializer : SerializerBase<Serializer>, SerializerOps<Serializer>
 {
     using Base = SerializerBase<Serializer>;
@@ -1203,7 +1203,7 @@ struct Serializer : SerializerBase<Serializer>, SerializerOps<Serializer>
     using Base::operator<<;
 };
 
-/// @brief This class deserializes any of the supported types.
+/// @brief This class deserializes any of the supported types from buffer.
 struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializer>
 {
     using Base = DeserializerBase<Deserializer>;
@@ -1213,6 +1213,7 @@ struct Deserializer : DeserializerBase<Deserializer>, DeserializerOps<Deserializ
     using Base::operator>>;
 };
 
+/// @brief This class serializes any of the supported types to stream.
 struct StreamSerializer : StreamSerializerBase<StreamSerializer>, SerializerOps<StreamSerializer>
 {
     using Base = StreamSerializerBase<StreamSerializer>;
@@ -1221,6 +1222,8 @@ struct StreamSerializer : StreamSerializerBase<StreamSerializer>, SerializerOps<
     using Ops::operator<<;
     using Base::operator<<;
 };
+
+/// @brief This class deserializes any of the supported types from stream.
 struct StreamDeserializer : StreamDeserializerBase<StreamDeserializer>,
                             DeserializerOps<StreamDeserializer>
 {
@@ -1385,6 +1388,7 @@ inline void streamSerialize(std::basic_ostream<char>* stream, const Head& head, 
     StreamSerializer serializer(stream);
     serializer.process(head, std::forward<Tail>(tail)...);
 }
+
 template <typename Head, typename... Tail>
 inline void streamDeserialize(std::basic_istream<char>* stream, Head& head, Tail&&... tail)
 {
