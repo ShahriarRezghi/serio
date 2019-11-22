@@ -108,6 +108,9 @@ using Size = uint32_t;
 #elif SERIO_SIZE == 2
 /// Data type of the size of containers and such that is serialized and deserialized.
 using Size = uint16_t;
+#else
+static_assert(false, "SERIO_SIZE can only be 2, 4 and 8.");
+using Size = uint64_t;
 #endif
 
 /// Array of 8 bit types.
