@@ -29,7 +29,7 @@ You can usee CMake to install the library (preferred way). Do these in the proje
 
 ``` shell
 mkdir build && cd build
-cmake .. && cmake --install .
+cmake -DBUILD_TESTS=OFF .. && cmake --install .
 ```
 
 Or you can copy ```serio.h``` file into your project directory and if you want a system-wide solution you can copy ```serio.h``` to ```/usr/include``` or ```/usr/local/include``` on your Linux (the second location is recommended).
