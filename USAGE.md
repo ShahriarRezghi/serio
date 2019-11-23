@@ -72,7 +72,7 @@ std::istringstream stream;  // contains serialized data
 Serio::streamDeserialize(&stream, A, B);
 ```
 
-In the previous examples we serialize and deserialize ints. Now we'll pay attention to the other data types
+In the previous examples we serialize and deserialize ints. Now we'll pay attention to the other data types. We'll use ```serialize``` and ```deserialize``` functions from now on but the same logic applies to the other APIs.
 
 # STL Data Types
 Supported STL types are [C++ containers](http://www.cplusplus.com/reference/stl/), std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::optional(C++17), std::variant(C++17). Here is an example:
@@ -152,5 +152,19 @@ private:
 Here we do the job of ```SERIO_REGISTER``` manually. We define ```_serialize``` function in your class that serializes size first and then all the items. Then we define ```_deserialize``` function that deserializes size and resizes the container and then deserializes all the items. Please note that if you serialize size of vector it will have size_t type and it's size will be platform dependent so we use ```Serio::Size``` here so the serialized data will be portable. Now your container is ready to be serialized and deserialized.
 
 # Raw Arrays
+You can serialize raw arrays using a structure provided by ```Serio``` which is ```Serio::Array<T>```. Here is an example:
+
+``` c++
+int A[10];
+Serio::ByteArray str = Serio::serialize(Serio::Array<int>(A, 10));
+```
+
+Here is an example deserialization of above example:
+
+``` c++
+int A[10];
+Serio::ByteArray str = "<serialized-data>";
+Serio::deserialize(str, Serio::Array<int>(A, 10));
+```
 
 # Advanced Usage
