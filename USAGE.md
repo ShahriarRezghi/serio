@@ -163,9 +163,8 @@ Here is an example deserialization of above example:
 
 ``` c++
 int A[10];
-Serio::Array<int> B(A, 10);
 Serio::ByteArray str = "<serialized-data>";
-Serio::deserialize(str, B);
+Serio::deserialize(str, Serio::Array<int>(A, 10));
 ```
 
 # Advanced Usage
