@@ -13,7 +13,7 @@
 - [License](#license)
 
 # Serio 
-Serio is a C++11 library (which supports the new data types like variant and optional introduced in C++17) that makes serialization of C++ containers and other data types and custom classes and structures possible. Features:
+Serio is a C++11 library (with support for the new data types like variant and optional introduced in C++17) that makes serialization of C++ containers and other data types and custom classes and structures possible. Features:
 
 + Fast
 + Easy to Use
@@ -85,4 +85,4 @@ You can report bugs and ask questions on [issues page](../../issues). Also if yo
 You can view the TODO file [here](TODO.md) to se what is left to be done.
 
 # License
-This library is licensed under BSD 3-Clause license. You can read it [here](LICENSE.md).
+This library is licensed under BSD 3-Clause permissive license. You can read it [here](LICENSE.md).
