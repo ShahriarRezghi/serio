@@ -22,6 +22,8 @@ Functions that serialize take unlimited number of supported data types and seria
 Functions that deserialize take unlimited number of supported data types and deserialize them from a string or raw array or stream.
 
 # String API
+This API contains 4 functions ```Serio::serialize()```, ```Serio::deserialize()```, ```Serio::save()``` and ```Serio::load()``` which are explained below.
+
 You can serialize data types into a string of characters (```Serio::ByteArray``` which is std::basic_string<char>). Here is an example of serializing to string:
 
 ``` c++
@@ -34,14 +36,30 @@ You can deserialize data types from a string of characters. Here is an example o
 ``` c++
 int A, B;
 Serio::ByteArray str = "<serialized-data>";
-Serio::deserialize(str, A, B);
+size_t consumed = Serio::deserialize(str, A, B);
 ```
 
-# Raw Buffer API
-You can serialize data types into a char sequence. Here is an example of serializing to raw buffer:
+You can also save the data to be serialized to file directly like this:
+
+``` c++
+int A = 0, B = 0;
+bool success = Serio::save("<file-path>", A, B);
+```
+
+You can also read and deserialize data directly from file like this:
 
 ``` c++
 int A, B;
+bool success = Serio::load("<file-path>", A, B);
+```
+
+# Raw Buffer API
+This API contains 3 functions ```Serio::size()```, ```Serio::fill()``` and ```Serio::deserialize()``` which are explained below.
+
+You can serialize data types into a char sequence. Here is an example of serializing to raw buffer:
+
+``` c++
+int A = 0, B = 0;
 auto data = new char[Serio::size(A, B)];
 Serio::fill(data, A, B);
 ```
@@ -53,14 +71,16 @@ You can deserialize data types from a char sequence. Here is an example of deser
 ``` c++
 int A, B;
 char* data = "<serialized-data>";
-Serio::deserialize(data, A, B);
+size_t consumed = Serio::deserialize(data, A, B);
 ```
 
 # Stream API
+This API contains 2 functions ```Serio::streamSerialize()``` and ```Serio::streamDeserialize()``` which are explained below.
+
 You can serialize data types into a output stream of chars. Here is an example of serializing to stream:
 
 ``` c++
-int A, B;
+int A = 0, B = 0;
 std::ostringstream stream;
 Serio::streamSerialize(&stream, A, B);
 ```

@@ -400,11 +400,6 @@ public:
     using std::stack<T, Sequence>::c;
 };
 
-/// Reads binary data from a file.
-///
-/// @param path Path of the file to be read
-/// @param data Destination of the data that is read from the file
-/// @returns True if succeeds otherwise false
 inline bool read(const std::string& path, ByteArray& data)
 {
     std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
@@ -422,11 +417,6 @@ inline bool read(const std::string& path, ByteArray& data)
     return true;
 }
 
-/// Writes a byte array into a file and returns weather it succeeds or not.
-///
-/// @param path Path of the file to be writen.
-/// @param data The data that needs to be written into the file
-/// @returns True if succeeds otherwise false
 inline bool write(const std::string& path, const ByteArray& data)
 {
     std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
@@ -448,17 +438,9 @@ inline bool write(const std::string& path, const ByteArray& data)
 ///
 /// Example:
 /// @code
-/// int A[3] = {1, 2, 3};
-/// auto result = Serio::serialize(Serio::Array<int>(3, A));
-/// @endcode
-///
-/// Another example:
-/// @code
-/// struct A
-/// {
-///     int B[3];
-///     SERIO_REGISTER(Serio::Array<int>(3, B))
-/// };
+/// int A[10];
+/// Serio::ByteArray str = Serio::serialize(Serio::Array<int>(A, 10));
+/// Serio::deserialize(str, Serio::Array<int>(A, 10));
 /// @endcode
 template <typename T>
 struct Array
@@ -1251,8 +1233,7 @@ struct StreamDeserializer : StreamDeserializerBase<StreamDeserializer>,
 /// auto size = Serio::size(A, B, C);
 /// @endcode
 ///
-/// @param head First parameter to be serialized
-/// @param tail Rest of the parameters to be serialized
+/// @param ts Parameters to be serialized
 /// @returns number of bytes that the input arguments will consume
 /// @see deserialize()
 template <typename... Ts>
@@ -1265,14 +1246,12 @@ inline size_t size(Ts&&... ts)
 ///
 /// Example:
 /// @code
-/// int A, B;
-/// std::vector<int> C = {1, 2, 3, 4};
-/// char data[Serio::size(A,B,C)];
-/// Serio::fill(data, A, B, C);
+/// int A = 0, B = 0;
+/// auto data = new char[Serio::size(A, B)];
+/// Serio::fill(data, A, B);
 /// @endcode
 ///
-/// @param data Destination of serialized data
-/// @param head First parameter to be serialized
+/// @param ts Parameters to be serialized
 /// @param tail Rest of the parameters to be serialized
 /// @returns The number of bytes written to sequence
 /// @see serialize()
@@ -1287,14 +1266,12 @@ inline size_t fill(char* data, Ts&&... ts)
 /// Example:
 /// @code
 /// int A, B;
-/// std::vector<int> C;
-/// const char *data; // Must contain the serialized data
-/// auto size = Serio::deserialize(data, A, B, C);
+/// char* data = "<serialized-data>";
+/// size_t consumed = Serio::deserialize(data, A, B);
 /// @endcode
 ///
 /// @param data Sequence of bytes containing serialized data
-/// @param head First parameter to be deserialized
-/// @param tail Rest of the parameters to be deserialized
+/// @param ts Parameters to be deserialized
 /// @returns The number of bytes consumed from char sequence
 /// @see serialize(), deserialize()
 template <typename... Ts>
@@ -1307,13 +1284,11 @@ inline size_t deserialize(const char* data, Ts&&... ts)
 ///
 /// Example:
 /// @code
-/// int A, B;
-/// std::vector<int> C = {1, 2, 3, 4};
-/// auto data = Serio::serialize(A, B, C);
+/// int A = 0, B = 0;
+/// Serio::ByteArray str = Serio::serialize(A, B);
 /// @endcode
 ///
-/// @param head First parameter to be serialized
-/// @param tail Rest of the parameters to be serialized
+/// @param ts Parameters to be serialized
 /// @returns Array of bytes containing the serialized data
 /// @see deserialize()
 template <typename... Ts>
@@ -1329,14 +1304,12 @@ inline ByteArray serialize(Ts&&... ts)
 /// Example:
 /// @code
 /// int A, B;
-/// std::vector<int> C;
-/// Serio::ByteArray data; // Must contain the serialized data
-/// auto size = Serio::deserialize(data, A, B, C);
+/// Serio::ByteArray str = "<serialized-data>";
+/// size_t consumed = Serio::deserialize(str, A, B);
 /// @endcode
 ///
 /// @param data Array of bytes containing serialized data
-/// @param head First parameter to be deserialized
-/// @param tail Rest of the parameters to be deserialized
+/// @param ts Parameters to be deserialized
 /// @returns The number of bytes consumed from byte array
 /// @see serialize(), deserialize()
 template <typename... Ts>
@@ -1350,14 +1323,12 @@ inline size_t deserialize(const ByteArray& data, Ts&&... ts)
 ///
 /// Example:
 /// @code
-/// int A, B;
-/// std::vector<int> C = {1, 2, 3, 4};
-/// assert(Serio::save("file", A, B, C));
+/// int A = 0, B = 0;
+/// bool success = Serio::save("<file-path>", A, B);
 /// @endcode
 ///
 /// @param path Path of the file to be writen.
-/// @param head First parameter to be serialized
-/// @param tail Rest of the parameters to be serialized
+/// @param ts Parameters to be serialized
 /// @returns True if succeeds otherwise false
 /// @see serialize()
 template <typename... Ts>
@@ -1372,14 +1343,11 @@ inline bool save(const std::string& path, Ts&&... ts)
 /// Example:
 /// @code
 /// int A, B;
-/// std::vector<int> C;
-/// Serio::ByteArray data; // Must contain the serialized data
-/// assert(Serio::load("file", A, B, C));
+/// bool success = Serio::load("<file-path>", A, B);
 /// @endcode
 ///
 /// @param path Path of the file to be read
-/// @param head First parameter to be deserialized
-/// @param tail Rest of the parameters to be deserialized
+/// @param ts Parameters to be deserialized
 /// @returns True if succeeds otherwise false
 /// @see deserialize()
 template <typename... Ts>
@@ -1390,6 +1358,18 @@ inline bool load(const std::string& path, Ts&&... ts)
     return deserialize(A, std::forward<Ts>(ts)...) == A.size();
 }
 
+/// Serializes and unlimited number of input arguments (serializable data types).
+///
+/// Example:
+/// @code
+/// int A = 0, B = 0;
+/// std::ostringstream stream;
+/// Serio::streamSerialize(&stream, A, B);
+/// @endcode
+///
+/// @param stream Pointer to the output stream of chars
+/// @param ts Parameters to be serialized
+/// @see streamDeserialize()
 template <typename... Ts>
 inline void streamSerialize(std::basic_ostream<char>* stream, Ts&&... ts)
 {
@@ -1397,6 +1377,19 @@ inline void streamSerialize(std::basic_ostream<char>* stream, Ts&&... ts)
     serializer.process(std::forward<Ts>(ts)...);
 }
 
+/// Deserializes and unlimited number of input arguments (deserializable data types).
+///
+/// Example:
+/// @code
+/// int A, B;
+/// std::istringstream stream;  // contains serialized data
+/// Serio::streamDeserialize(&stream, A, B);
+/// @endcode
+///
+/// @param stream Pointer to the input stream of chars
+/// @param data Array of bytes containing serialized data
+/// @param ts Parameters to be deserialized
+/// @see serialize(), deserialize()
 template <typename... Ts>
 inline void streamDeserialize(std::basic_istream<char>* stream, Ts&&... ts)
 {
