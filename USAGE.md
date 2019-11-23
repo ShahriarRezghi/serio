@@ -4,6 +4,7 @@
 - [String API](#string-api)
 - [Raw Buffer API](#raw-buffer-api)
 - [Stream API](#stream-api)
+- [Serio::Size](#seriosize)
 - [STL Data Types](#stl-data-types)
 - [Custom Structures and Classes](#custom-structures-and-classes)
 - [Custom Containers](#custom-containers)
@@ -72,7 +73,10 @@ std::istringstream stream;  // contains serialized data
 Serio::streamDeserialize(&stream, A, B);
 ```
 
-In the previous examples we serialize and deserialize ints. Now we'll pay attention to the other data types. We'll use ```serialize``` and ```deserialize``` functions from now on but the same logic applies to the other APIs.
+In the previous examples we serialize and deserialize ints. Now we'll pay attention to the other data types. We'll use ```serialize()``` and ```deserialize()``` functions from now on but the same logic applies to the other APIs.
+
+# Serio::Size
+Size of containers are serialized and deserialized using ```Serio::Size``` type so that the serialized data on one machine can be used on the others. the default size of ```Serio::Size``` is 8 bytes (```uint64_t```) but you can change it to 4 or 2 bytes. Keep in mind that if you change this size and serialize some data you will have to deserialize this data with the size that it was serialized with. This size can be set by setting the macro ```SERIO_SIZE``` and the possible values are 2 or 4 or 8 (default). You shouldn't change this value unless it is nessesary like when you really need the size of output data to be small (the difference in size will depend on the data being serialized but the siza won't drastically reduced so it is preferred to keep the size 8 bytes).
 
 # STL Data Types
 Supported STL types are [C++ containers](http://www.cplusplus.com/reference/stl/), std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::optional(C++17), std::variant(C++17). Here is an example:
@@ -149,7 +153,7 @@ private:
 };
 ```
 
-Here we do the job of ```SERIO_REGISTER``` manually. We define ```_serialize``` function in your class that serializes size first and then all the items. Then we define ```_deserialize``` function that deserializes size and resizes the container and then deserializes all the items. Please note that if you serialize size of vector it will have size_t type and it's size will be platform dependent so we use ```Serio::Size``` here so the serialized data will be portable. Now your container is ready to be serialized and deserialized.
+Here we do the job of ```SERIO_REGISTER``` manually. We define ```_serialize()``` function in your class that serializes size first and then all the items. Then we define ```_deserialize()``` function that deserializes size and resizes the container and then deserializes all the items. Please note that if you serialize size of vector it will have size_t type and it's size will be platform dependent so we use ```Serio::Size``` here so the serialized data will be portable. Now your container is ready to be serialized and deserialized.
 
 # Raw Arrays
 You can serialize raw arrays using a structure provided by ```Serio``` which is ```Serio::Array<T>```. Here is an example:
