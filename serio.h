@@ -982,6 +982,12 @@ public:
         This() >> head;
         return process(std::forward<Tail>(tail)...);
     }
+    template <typename T, typename... Tail>
+    inline Derived& process(Array<T> head, Tail&&... tail)
+    {
+        This() >> head;
+        return process(std::forward<Tail>(tail)...);
+    }
 };
 
 /// @brief This class implements the size calculation of basic data types.
@@ -1249,10 +1255,10 @@ struct StreamDeserializer : StreamDeserializerBase<StreamDeserializer>,
 /// @param tail Rest of the parameters to be serialized
 /// @returns number of bytes that the input arguments will consume
 /// @see deserialize()
-template <typename Head, typename... Tail>
-inline size_t size(const Head& head, Tail&&... tail)
+template <typename... Ts>
+inline size_t size(Ts&&... ts)
 {
-    return Calculator().process(head, std::forward<Tail>(tail)...).size;
+    return Calculator().process(std::forward<Ts>(ts)...).size;
 }
 
 /// Serializes and unlimited number of input arguments (serializable data types).
@@ -1270,10 +1276,10 @@ inline size_t size(const Head& head, Tail&&... tail)
 /// @param tail Rest of the parameters to be serialized
 /// @returns The number of bytes written to sequence
 /// @see serialize()
-template <typename Head, typename... Tail>
-inline size_t fill(char* data, const Head& head, Tail&&... tail)
+template <typename... Ts>
+inline size_t fill(char* data, Ts&&... ts)
 {
-    return size_t(Serializer(data).process(head, std::forward<Tail>(tail)...).buffer - data);
+    return size_t(Serializer(data).process(std::forward<Ts>(ts)...).buffer - data);
 }
 
 /// Deserializes and unlimited number of input arguments (deserializable data types).
@@ -1291,10 +1297,10 @@ inline size_t fill(char* data, const Head& head, Tail&&... tail)
 /// @param tail Rest of the parameters to be deserialized
 /// @returns The number of bytes consumed from char sequence
 /// @see serialize(), deserialize()
-template <typename Head, typename... Tail>
-inline size_t deserialize(const char* data, Head& head, Tail&&... tail)
+template <typename... Ts>
+inline size_t deserialize(const char* data, Ts&&... ts)
 {
-    return size_t(Deserializer(data).process(head, std::forward<Tail>(tail)...).buffer - data);
+    return size_t(Deserializer(data).process(std::forward<Ts>(ts)...).buffer - data);
 }
 
 /// Serializes and unlimited number of input arguments (serializable data types).
@@ -1310,11 +1316,11 @@ inline size_t deserialize(const char* data, Head& head, Tail&&... tail)
 /// @param tail Rest of the parameters to be serialized
 /// @returns Array of bytes containing the serialized data
 /// @see deserialize()
-template <typename Head, typename... Tail>
-inline ByteArray serialize(const Head& head, Tail&&... tail)
+template <typename... Ts>
+inline ByteArray serialize(Ts&&... ts)
 {
-    ByteArray data(Serio::size(head, std::forward<Tail>(tail)...), 0);
-    Serio::fill(&data.front(), head, std::forward<Tail>(tail)...);
+    ByteArray data(Serio::size(std::forward<Ts>(ts)...), 0);
+    Serio::fill(&data.front(), std::forward<Ts>(ts)...);
     return data;
 }
 
@@ -1333,10 +1339,10 @@ inline ByteArray serialize(const Head& head, Tail&&... tail)
 /// @param tail Rest of the parameters to be deserialized
 /// @returns The number of bytes consumed from byte array
 /// @see serialize(), deserialize()
-template <typename Head, typename... Tail>
-inline size_t deserialize(const ByteArray& data, Head& head, Tail&&... tail)
+template <typename... Ts>
+inline size_t deserialize(const ByteArray& data, Ts&&... ts)
 {
-    return deserialize(&data.front(), head, std::forward<Tail>(tail)...);
+    return deserialize(&data.front(), std::forward<Ts>(ts)...);
 }
 
 /// Serializes and unlimited number of input arguments (serializable data types) and writes it to a
@@ -1354,10 +1360,10 @@ inline size_t deserialize(const ByteArray& data, Head& head, Tail&&... tail)
 /// @param tail Rest of the parameters to be serialized
 /// @returns True if succeeds otherwise false
 /// @see serialize()
-template <typename Head, typename... Tail>
-inline bool save(const std::string& path, const Head& head, Tail&&... tail)
+template <typename... Ts>
+inline bool save(const std::string& path, Ts&&... ts)
 {
-    return Impl::write(path, serialize(head, std::forward<Tail>(tail)...));
+    return Impl::write(path, serialize(std::forward<Ts>(ts)...));
 }
 
 /// Reads data from a file and deserializes and unlimited number of input arguments (deserializable
@@ -1376,26 +1382,26 @@ inline bool save(const std::string& path, const Head& head, Tail&&... tail)
 /// @param tail Rest of the parameters to be deserialized
 /// @returns True if succeeds otherwise false
 /// @see deserialize()
-template <typename Head, typename... Tail>
-inline bool load(const std::string& path, Head& head, Tail&&... tail)
+template <typename... Ts>
+inline bool load(const std::string& path, Ts&&... ts)
 {
     ByteArray A;
     if (!Impl::read(path, A)) return false;
-    return deserialize(A, head, std::forward<Tail>(tail)...) == A.size();
+    return deserialize(A, std::forward<Ts>(ts)...) == A.size();
 }
 
-template <typename Head, typename... Tail>
-inline void streamSerialize(std::basic_ostream<char>* stream, const Head& head, Tail&&... tail)
+template <typename... Ts>
+inline void streamSerialize(std::basic_ostream<char>* stream, Ts&&... ts)
 {
     StreamSerializer serializer(stream);
-    serializer.process(head, std::forward<Tail>(tail)...);
+    serializer.process(std::forward<Ts>(ts)...);
 }
 
-template <typename Head, typename... Tail>
-inline void streamDeserialize(std::basic_istream<char>* stream, Head& head, Tail&&... tail)
+template <typename... Ts>
+inline void streamDeserialize(std::basic_istream<char>* stream, Ts&&... ts)
 {
     StreamDeserializer deserializer(stream);
-    deserializer.process(head, std::forward<Tail>(tail)...);
+    deserializer.process(std::forward<Ts>(ts)...);
 }
 }  // namespace Serio
 
