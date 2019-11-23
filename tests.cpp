@@ -45,8 +45,8 @@ struct A
 
     bool operator==(const A& other) const
     {
-        auto x = abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
-        auto y = abs(this->b - other.b) < std::numeric_limits<double>::epsilon();
+        auto x = std::abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
+        auto y = std::abs(this->b - other.b) < std::numeric_limits<double>::epsilon();
         return x && y;
     }
     bool operator!=(const A& other) const { return !(*this == other); }
@@ -61,8 +61,8 @@ struct B
 
     bool operator==(const B& other) const
     {
-        auto x = abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
-        auto y = abs(this->b - other.b) < std::numeric_limits<double>::epsilon();
+        auto x = std::abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
+        auto y = std::abs(this->b - other.b) < std::numeric_limits<double>::epsilon();
         return x && y && this->c == other.c;
     }
     bool operator!=(const B& other) const { return !(*this == other); }
@@ -75,7 +75,7 @@ struct C
 
     bool operator==(const C& other) const
     {
-        return abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
+        return std::abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
     }
     bool operator!=(const C& other) const { return !(*this == other); }
 
@@ -87,8 +87,8 @@ struct D : C
 
     bool operator==(const D& other) const
     {
-        auto x = abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
-        auto y = abs(this->b - other.b) < std::numeric_limits<double>::epsilon();
+        auto x = std::abs(this->a - other.a) < std::numeric_limits<double>::epsilon();
+        auto y = std::abs(this->b - other.b) < std::numeric_limits<double>::epsilon();
         return x && y;
     }
     bool operator!=(const D& other) const { return !(*this == other); }
