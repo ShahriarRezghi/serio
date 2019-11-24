@@ -82,7 +82,7 @@ You can serialize data types into a output stream of chars. Here is an example o
 ``` c++
 int A = 0, B = 0;
 std::ostringstream stream;
-Serio::streamSerialize(&stream, A, B);
+Serio::write(&stream, A, B);
 ```
 
 You can deserialize data types from a input stream of chars. Here is an example of deserializing from stream:
@@ -90,7 +90,7 @@ You can deserialize data types from a input stream of chars. Here is an example 
 ``` c++
 int A, B;
 std::istringstream stream;  // contains serialized data
-Serio::streamDeserialize(&stream, A, B);
+Serio::read(&stream, A, B);
 ```
 
 In the previous examples we serialize and deserialize ints. Now we'll pay attention to the other data types. We'll use ```serialize()``` and ```deserialize()``` functions from now on but the same logic applies to the other APIs.
