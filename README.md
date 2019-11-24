@@ -82,7 +82,7 @@ Then you can run the tests executable. Also note that tests might take a long ti
 You can report bugs and ask questions on [issues page](../../issues). Also if you want to implement a feature or fix a bug please open an issue about it first.
 
 # TODO
-You can view the TODO file [here](TODO.md) to se what is left to be done.
+You can view the TODO file [here](TODO.md) to see what is left to be done.
 
 # License
 This library is licensed under BSD 3-Clause permissive license. You can read it [here](LICENSE.md).
