@@ -359,14 +359,14 @@ void save2(Ts&&... ts)
 {
     std::ofstream file("temp");
     ASSERT_TRUE(file.is_open());
-    Serio::streamSerialize(&file, std::forward<Ts>(ts)...);
+    Serio::write(&file, std::forward<Ts>(ts)...);
 }
 template <typename... Ts>
 void load2(Ts&&... ts)
 {
     std::ifstream file("temp");
     ASSERT_TRUE(file.is_open());
-    Serio::streamDeserialize(&file, std::forward<Ts>(ts)...);
+    Serio::read(&file, std::forward<Ts>(ts)...);
 }
 
 template <typename... Ts>

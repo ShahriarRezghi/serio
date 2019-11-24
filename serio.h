@@ -1364,14 +1364,14 @@ inline bool load(const std::string& path, Ts&&... ts)
 /// @code
 /// int A = 0, B = 0;
 /// std::ostringstream stream;
-/// Serio::streamSerialize(&stream, A, B);
+/// Serio::write(&stream, A, B);
 /// @endcode
 ///
 /// @param stream Pointer to the output stream of chars
 /// @param ts Parameters to be serialized
 /// @see streamDeserialize()
 template <typename... Ts>
-inline void streamSerialize(std::basic_ostream<char>* stream, Ts&&... ts)
+inline void write(std::basic_ostream<char>* stream, Ts&&... ts)
 {
     StreamSerializer serializer(stream);
     serializer.process(std::forward<Ts>(ts)...);
@@ -1383,7 +1383,7 @@ inline void streamSerialize(std::basic_ostream<char>* stream, Ts&&... ts)
 /// @code
 /// int A, B;
 /// std::istringstream stream;  // contains serialized data
-/// Serio::streamDeserialize(&stream, A, B);
+/// Serio::read(&stream, A, B);
 /// @endcode
 ///
 /// @param stream Pointer to the input stream of chars
@@ -1391,7 +1391,7 @@ inline void streamSerialize(std::basic_ostream<char>* stream, Ts&&... ts)
 /// @param ts Parameters to be deserialized
 /// @see serialize(), deserialize()
 template <typename... Ts>
-inline void streamDeserialize(std::basic_istream<char>* stream, Ts&&... ts)
+inline void read(std::basic_istream<char>* stream, Ts&&... ts)
 {
     StreamDeserializer deserializer(stream);
     deserializer.process(std::forward<Ts>(ts)...);
