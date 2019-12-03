@@ -468,7 +468,7 @@ using FullTypes =
     ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long,
                      long long, unsigned char, unsigned short, unsigned int, unsigned long,
                      unsigned long long, float, double, A, B, D, std::complex<int>,
-                     std::complex<float>, chrono::steady_clock::time_point>;
+                     std::complex<float>, std::chrono::steady_clock::time_point>;
 #endif
 
 #define CREATE_ITER_TEST_0(TEST, NAME, TYPE) \
