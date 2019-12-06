@@ -121,75 +121,55 @@ namespace Impl
 {
 namespace Number
 {
-template <typename T, size_t N>
+bool little()
+{
+    short test = 1;
+    auto ptr = reinterpret_cast<char*>(&test);
+    return ptr[0];
+}
+
+template <size_t N, size_t I>
 struct Number
 {
-    static inline void serialize(const T& data, char* buffer)
+    static inline void lserialize(const char* ptr, char* buffer)
     {
-        Number<T, N - 1>::serialize(data, buffer);
-        buffer[N] = char(data >> (N * 8));
+        Number<N, I - 1>::lserialize(ptr, buffer);
+        buffer[I] = ptr[I];
     }
-    static inline void deserialize(T& data, const char* buffer)
+    static inline void bserialize(const char* ptr, char* buffer)
     {
-        Number<T, N - 1>::deserialize(data, buffer);
-        data |= T(uint8_t(buffer[N])) << (N * 8);
+        Number<N, I - 1>::bserialize(ptr, buffer);
+        buffer[I] = ptr[N - I - 1];
+    }
+    static inline void deserialize(char* ptr, const char* buffer)
+    {
+        Number<N, I - 1>::deserialize(ptr, buffer);
+        ptr[I] = buffer[I];
     }
 };
 
-template <typename T>
-struct Number<T, 0>
+template <size_t N>
+struct Number<N, 0>
 {
-    static inline void serialize(const T& data, char* buffer) { buffer[0] = char(data); }
-    static inline void deserialize(T& data, const char* buffer) { data |= T(uint8_t(buffer[0])); }
+    static inline void lserialize(const char* ptr, char* buffer) { buffer[0] = ptr[0]; }
+    static inline void bserialize(const char* ptr, char* buffer) { buffer[0] = ptr[N - 1]; }
+    static inline void deserialize(char* ptr, const char* buffer) { ptr[0] = buffer[0]; }
 };
-
-template <typename T>
-inline void _serialize(const T& data, char* buffer)
-{
-    Number<T, sizeof(T) - 1>::serialize(data, buffer);
-}
-template <typename T>
-inline void _deserialize(T& data, const char* buffer)
-{
-    data = 0;
-    Number<T, sizeof(T) - 1>::deserialize(data, buffer);
-}
 
 template <typename T>
 void serialize(const T& data, char* buffer)
 {
-    if (sizeof(T) == 1)
-        _serialize(*reinterpret_cast<const uint8_t*>(&data), buffer);
-    else if (sizeof(T) == 2)
-        _serialize(*reinterpret_cast<const uint16_t*>(&data), buffer);
-    else if (sizeof(T) == 4)
-        _serialize(*reinterpret_cast<const uint32_t*>(&data), buffer);
-    else if (sizeof(T) == 8)
-        _serialize(*reinterpret_cast<const uint64_t*>(&data), buffer);
-#ifdef __SIZEOF_INT128__
-    else if (sizeof(T) == 16)
-        _serialize(*reinterpret_cast<const __uint128_t*>(&data), buffer);
-#endif
+    auto ptr = reinterpret_cast<const char*>(&data);
+    if (little())
+        Number<sizeof(T), sizeof(T) - 1>::lserialize(ptr, buffer);
     else
-        throw std::runtime_error("Basic data type is not supported for serialization");
+        Number<sizeof(T), sizeof(T) - 1>::bserialize(ptr, buffer);
 }
 template <typename T>
 void deserialize(T& data, const char* buffer)
 {
-    if (sizeof(T) == 1)
-        _deserialize(*reinterpret_cast<uint8_t*>(&data), buffer);
-    else if (sizeof(T) == 2)
-        _deserialize(*reinterpret_cast<uint16_t*>(&data), buffer);
-    else if (sizeof(T) == 4)
-        _deserialize(*reinterpret_cast<uint32_t*>(&data), buffer);
-    else if (sizeof(T) == 8)
-        _deserialize(*reinterpret_cast<uint64_t*>(&data), buffer);
-#ifdef __SIZEOF_INT128__
-    else if (sizeof(T) == 16)
-        _deserialize(*reinterpret_cast<__uint128_t*>(&data), buffer);
-#endif
-    else
-        throw std::runtime_error("Basic data type is not supported for deserialization");
+    auto ptr = reinterpret_cast<char*>(&data);
+    Number<sizeof(T), sizeof(T) - 1>::deserialize(ptr, buffer);
 }
 }  // namespace Number
 
