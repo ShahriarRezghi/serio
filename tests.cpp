@@ -196,7 +196,8 @@ public:
     template <typename T>
     static typename std::enable_if<std::is_arithmetic<T>::value, void>::type init(T& V)
     {
-        V = T((rand() / double(RAND_MAX) - .5) * pow(2, sizeof(T) * 8));
+        V = rand() % int(std::numeric_limits<T>::max());
+        if (std::is_same<bool, T>::value && rand() % 2) V = !V;
     }
     template <typename Iter>
     static typename std::enable_if<std::is_class<Iter>::value, void>::type init(Iter& I)
@@ -292,6 +293,17 @@ public:
     static void init(std::chrono::steady_clock::time_point& I)
     {
         I = std::chrono::steady_clock::now();
+    }
+
+    template <size_t N>
+    static void init(std::bitset<N>& I)
+    {
+        for (size_t i = 0; i < N; ++i)
+        {
+            bool B;
+            init(B);
+            I[i] = B;
+        }
     }
 
     template <typename T>
@@ -420,6 +432,11 @@ void compare(const Serio::Array<T>& value1, const Serio::Array<T>& value2)
     EXPECT_EQ(value1.size, value2.size);
     for (size_t i = 0; i < value1.size; ++i) compare(value1.data[i], value2.data[i]);
 }
+void compare(const std::multimap<bool, bool>& value1, const std::multimap<bool, bool>& value2)
+{
+    using U = std::unordered_multimap<bool, bool>;
+    EXPECT_EQ(U(value1.begin(), value1.end()), U(value2.begin(), value2.end()));
+}
 
 template <typename T>
 struct Process
@@ -450,7 +467,6 @@ struct Process
     }
 };
 
-#ifdef __SIZEOF_INT128__
 using BasicTypes =
     ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long,
                      long long, unsigned char, unsigned short, unsigned int, unsigned long,
@@ -459,17 +475,7 @@ using FullTypes =
     ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long,
                      long long, unsigned char, unsigned short, unsigned int, unsigned long,
                      unsigned long long, float, double, long double, A, B, D, std::complex<int>,
-                     std::complex<float>, std::chrono::steady_clock::time_point>;
-#else
-using BasicTypes = ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short,
-                                    int, long, long long, unsigned char, unsigned short,
-                                    unsigned int, unsigned long, unsigned long long, float, double>;
-using FullTypes =
-    ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long,
-                     long long, unsigned char, unsigned short, unsigned int, unsigned long,
-                     unsigned long long, float, double, A, B, D, std::complex<int>,
-                     std::complex<float>, std::chrono::steady_clock::time_point>;
-#endif
+                     std::complex<float>, std::chrono::steady_clock::time_point, std::bitset<50>>;
 
 #define CREATE_ITER_TEST_0(TEST, NAME, TYPE) \
     TYPED_TEST(TEST, NAME##Depth0) { Process<TYPE<TypeParam>>(); }

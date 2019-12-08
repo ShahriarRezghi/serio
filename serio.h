@@ -175,74 +175,40 @@ void deserialize(T& data, const char* buffer)
 
 namespace Bitset
 {
-template <size_t N, size_t I, size_t J>
-struct Bit
+template <size_t N, size_t I>
+struct Bitset
 {
     static inline void serialize(const std::bitset<N>& C, char* buffer)
     {
-        Bit<N, I, J - 1>::serialize(C, buffer);
-        if (I + J < N) buffer[I] |= (C[I * 8 + J] << J) & (1 << J);
+        Bitset<N, I - 1>::serialize(C, buffer);
+        buffer[I / 8] = (buffer[I / 8] & ~(1 << (I % 8))) | (bool(C[I]) << I % 8);
     }
     static inline void deserialize(std::bitset<N>& C, const char* buffer)
     {
-        Bit<N, I, J - 1>::deserialize(C, buffer);
-        if (I + J < N) C[I * 8 + J] = (buffer[I] >> J) & 1;
-    }
-};
-
-template <size_t N, size_t I>
-struct Bit<N, I, 0>
-{
-    static inline void serialize(const std::bitset<N>& C, char* buffer) { buffer[I] = C[I * 8]; }
-    static inline void deserialize(std::bitset<N>& C, const char* buffer)
-    {
-        C[I * 8] = buffer[I] & 1;
-    }
-};
-
-template <size_t N, size_t I>
-struct Char
-{
-    static inline void serialize(const std::bitset<N>& C, char* buffer)
-    {
-        Char<N, I - 1>::serialize(C, buffer);
-        Bit<N, I, 7>::serialize(C, buffer);
-    }
-    static inline void deserialize(std::bitset<N>& C, const char* buffer)
-    {
-        Char<N, I - 1>::deserialize(C, buffer);
-        Bit<N, I, 7>::deserialize(C, buffer);
+        Bitset<N, I - 1>::deserialize(C, buffer);
+        C[I] = (buffer[I / 8] >> (I % 8)) & 1;
     }
 };
 
 template <size_t N>
-struct Char<N, 0>
+struct Bitset<N, 0>
 {
     static inline void serialize(const std::bitset<N>& C, char* buffer)
     {
-        Bit<N, 0, 7>::serialize(C, buffer);
+        buffer[0] = (buffer[0] & ~1) | bool(C[0]);
     }
-    static inline void deserialize(std::bitset<N>& C, const char* buffer)
-    {
-        Bit<N, 0, 7>::deserialize(C, buffer);
-    }
+    static inline void deserialize(std::bitset<N>& C, const char* buffer) { C[0] = buffer[0] & 1; }
 };
 
 template <size_t N>
 inline void serialize(const std::bitset<N>& C, char* buffer)
 {
-    if (N % 8 == 0)
-        Char<N, N / 8 - 1>::serialize(C, buffer);
-    else
-        Char<N, N / 8>::serialize(C, buffer);
+    Bitset<N, N - 1>::serialize(C, buffer);
 }
 template <size_t N>
 inline void deserialize(std::bitset<N>& C, const char* buffer)
 {
-    if (N % 8 == 0)
-        Char<N, N / 8 - 1>::deserialize(C, buffer);
-    else
-        Char<N, N / 8>::deserialize(C, buffer);
+    Bitset<N, N - 1>::deserialize(C, buffer);
 }
 }  // namespace Bitset
 
