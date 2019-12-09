@@ -53,6 +53,26 @@ int A, B;
 bool success = Serio::load("<file-path>", A, B);
 ```
 
+If you want to so serialize or deserialize multiple times you can just pass all of the data types to the corresponding functions but when it is not possible this is the **wrong** way of doing it:
+
+``` c++
+int A = 0;
+auto data = Serio::serialize(A);
+int B = 0;
+data = Serio::serialize(data, B);
+```
+
+This is the right way of doing it:
+
+``` c++
+int A = 0;
+auto data = Serio::serialize(A);
+int B = 0;
+data += Serio::serialize(B);
+```
+
+But the addition makes the code slower so pass all the types at once as much as you can.
+
 # Raw Buffer API
 This API contains 3 functions ```Serio::size()```, ```Serio::fill()``` and ```Serio::deserialize()``` which are explained below.
 
@@ -74,8 +94,20 @@ char* data = "<serialized-data>";
 size_t consumed = Serio::deserialize(data, A, B);
 ```
 
+If you want to so serialize or deserialize multiple times you can do this:
+
+``` c++
+char data[sizeof(int) * 2];
+int A = 0;
+auto size = Serio::fill(data, A);
+int B = 0;
+size += Serio::fill(data + size, B);
+```
+
+This doesn't slow down the code like in string API case but you should be careful with the size of your buffer.
+
 # Stream API
-This API contains 2 functions ```Serio::streamSerialize()``` and ```Serio::streamDeserialize()``` which are explained below.
+This API contains 2 functions ```Serio::read()``` and ```Serio::write()``` which are explained below.
 
 You can serialize data types into a output stream of chars. Here is an example of serializing to stream:
 
@@ -92,6 +124,18 @@ int A, B;
 std::istringstream stream;  // contains serialized data
 Serio::read(&stream, A, B);
 ```
+
+If you want to so serialize or deserialize multiple times you can do this:
+
+``` c++
+int A = 0;
+std::ostringstream stream;
+Serio::write(&stream, A);
+int B = 0;
+Serio::write(&stream, B);
+```
+
+This doesn't slow down the code so feel free to use it this way.
 
 In the previous examples we serialize and deserialize ints. Now we'll pay attention to the other data types. We'll use ```serialize()``` and ```deserialize()``` functions from now on but the same logic applies to the other APIs.
 
