@@ -529,8 +529,8 @@ CREATE_MAP_TEST(Type1, UnorderedMap, std::unordered_map);
 CREATE_MAP_TEST(Type1, UnorderedMultimap, std::unordered_multimap);
 
 TYPED_TEST(Type2, Basic) { Process<TypeParam>(); }
-TYPED_TEST(Type2, Tuple) { Process<std::pair<TypeParam, TypeParam>>(); }
-TYPED_TEST(Type2, Pair) { Process<std::tuple<TypeParam, TypeParam, TypeParam>>(); }
+TYPED_TEST(Type2, Pair) { Process<std::pair<TypeParam, TypeParam>>(); }
+TYPED_TEST(Type2, Tuple) { Process<std::tuple<TypeParam, TypeParam, TypeParam>>(); }
 CREATE_ITER_TEST(Type2, Vector, std::vector);
 CREATE_ITER_TEST(Type2, List, std::list);
 CREATE_ITER_TEST(Type2, Deque, std::deque);

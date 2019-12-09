@@ -1023,7 +1023,7 @@ public:
     template <typename Traits, typename Alloc>
     inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
     {
-        This() << C.size();
+        This() << Size(C.size());
         if (C.size() == 0) return This();
         stream->rdbuf()->sputn(C.data(), C.size());
         return This();
@@ -1071,7 +1071,7 @@ public:
         This() >> size;
         C.resize(size);
         if (size == 0) return This();
-        stream->rdbuf()->sputn(&C.front(), size);
+        stream->rdbuf()->sgetn(&C.front(), size);
         return This();
     }
 
