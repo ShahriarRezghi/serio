@@ -388,12 +388,11 @@ inline bool write(const std::string& path, const ByteArray& data)
 /// Serio::ByteArray str = Serio::serialize(Serio::Array<int>(A, 10));
 /// Serio::deserialize(str, Serio::Array<int>(A, 10));
 /// @endcode
-template <typename T>
+template <typename T, size_t Size>
 struct Array
 {
-    size_t size;
     T* data;
-    inline Array(const T* data, size_t size) : size(size), data(const_cast<T*>(data)) {}
+    inline Array(const T* data) : data(const_cast<T*>(data)) {}
 };
 
 /// @brief Processes higher structures for serialization and size calculation.
@@ -450,11 +449,11 @@ public:
         for (const auto& S : C) This() << S;
         return This();
     }
-    template <typename T>
-    inline Derived& operator<<(const Array<T>& C)
+    template <typename T, size_t S>
+    inline Derived& operator<<(const Array<T, S>& C)
     {
-        This() << Size(C.size);
-        for (size_t i = 0; i < C.size; ++i) This() << C.data[i];
+        This() << Size(S);
+        for (size_t i = 0; i < S; ++i) This() << C.data[i];
         return This();
     }
 
@@ -708,8 +707,8 @@ public:
         for (Size i = 0; i < N; ++i) This() >> C[i];
         return This();
     }
-    template <typename T>
-    inline Derived& operator>>(Array<T> C)
+    template <typename T, size_t S>
+    inline Derived& operator>>(Array<T, S> C)
     {
         Size size;
         This() >> size;
@@ -872,8 +871,8 @@ public:
         This() >> head;
         return process(std::forward<Tail>(tail)...);
     }
-    template <typename T, typename... Tail>
-    inline Derived& process(Array<T> head, Tail&&... tail)
+    template <typename T, size_t S, typename... Tail>
+    inline Derived& process(Array<T, S> head, Tail&&... tail)
     {
         This() >> std::move(head);
         return process(std::forward<Tail>(tail)...);
@@ -942,6 +941,7 @@ public:
     inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
     {
         This() << Size(C.size());
+        if (C.size() == 0) return This();
         std::memcpy(buffer, C.data(), C.size());
         buffer += C.size();
         return This();
@@ -983,6 +983,7 @@ public:
         Size size;
         This() >> size;
         C.resize(size);
+        if (size == 0) return This();
         std::memcpy(&C.front(), buffer, size);
         buffer += size;
         return This();
@@ -1022,6 +1023,8 @@ public:
     template <typename Traits, typename Alloc>
     inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
     {
+        This() << C.size();
+        if (C.size() == 0) return This();
         stream->rdbuf()->sputn(C.data(), C.size());
         return This();
     }
@@ -1067,6 +1070,7 @@ public:
         Size size;
         This() >> size;
         C.resize(size);
+        if (size == 0) return This();
         stream->rdbuf()->sputn(&C.front(), size);
         return This();
     }

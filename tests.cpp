@@ -34,8 +34,10 @@
 
 #include <cfloat>
 #include <cmath>
+#include <codecvt>
 #include <ctime>
 #include <limits>
+#include <locale>
 #include <random>
 
 struct A
@@ -186,8 +188,7 @@ class INIT
         for (size_t i = 0; i < size; ++i)
         {
             std::pair<typename Iter::key_type, typename Iter::mapped_type> V;
-            V.first = typename Iter::key_type(i);
-            init(V.second);
+            init(V);
             add(I, V);
         }
     }
@@ -314,10 +315,10 @@ public:
         init(std::get<2>(I));
     }
 
-    template <typename T>
-    static void init(Serio::Array<T>& I)
+    template <typename T, size_t S>
+    static void init(Serio::Array<T, S>& I)
     {
-        for (size_t i = 0; i < I.size; ++i) init(I.data[i]);
+        for (size_t i = 0; i < S; ++i) init(I.data[i]);
     }
 
 #if __cplusplus >= 201703L
@@ -426,16 +427,22 @@ void compare(const std::unique_ptr<T, Deleter>& value1, const std::unique_ptr<T,
     if (!value1 && !value2) return;
     compare(*value1.get(), *value2.get());
 }
-template <typename T>
-void compare(const Serio::Array<T>& value1, const Serio::Array<T>& value2)
+template <typename T, size_t S>
+void compare(const Serio::Array<T, S>& value1, const Serio::Array<T, S>& value2)
 {
-    EXPECT_EQ(value1.size, value2.size);
-    for (size_t i = 0; i < value1.size; ++i) compare(value1.data[i], value2.data[i]);
+    for (size_t i = 0; i < S; ++i) compare(value1.data[i], value2.data[i]);
 }
-void compare(const std::multimap<bool, bool>& value1, const std::multimap<bool, bool>& value2)
+template <typename K, typename T>
+void compare(const std::multimap<K, T>& value1, const std::multimap<K, T>& value2)
 {
-    using U = std::unordered_multimap<bool, bool>;
+    // TODO look into this
+    using U = std::unordered_multimap<K, T>;
     EXPECT_EQ(U(value1.begin(), value1.end()), U(value2.begin(), value2.end()));
+}
+
+std::basic_ostream<char>& operator<<(std::basic_ostream<char>& O, const std::wstring& S)
+{
+    return O << std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(S);
 }
 
 template <typename T>
@@ -475,7 +482,8 @@ using FullTypes =
     ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long,
                      long long, unsigned char, unsigned short, unsigned int, unsigned long,
                      unsigned long long, float, double, long double, A, B, D, std::complex<int>,
-                     std::complex<float>, std::chrono::steady_clock::time_point, std::bitset<50>>;
+                     std::complex<float>, std::chrono::steady_clock::time_point, std::bitset<50>,
+                     std::string, std::wstring>;
 
 #define CREATE_ITER_TEST_0(TEST, NAME, TYPE) \
     TYPED_TEST(TEST, NAME##Depth0) { Process<TYPE<TypeParam>>(); }
@@ -521,7 +529,8 @@ CREATE_MAP_TEST(Type1, UnorderedMap, std::unordered_map);
 CREATE_MAP_TEST(Type1, UnorderedMultimap, std::unordered_multimap);
 
 TYPED_TEST(Type2, Basic) { Process<TypeParam>(); }
-TYPED_TEST(Type2, Tuple) { Process<std::tuple<TypeParam, TypeParam, TypeParam>>(); }
+TYPED_TEST(Type2, Tuple) { Process<std::pair<TypeParam, TypeParam>>(); }
+TYPED_TEST(Type2, Pair) { Process<std::tuple<TypeParam, TypeParam, TypeParam>>(); }
 CREATE_ITER_TEST(Type2, Vector, std::vector);
 CREATE_ITER_TEST(Type2, List, std::list);
 CREATE_ITER_TEST(Type2, Deque, std::deque);
@@ -538,7 +547,7 @@ CREATE_ITER_TEST(Type2, Array, Array);
 TYPED_TEST(Type2, RawArray)
 {
     TypeParam V1[50], V2[50];
-    Serio::Array<TypeParam> value1(V1, 50), value2(V2, 50);
+    Serio::Array<TypeParam, 50> value1(V1), value2(V2);
     INIT::init(value1);
     save1(value1);
     load1(value2);
