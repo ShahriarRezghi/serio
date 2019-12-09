@@ -220,11 +220,11 @@ private:
 Here we do the job of ```SERIO_REGISTER``` manually. We define ```_serialize()``` function in your class that serializes size first and then all the items. Then we define ```_deserialize()``` function that deserializes size and resizes the container and then deserializes all the items. Please note that if you serialize size of vector it will have size_t type and it's size will be platform dependent so we use ```Serio::Size``` here so the serialized data will be portable. Now your container is ready to be serialized and deserialized.
 
 # Raw Arrays
-You can serialize raw arrays using a structure provided by ```Serio``` which is ```Serio::Array<T>```. Here is an example:
+You can serialize raw arrays (currently fixed size) using a structure provided by ```Serio``` which is ```Serio::Array<T, Size>```. Here is an example:
 
 ``` c++
 int A[10];
-Serio::ByteArray str = Serio::serialize(Serio::Array<int>(A, 10));
+Serio::ByteArray str = Serio::serialize(Serio::Array<int, 10>(A));
 ```
 
 Here is an example deserialization of above example:
@@ -232,7 +232,7 @@ Here is an example deserialization of above example:
 ``` c++
 int A[10];
 Serio::ByteArray str = "<serialized-data>";
-Serio::deserialize(str, Serio::Array<int>(A, 10));
+Serio::deserialize(str, Serio::Array<int, 10>(A));
 ```
 
 # Advanced Usage
