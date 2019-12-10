@@ -911,7 +911,7 @@ public:
     inline Derived& operator<<(const std::bitset<N>& C)
     {
         (void)C;
-        size += ceil(N / 8.0);
+        size += Size(ceil(N / 8.0));
         return This();
     }
 };
@@ -1032,7 +1032,7 @@ public:
     template <size_t N>
     inline Derived& operator<<(const std::bitset<N>& C)
     {
-        size_t size = std::ceil(N / 8.0);
+        auto size = size_t(std::ceil(N / 8.0));
         ByteArray buffer(size, 0);
         Impl::Bitset::serialize(C, &buffer.front());
         stream->rdbuf()->sputn(buffer.data(), buffer.size());
@@ -1078,7 +1078,7 @@ public:
     template <size_t N>
     inline Derived& operator>>(std::bitset<N>& C)
     {
-        size_t size = std::ceil(N / 8.0);
+        auto size = size_t(std::ceil(N / 8.0));
         ByteArray buffer(size, 0);
         stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
         Impl::Bitset::deserialize(C, buffer.data());
