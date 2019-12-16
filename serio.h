@@ -706,7 +706,7 @@ public:
     template <typename T, size_t S>
     inline Derived& operator>>(Array<T, S> C)
     {
-        for (Size i = 0; i < size; ++i) This() >> C.data[i];
+        for (size_t i = 0; i < S; ++i) This() >> C.data[i];
         return This();
     }
 
