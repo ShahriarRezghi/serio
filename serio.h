@@ -911,7 +911,7 @@ public:
     inline Derived& operator<<(const std::bitset<N>& C)
     {
         (void)C;
-        size += Size(ceil(N / 8.0));
+        size += Size(std::ceil(N / 8.0));
         return This();
     }
 };
