@@ -44,7 +44,6 @@ You can checkout [USAGE.md](USAGE.md) for details.
 + STL containers can be used interchangably when serializing the deserializing. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::list```. This is both convinient and can speed up operations. For example you can serialize a ```std::vector``` and later deserialize it into a ```std::set``` to get unique items. With maps for example you can serialize a ```std::map<int, int>``` and later deserialize a ```std::vector<std::pair<int, int>>``` or vice versa.
 + If you want the serialized files to be completely machine-independent use fixed size integers instead of basic data types.
 + Doing ```using namespace Serio``` is not a good idea(because it may cause some conflicts).
-+ When size of ```long double``` is 16 bytes, it is only supported where 128 integer is available (depends on compiler and hardware. see [this](https://gcc.gnu.org/onlinedocs/gcc-4.6.1/gcc/_005f_005fint128.html)). So be careful using it.
 
 # Supported Types
 Supported types: [C++ containers](http://www.cplusplus.com/reference/stl/), raw arrays, std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::optional(C++17), std::variant(C++17) and any structure that you register. If there is a data type in STL that you want to be supported (and is not) please open an issue on the [issues page](../../issues).
