@@ -475,7 +475,6 @@ public:
     template <typename T, size_t S>
     inline Derived& operator<<(const Array<T, S>& C)
     {
-        This() << Size(S);
         for (size_t i = 0; i < S; ++i) This() << C.data[i];
         return This();
     }
@@ -707,7 +706,6 @@ public:
     template <typename T, size_t S>
     inline Derived& operator>>(Array<T, S> C)
     {
-        auto size = this->get<Size>();
         for (Size i = 0; i < size; ++i) This() >> C.data[i];
         return This();
     }
