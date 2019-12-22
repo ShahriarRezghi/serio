@@ -587,14 +587,8 @@ public:
     template <typename... Ts>
     Derived& operator<<(const std::variant<Ts...>& C)
     {
-        if (C.index() == std::variant_npos)
-            This() << Size(-1);
-        else
-        {
-            This() << Size(C.index());
-            Impl::Variant::serialize(This(), C);
-        }
-
+        This() << Size(C.index());
+        Impl::Variant::serialize(This(), C);
         return This();
     }
 #endif
