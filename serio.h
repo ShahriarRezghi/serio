@@ -121,7 +121,7 @@ namespace Impl
 {
 namespace Number
 {
-bool little()
+inline bool little()
 {
     short test = 1;
     auto ptr = reinterpret_cast<char*>(&test);
