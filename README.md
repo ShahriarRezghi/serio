@@ -23,7 +23,13 @@ Serio is a C++11 library (with support for new data types like variant and optio
 + Permissive License
 
 # Installation
-You can use CMake to install the library (preferred way). Do these in the project directory:
+If you plan to run the tests please clone the project recursively:
+
+``` shell
+git clone --recursive https://github.com/ShahriarSS/Serio.git
+```
+
+You can use CMake to install the library (recommended way). Do these in the project directory:
 
 ``` shell
 mkdir build && cd build
