@@ -291,10 +291,7 @@ public:
         init(*value);
         I.reset(value);
     }
-    static void init(std::chrono::steady_clock::time_point& I)
-    {
-        I = std::chrono::steady_clock::now();
-    }
+    static void init(std::chrono::steady_clock::time_point& I) { I = std::chrono::steady_clock::now(); }
 
     template <size_t N>
     static void init(std::bitset<N>& I)
@@ -370,14 +367,14 @@ void load1(Ts&&... ts)
 template <typename... Ts>
 void save2(Ts&&... ts)
 {
-    std::ofstream file("temp");
+    std::fstream file("temp", std::ios::binary | std::ios::out);
     ASSERT_TRUE(file.is_open());
     Serio::write(&file, std::forward<Ts>(ts)...);
 }
 template <typename... Ts>
 void load2(Ts&&... ts)
 {
-    std::ifstream file("temp");
+    std::fstream file("temp", std::ios::binary | std::ios::in);
     ASSERT_TRUE(file.is_open());
     Serio::read(&file, std::forward<Ts>(ts)...);
 }
@@ -475,15 +472,12 @@ struct Process
 };
 
 using BasicTypes =
-    ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long,
-                     long long, unsigned char, unsigned short, unsigned int, unsigned long,
-                     unsigned long long, float, double, long double>;
-using FullTypes =
-    ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long,
-                     long long, unsigned char, unsigned short, unsigned int, unsigned long,
-                     unsigned long long, float, double, long double, A, B, D, std::complex<int>,
-                     std::complex<float>, std::chrono::steady_clock::time_point, std::bitset<50>,
-                     std::string, std::wstring>;
+    ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long, long long, unsigned char,
+                     unsigned short, unsigned int, unsigned long, unsigned long long, float, double, long double>;
+using FullTypes = ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long, long long,
+                                   unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long,
+                                   float, double, long double, A, B, D, std::complex<int>, std::complex<float>,
+                                   std::chrono::steady_clock::time_point, std::bitset<50>, std::string, std::wstring>;
 
 #define CREATE_ITER_TEST_0(TEST, NAME, TYPE) \
     TYPED_TEST(TEST, NAME##Depth0) { Process<TYPE<TypeParam>>(); }
@@ -513,8 +507,8 @@ template <typename T>
 struct Type2 : public ::testing::Test
 {
 };
-TYPED_TEST_CASE(Type1, BasicTypes);
-TYPED_TEST_CASE(Type2, FullTypes);
+TYPED_TEST_SUITE(Type1, BasicTypes);
+TYPED_TEST_SUITE(Type2, FullTypes);
 
 CREATE_ITER_TEST_0(Type1, PQueue, std::priority_queue);
 TYPED_TEST(Type1, Complex) { Process<std::complex<TypeParam>>(); }

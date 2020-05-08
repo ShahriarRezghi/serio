@@ -193,10 +193,7 @@ struct Bitset
 template <size_t N>
 struct Bitset<N, 0>
 {
-    static inline void serialize(const std::bitset<N>& C, char* buffer)
-    {
-        buffer[0] = (buffer[0] & ~1) | bool(C[0]);
-    }
+    static inline void serialize(const std::bitset<N>& C, char* buffer) { buffer[0] = (buffer[0] & ~1) | bool(C[0]); }
     static inline void deserialize(std::bitset<N>& C, const char* buffer) { C[0] = buffer[0] & 1; }
 };
 
@@ -850,9 +847,8 @@ public:
     inline CalculatorBase(size_t size = 0) : size(size) {}
 
     template <typename T>
-    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
-                                   Derived&>::type
-    operator<<(const T& C)
+    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
+        const T& C)
     {
         size += sizeof(C);
         return This();
@@ -893,9 +889,8 @@ public:
     inline SerializerBase(char* buffer = nullptr) : buffer(buffer) {}
 
     template <typename T>
-    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
-                                   Derived&>::type
-    operator<<(const T& C)
+    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
+        const T& C)
     {
         Impl::Number::serialize(C, buffer);
         buffer += sizeof(C);
@@ -950,9 +945,8 @@ public:
     inline DeserializerBase(const char* buffer = nullptr) : buffer(buffer) {}
 
     template <typename T>
-    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
-                                   Derived&>::type
-    operator>>(T& C)
+    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(
+        T& C)
     {
         Impl::Number::deserialize(C, buffer);
         buffer += sizeof(C);
@@ -992,17 +986,17 @@ struct StreamSerializerBase
 {
     inline Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
+    char buffer[1024];
+
 public:
     std::basic_ostream<char>* stream;
 
     inline StreamSerializerBase(std::basic_ostream<char>* stream) : stream(stream) {}
 
     template <typename T>
-    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
-                                   Derived&>::type
-    operator<<(const T& C)
+    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
+        const T& C)
     {
-        char buffer[sizeof(C)];
         Impl::Number::serialize(C, buffer);
         stream->rdbuf()->sputn(buffer, sizeof(C));
         return This();
@@ -1054,21 +1048,19 @@ struct StreamDeserializerBase
         return value;
     }
 
+    char buffer[1024];
+
 public:
     std::basic_istream<char>* stream;
 
     inline StreamDeserializerBase(std::basic_istream<char>* stream = nullptr) : stream(stream) {}
 
-    void fill() {}
-
     template <typename T>
-    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value,
-                                   Derived&>::type
-    operator>>(T& C)
+    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(
+        T& C)
     {
-        ByteArray buffer(sizeof(C), 0);
-        stream->rdbuf()->sgetn(&buffer.front(), sizeof(C));
-        Impl::Number::deserialize(C, buffer.data());
+        stream->rdbuf()->sgetn(buffer, sizeof(C));
+        Impl::Number::deserialize(C, buffer);
         return This();
     }
 
@@ -1145,8 +1137,7 @@ struct StreamSerializer : StreamSerializerBase<StreamSerializer>, SerializerOps<
 };
 
 /// @brief This class deserializes any of the supported types from stream.
-struct StreamDeserializer : StreamDeserializerBase<StreamDeserializer>,
-                            DeserializerOps<StreamDeserializer>
+struct StreamDeserializer : StreamDeserializerBase<StreamDeserializer>, DeserializerOps<StreamDeserializer>
 {
     using Base = StreamDeserializerBase<StreamDeserializer>;
     using Ops = DeserializerOps<StreamDeserializer>;
