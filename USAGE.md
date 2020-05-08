@@ -9,10 +9,10 @@
 - [Custom Structures and Classes](#custom-structures-and-classes)
 - [Custom Containers](#custom-containers)
 - [Raw Arrays](#raw-arrays)
-- [Advanced Usage](#advanced-usage)
+- [Conditions](#conditions)
 
 # Introduction
-This library is easy to use. Here is an explanation of the API. ```Serio``` has two type of APIs:
+This library is easy to use. Here is an explanation of the API. ```Serio``` has two type of API:
 
 + Serialization to and deserialization from buffers which is preferred way of using ```Serio``` because this API is very fast.
 + Serialization to and deserialization from streams which is used where the memory is not enough to use the buffer API or you have a special stream that has to be used instead of buffer API.
@@ -39,14 +39,14 @@ Serio::ByteArray str = "<serialized-data>";
 size_t consumed = Serio::deserialize(str, A, B);
 ```
 
-You can also save the data to be serialized to file directly like this:
+You can also save the data to be serialized to a file directly like this:
 
 ``` c++
 int A = 0, B = 0;
 bool success = Serio::save("<file-path>", A, B);
 ```
 
-You can also read and deserialize data directly from file like this:
+You can also read and deserialize data directly from a file like this:
 
 ``` c++
 int A, B;
@@ -71,10 +71,10 @@ int B = 0;
 data += Serio::serialize(B);
 ```
 
-But the addition makes the code slower so pass all the types at once as much as you can.
+But the addition reduces speed because of string appending which causes reallocation sometimes so try to pass all the data at once.
 
 # Raw Buffer API
-This API contains 3 functions ```Serio::size()```, ```Serio::fill()``` and ```Serio::deserialize()``` which are explained below.
+This API contains 3 set of functions ```Serio::size()```, ```Serio::fill()``` and ```Serio::deserialize()``` which are explained below.
 
 You can serialize data types into a char sequence. Here is an example of serializing to raw buffer:
 
@@ -104,10 +104,12 @@ int B = 0;
 size += Serio::fill(data + size, B);
 ```
 
-This doesn't slow down the code like in string API case but you should be careful with the size of your buffer.
+This doesn't reduce speed like in string API case but you should be careful that content size doesn't exceed your buffer size.
 
 # Stream API
 This API contains 2 functions ```Serio::read()``` and ```Serio::write()``` which are explained below.
+
+WARNING: The streams must be character streams and in binary mode.
 
 You can serialize data types into a output stream of chars. Here is an example of serializing to stream:
 
@@ -135,15 +137,15 @@ int B = 0;
 Serio::write(&stream, B);
 ```
 
-This doesn't slow down the code so feel free to use it this way.
+This doesn't reduce speed so feel free to use it this way.
 
-In the previous examples we serialize and deserialize ints. Now we'll pay attention to the other data types. We'll use ```serialize()``` and ```deserialize()``` functions from now on but the same logic applies to the other APIs.
+In the previous examples we serialize and deserialize integers. Now we'll focus on other data types. We'll use ```serialize()``` and ```deserialize()``` functions from now on but the same goes for the other APIs.
 
 # Serio::Size
-Size of containers are serialized and deserialized using ```Serio::Size``` type so that the serialized data on one machine can be used on the others. the default size of ```Serio::Size``` is 8 bytes (```uint64_t```) but you can change it to 4 or 2 bytes. Keep in mind that if you change this size and serialize some data you will have to deserialize this data with the size that it was serialized with. This size can be set by setting the macro ```SERIO_SIZE``` and the possible values are 2 or 4 or 8 (default). You shouldn't change this value unless it is nessesary like when you really need the size of output data to be small (the difference in size will depend on the data being serialized but the siza won't drastically reduced so it is preferred to keep the size 8 bytes).
+Size of containers are serialized and deserialized using ```Serio::Size``` type so that the serialized data on one machine can be used on the others. the default size of ```Serio::Size``` is 8 bytes (```uint64_t```) but you can change it to 4 or 2 bytes. Keep in mind that if you change this size and serialize some data you will have to deserialize this data with the size that it was serialized with. Also be careful not to exceed the limit of this size type if you reduce it. This size can be set by setting the macro ```SERIO_SIZE``` and the possible values are 2 or 4 or 8 (default). You shouldn't change this value unless it is necessary like when you really need the size of output data to be small (the difference in size will depend on the data being serialized but the size won't be drastically reduced so it is preferred to keep the size 8 bytes).
 
 # STL Data Types
-Supported STL types are [C++ containers](http://www.cplusplus.com/reference/stl/), std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::optional(C++17), std::variant(C++17). Here is an example:
+Supported STL types are [C++ containers](http://www.cplusplus.com/reference/stl/), std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::optional (C++17), std::variant (C++17). Here is an example:
 
 ``` c++
 std::string A = "Hi";
@@ -152,7 +154,7 @@ std::list<std::vector<int>> C = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
 std::pair<int, int> D = {1,2};
 Serio::ByteArray str = Serio::serialize(A,B,C,D);
 ```
-As you can see you can nest the supported data types and use this library on it. You can deserialize the above code like this:
+As you can see you can nest the supported data types and use this library on them. You can deserialize the above code like this:
 
 ``` c++
 std::string A;
@@ -217,7 +219,7 @@ private:
 };
 ```
 
-Here we do the job of ```SERIO_REGISTER``` manually. We define ```_serialize()``` function in your class that serializes size first and then all the items. Then we define ```_deserialize()``` function that deserializes size and resizes the container and then deserializes all the items. Please note that if you serialize size of vector it will have size_t type and it's size will be platform dependent so we use ```Serio::Size``` here so the serialized data will be portable. Now your container is ready to be serialized and deserialized.
+Here we do the job of ```SERIO_REGISTER``` manually. We define ```_serialize()``` function that serializes size first and then all the items the container holds. Then we define ```_deserialize()``` function that deserializes size and resizes the container and then deserializes all the items. Please note that if you serialize size of vector it will have size_t type and it's size will be platform dependent so we use ```Serio::Size``` here and the serialized data will be portable. Now your container is ready to be serialized and deserialized.
 
 # Raw Arrays
 You can serialize raw arrays (currently fixed size) using a structure provided by ```Serio``` which is ```Serio::Array<T, Size>```. Here is an example:
@@ -235,4 +237,5 @@ Serio::ByteArray str = "<serialized-data>";
 Serio::deserialize(str, Serio::Array<int, 10>(A));
 ```
 
-# Advanced Usage
+# Conditions
+There will be some rare cases when we need to serialize and deserialize data conditionally. In order to achieve this the recommended way is using ```std::variant``` but it you want to do it another way you can do it by having a custom class and implementing the details of serialization and deserialization yourself like we did in [Custom Containers](#custom-containers) section.
