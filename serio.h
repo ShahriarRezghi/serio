@@ -65,11 +65,11 @@
 #define SERIO_SIZE 8
 #endif
 
-/// @brief Macro for registering custom classes.
+/// @brief Macro for registering custom classes and structures.
 ///
 /// This macro simplifies the process of serializing and deserializing of custom classes. In order
 /// to make nearly all of the custom classes usable This macro can be used (there are some rare
-/// cases when you have to implement _serialize() and _deserialize() functions yourself.
+/// cases when you have to implement _serialize() and _deserialize() functions yourself).
 ///
 /// Example:
 /// @code
@@ -100,23 +100,23 @@
 namespace Serio
 {
 #if SERIO_SIZE == 8
-/// Data type of the size of containers and such that is serialized and deserialized.
+/// Yype of the size of containers and such that is serialized and deserialized.
 using Size = uint64_t;
 #elif SERIO_SIZE == 4
-/// Data type of the size of containers and such that is serialized and deserialized.
+/// Type of the size of containers and such that is serialized and deserialized.
 using Size = uint32_t;
 #elif SERIO_SIZE == 2
-/// Data type of the size of containers and such that is serialized and deserialized.
+/// Type of the size of containers and such that is serialized and deserialized.
 using Size = uint16_t;
 #else
-static_assert(false, "SERIO_SIZE can only be 2, 4 and 8.");
+static_assert(false, "SERIO_SIZE can only be 2, 4 or 8.");
 using Size = uint64_t;
 #endif
 
-/// Array of 8 bit types.
+/// Container of single bytes.
 using ByteArray = std::basic_string<char>;
 
-/// Details of the namespace is in this namespace.
+/// Details of implementation are here.
 namespace Impl
 {
 namespace Number
@@ -407,10 +407,10 @@ struct Array
     inline Array(const T* data) : data(const_cast<T*>(data)) {}
 };
 
-/// @brief Processes higher structures for serialization and size calculation.
+/// @brief Processes more complex structures for serialization and size calculation.
 ///
-/// This class breaks higher structurs into simple elements and passes them on to the class that
-/// handles them to calculate size of data or serialize it.
+/// This class breaks more complex structurs into simple elements and passes them on to the class that
+/// handles them to calculate their size or serialize them.
 template <typename Derived>
 class SerializerOps
 {
@@ -599,10 +599,10 @@ public:
     inline Derived& process() { return This(); }
 };
 
-/// @brief Processes higher structures for deserialization.
+/// @brief Processes more complex structures for deserialization.
 ///
-/// This class breaks higher structurs into simple elements and passes them on to the class that
-/// handles them to deserialize the data.
+/// This class more complex structurs into simple elements and passes them on to the class that
+/// handles them to deserialize.
 template <typename Derived>
 class DeserializerOps
 {
