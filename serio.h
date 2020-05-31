@@ -79,21 +79,21 @@
 ///     SERIO_REGISTER(x, y)
 /// };
 /// @endcode
-#define SERIO_REGISTER(...)                     \
-    template <typename Derived>                 \
-    friend class Serio::SerializerOps;          \
-    template <typename Derived>                 \
-    friend class Serio::DeserializerOps;        \
-                                                \
-    template <typename Serializer>              \
-    inline void _serialize(Serializer& C) const \
-    {                                           \
-        C.process(__VA_ARGS__);                 \
-    }                                           \
-    template <typename Deserializer>            \
-    inline void _deserialize(Deserializer& C)   \
-    {                                           \
-        C.process(__VA_ARGS__);                 \
+#define SERIO_REGISTER(...)              \
+    template <typename Derived>          \
+    friend class Serio::SerializerOps;   \
+    template <typename Derived>          \
+    friend class Serio::DeserializerOps; \
+                                         \
+    template <typename Serializer>       \
+    void _serialize(Serializer& C) const \
+    {                                    \
+        C.process(__VA_ARGS__);          \
+    }                                    \
+    template <typename Deserializer>     \
+    void _deserialize(Deserializer& C)   \
+    {                                    \
+        C.process(__VA_ARGS__);          \
     }
 
 /// Main namespace of the library.
@@ -121,7 +121,7 @@ namespace Impl
 {
 namespace Number
 {
-inline bool little()
+bool little()
 {
     short test = 1;
     auto ptr = reinterpret_cast<char*>(&test);
@@ -131,17 +131,17 @@ inline bool little()
 template <size_t N, size_t I>
 struct Number
 {
-    static inline void lserialize(const char* ptr, char* buffer)
+    static void lserialize(const char* ptr, char* buffer)
     {
         Number<N, I - 1>::lserialize(ptr, buffer);
         buffer[I] = ptr[I];
     }
-    static inline void bserialize(const char* ptr, char* buffer)
+    static void bserialize(const char* ptr, char* buffer)
     {
         Number<N, I - 1>::bserialize(ptr, buffer);
         buffer[I] = ptr[N - I - 1];
     }
-    static inline void deserialize(char* ptr, const char* buffer)
+    static void deserialize(char* ptr, const char* buffer)
     {
         Number<N, I - 1>::deserialize(ptr, buffer);
         ptr[I] = buffer[I];
@@ -151,9 +151,9 @@ struct Number
 template <size_t N>
 struct Number<N, 0>
 {
-    static inline void lserialize(const char* ptr, char* buffer) { buffer[0] = ptr[0]; }
-    static inline void bserialize(const char* ptr, char* buffer) { buffer[0] = ptr[N - 1]; }
-    static inline void deserialize(char* ptr, const char* buffer) { ptr[0] = buffer[0]; }
+    static void lserialize(const char* ptr, char* buffer) { buffer[0] = ptr[0]; }
+    static void bserialize(const char* ptr, char* buffer) { buffer[0] = ptr[N - 1]; }
+    static void deserialize(char* ptr, const char* buffer) { ptr[0] = buffer[0]; }
 };
 
 template <typename T>
@@ -178,12 +178,12 @@ namespace BitsetStatic
 template <size_t N, size_t I>
 struct Bitset
 {
-    static inline void serialize(const std::bitset<N>& C, char* buffer)
+    static void serialize(const std::bitset<N>& C, char* buffer)
     {
         Bitset<N, I - 1>::serialize(C, buffer);
         buffer[I / 8] = (buffer[I / 8] & ~(1 << (I % 8))) | (bool(C[I]) << I % 8);
     }
-    static inline void deserialize(std::bitset<N>& C, const char* buffer)
+    static void deserialize(std::bitset<N>& C, const char* buffer)
     {
         Bitset<N, I - 1>::deserialize(C, buffer);
         C[I] = (buffer[I / 8] >> (I % 8)) & 1;
@@ -193,17 +193,17 @@ struct Bitset
 template <size_t N>
 struct Bitset<N, 0>
 {
-    static inline void serialize(const std::bitset<N>& C, char* buffer) { buffer[0] = (buffer[0] & ~1) | bool(C[0]); }
-    static inline void deserialize(std::bitset<N>& C, const char* buffer) { C[0] = buffer[0] & 1; }
+    static void serialize(const std::bitset<N>& C, char* buffer) { buffer[0] = (buffer[0] & ~1) | bool(C[0]); }
+    static void deserialize(std::bitset<N>& C, const char* buffer) { C[0] = buffer[0] & 1; }
 };
 
 template <size_t N>
-inline void serialize(const std::bitset<N>& C, char* buffer)
+void serialize(const std::bitset<N>& C, char* buffer)
 {
     Bitset<N, N - 1>::serialize(C, buffer);
 }
 template <size_t N>
-inline void deserialize(std::bitset<N>& C, const char* buffer)
+void deserialize(std::bitset<N>& C, const char* buffer)
 {
     Bitset<N, N - 1>::deserialize(C, buffer);
 }
@@ -212,13 +212,13 @@ inline void deserialize(std::bitset<N>& C, const char* buffer)
 namespace BitsetDynamic
 {
 template <typename BitArray>
-inline void serialize(const BitArray& C, char* buffer)
+void serialize(const BitArray& C, char* buffer)
 {
     std::fill(buffer, buffer + size_t(std::ceil(C.size() / 8.0)), 0);
     for (size_t i = 0; i < C.size(); ++i) buffer[i / 8] |= C[i] << (i % 8);
 }
 template <typename BitArray>
-inline void deserialize(BitArray& C, const char* buffer)
+void deserialize(BitArray& C, const char* buffer)
 {
     for (size_t i = 0; i < C.size(); ++i) C[i] = buffer[i / 8] & (1 << (i % 8));
 }
@@ -230,13 +230,13 @@ template <class Tp, size_t N>
 struct Tuple
 {
     template <typename Serializer>
-    static inline void serialize(Serializer& C, const Tp& T)
+    static void serialize(Serializer& C, const Tp& T)
     {
         Tuple<Tp, N - 1>::serialize(C, T);
         C << std::get<N>(T);
     }
     template <typename Deserializer>
-    static inline void deserialize(Deserializer& C, Tp& T)
+    static void deserialize(Deserializer& C, Tp& T)
     {
         Tuple<Tp, N - 1>::deserialize(C, T);
         C >> std::get<N>(T);
@@ -247,24 +247,24 @@ template <class Tp>
 struct Tuple<Tp, 0>
 {
     template <typename Serializer>
-    static inline void serialize(Serializer& C, const Tp& T)
+    static void serialize(Serializer& C, const Tp& T)
     {
         C << std::get<0>(T);
     }
     template <typename Deserializer>
-    static inline void deserialize(Deserializer& C, Tp& T)
+    static void deserialize(Deserializer& C, Tp& T)
     {
         C >> std::get<0>(T);
     }
 };
 
 template <typename Serializer, typename... Ts>
-inline void serialize(Serializer& C, const std::tuple<Ts...>& tuple)
+void serialize(Serializer& C, const std::tuple<Ts...>& tuple)
 {
     Tuple<decltype(tuple), sizeof...(Ts) - 1>::serialize(C, tuple);
 }
 template <typename Serializer, typename... Ts>
-inline void deserialize(Serializer& C, std::tuple<Ts...>& tuple)
+void deserialize(Serializer& C, std::tuple<Ts...>& tuple)
 {
     Tuple<decltype(tuple), sizeof...(Ts) - 1>::deserialize(C, tuple);
 }
@@ -277,13 +277,13 @@ template <class Tp, size_t N>
 struct Variant
 {
     template <typename Serializer, typename Vr>
-    static inline void serialize(Serializer& C, const Vr& V)
+    static void serialize(Serializer& C, const Vr& V)
     {
         Variant<Tp, N - 1>::serialize(C, V);
         if (V.index() == N) C << std::get<N>(V);
     }
     template <typename Serializer, typename Vr>
-    static inline void deserialize(Serializer& C, Size index, Vr& V)
+    static void deserialize(Serializer& C, Size index, Vr& V)
     {
         Variant<Tp, N - 1>::deserialize(C, index, V);
         if (index == N)
@@ -299,12 +299,12 @@ template <typename Tp>
 struct Variant<Tp, 0>
 {
     template <typename Serializer, typename Vr>
-    static inline void serialize(Serializer& C, const Vr& V)
+    static void serialize(Serializer& C, const Vr& V)
     {
         if (V.index() == 0) C << std::get<0>(V);
     }
     template <typename Serializer, typename Vr>
-    static inline void deserialize(Serializer& C, Size index, Vr& V)
+    static void deserialize(Serializer& C, Size index, Vr& V)
     {
         if (index == 0)
         {
@@ -316,12 +316,12 @@ struct Variant<Tp, 0>
 };
 
 template <typename Serializer, typename... Ts>
-inline void serialize(Serializer& C, const std::variant<Ts...>& V)
+void serialize(Serializer& C, const std::variant<Ts...>& V)
 {
     Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::serialize(C, V);
 }
 template <typename Serializer, typename... Ts>
-inline void deserialize(Serializer& C, Size index, std::variant<Ts...>& V)
+void deserialize(Serializer& C, Size index, std::variant<Ts...>& V)
 {
     Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(C, index, V);
 }
@@ -358,7 +358,7 @@ public:
     using std::stack<T, Sequence>::c;
 };
 
-inline bool read(const std::string& path, ByteArray& data)
+bool read(const std::string& path, ByteArray& data)
 {
     std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
     if (!stream.is_open()) return false;
@@ -375,7 +375,7 @@ inline bool read(const std::string& path, ByteArray& data)
     return true;
 }
 
-inline bool write(const std::string& path, const ByteArray& data)
+bool write(const std::string& path, const ByteArray& data)
 {
     std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
     if (!stream.is_open()) return false;
@@ -404,7 +404,7 @@ template <typename T, size_t Size>
 struct Array
 {
     T* data;
-    inline Array(const T* data) : data(const_cast<T*>(data)) {}
+    Array(const T* data) : data(const_cast<T*>(data)) {}
 };
 
 /// @brief Processes more complex structures for serialization and size calculation.
@@ -414,10 +414,10 @@ struct Array
 template <typename Derived>
 class SerializerOps
 {
-    inline Derived& This() { return *static_cast<Derived*>(this); }
+    Derived& This() { return *static_cast<Derived*>(this); }
 
     template <typename Iter>
-    inline Derived& iteratable(const Iter& C)
+    Derived& iteratable(const Iter& C)
     {
         This() << Size(Impl::iteratableSize(C));
         for (const auto& S : C) This() << S;
@@ -426,135 +426,135 @@ class SerializerOps
 
 public:
     template <typename T>
-    inline typename std::enable_if<std::is_class<T>::value, Derived&>::type operator<<(const T& C)
+    typename std::enable_if<std::is_class<T>::value, Derived&>::type operator<<(const T& C)
     {
         C._serialize(This());
         return This();
     }
 
     template <typename T, typename Alloc>
-    inline Derived& operator<<(const std::vector<T, Alloc>& C)
+    Derived& operator<<(const std::vector<T, Alloc>& C)
     {
         return iteratable(C);
     }
     template <typename T, typename Alloc>
-    inline Derived& operator<<(const std::list<T, Alloc>& C)
+    Derived& operator<<(const std::list<T, Alloc>& C)
     {
         return iteratable(C);
     }
     template <typename T, typename Alloc>
-    inline Derived& operator<<(const std::deque<T, Alloc>& C)
+    Derived& operator<<(const std::deque<T, Alloc>& C)
     {
         return iteratable(C);
     }
     template <typename T, typename Traits, typename Alloc>
-    inline Derived& operator<<(const std::basic_string<T, Traits, Alloc>& C)
+    Derived& operator<<(const std::basic_string<T, Traits, Alloc>& C)
     {
         return iteratable(C);
     }
     template <typename T, typename Alloc>
-    inline Derived& operator<<(const std::forward_list<T, Alloc>& C)
+    Derived& operator<<(const std::forward_list<T, Alloc>& C)
     {
         return iteratable(C);
     }
     template <typename T>
-    inline Derived& operator<<(const std::valarray<T>& C)
+    Derived& operator<<(const std::valarray<T>& C)
     {
         return iteratable(C);
     }
 
     template <typename T, size_t N>
-    inline Derived& operator<<(const std::array<T, N>& C)
+    Derived& operator<<(const std::array<T, N>& C)
     {
         for (const auto& S : C) This() << S;
         return This();
     }
     template <typename T, size_t S>
-    inline Derived& operator<<(const Array<T, S>& C)
+    Derived& operator<<(const Array<T, S>& C)
     {
         for (size_t i = 0; i < S; ++i) This() << C.data[i];
         return This();
     }
 
     template <typename T, typename Sequence>
-    inline Derived& operator<<(const std::queue<T, Sequence>& C)
+    Derived& operator<<(const std::queue<T, Sequence>& C)
     {
         return This() << reinterpret_cast<const Impl::DerivedQueue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
-    inline Derived& operator<<(const std::priority_queue<T, Sequence>& C)
+    Derived& operator<<(const std::priority_queue<T, Sequence>& C)
     {
         return This() << reinterpret_cast<const Impl::DerivedPQueue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
-    inline Derived& operator<<(const std::stack<T, Sequence>& C)
+    Derived& operator<<(const std::stack<T, Sequence>& C)
     {
         return This() << reinterpret_cast<const Impl::DerivedStack<T, Sequence>&>(C).c;
     }
 
     template <typename T, typename Comp, typename Alloc>
-    inline Derived& operator<<(const std::set<T, Comp, Alloc>& C)
+    Derived& operator<<(const std::set<T, Comp, Alloc>& C)
     {
         return iteratable(C);
     }
     template <typename T, typename Hash, typename Pred, typename Alloc>
-    inline Derived& operator<<(const std::unordered_set<T, Hash, Pred, Alloc>& C)
+    Derived& operator<<(const std::unordered_set<T, Hash, Pred, Alloc>& C)
     {
         return iteratable(C);
     }
     template <typename T, typename Comp, typename Alloc>
-    inline Derived& operator<<(const std::multiset<T, Comp, Alloc>& C)
+    Derived& operator<<(const std::multiset<T, Comp, Alloc>& C)
     {
         return iteratable(C);
     }
     template <typename T, typename Hash, typename Pred, typename Alloc>
-    inline Derived& operator<<(const std::unordered_multiset<T, Hash, Pred, Alloc>& C)
+    Derived& operator<<(const std::unordered_multiset<T, Hash, Pred, Alloc>& C)
     {
         return iteratable(C);
     }
 
     template <typename K, typename T, typename Comp, typename Alloc>
-    inline Derived& operator<<(const std::map<K, T, Comp, Alloc>& C)
+    Derived& operator<<(const std::map<K, T, Comp, Alloc>& C)
     {
         return iteratable(C);
     }
     template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-    inline Derived& operator<<(const std::unordered_map<K, T, Hash, Pred, Alloc>& C)
+    Derived& operator<<(const std::unordered_map<K, T, Hash, Pred, Alloc>& C)
     {
         return iteratable(C);
     }
     template <typename K, typename T, typename Comp, typename Alloc>
-    inline Derived& operator<<(const std::multimap<K, T, Comp, Alloc>& C)
+    Derived& operator<<(const std::multimap<K, T, Comp, Alloc>& C)
     {
         return iteratable(C);
     }
     template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-    inline Derived& operator<<(const std::unordered_multimap<K, T, Hash, Pred, Alloc>& C)
+    Derived& operator<<(const std::unordered_multimap<K, T, Hash, Pred, Alloc>& C)
     {
         return iteratable(C);
     }
 
     template <typename T1, typename T2>
-    inline Derived& operator<<(const std::pair<T1, T2>& C)
+    Derived& operator<<(const std::pair<T1, T2>& C)
     {
         return This() << C.first << C.second;
     }
     template <typename... Ts>
-    inline Derived& operator<<(const std::tuple<Ts...>& C)
+    Derived& operator<<(const std::tuple<Ts...>& C)
     {
         Impl::Tuple::serialize(This(), C);
         return This();
     }
 
     template <typename T>
-    inline Derived& operator<<(const std::shared_ptr<T>& C)
+    Derived& operator<<(const std::shared_ptr<T>& C)
     {
         This() << bool(C);
         if (C) This() << *C.get();
         return This();
     }
     template <typename T, typename Deleter>
-    inline Derived& operator<<(const std::unique_ptr<T, Deleter>& C)
+    Derived& operator<<(const std::unique_ptr<T, Deleter>& C)
     {
         This() << bool(C);
         if (C) This() << *C.get();
@@ -562,12 +562,12 @@ public:
     }
 
     template <typename T>
-    inline Derived& operator<<(const std::complex<T>& C)
+    Derived& operator<<(const std::complex<T>& C)
     {
         return This() << C.real() << C.imag();
     }
     template <typename Clock, typename Dur>
-    inline Derived& operator<<(const std::chrono::time_point<Clock, Dur>& C)
+    Derived& operator<<(const std::chrono::time_point<Clock, Dur>& C)
     {
         using rep = typename std::chrono::time_point<Clock, Dur>::rep;
         return This() << reinterpret_cast<const rep&>(C);
@@ -575,7 +575,7 @@ public:
 
 #if __cplusplus >= 201703L
     template <typename T>
-    inline Derived& operator<<(const std::optional<T>& C)
+    Derived& operator<<(const std::optional<T>& C)
     {
         This() << C.has_value();
         if (C.has_value()) This() << C.value();
@@ -591,12 +591,12 @@ public:
 #endif
 
     template <typename Head, typename... Tail>
-    inline Derived& process(const Head& head, Tail&&... tail)
+    Derived& process(const Head& head, Tail&&... tail)
     {
         This() << head;
         return process(std::forward<Tail>(tail)...);
     }
-    inline Derived& process() { return This(); }
+    Derived& process() { return This(); }
 };
 
 /// @brief Processes more complex structures for deserialization.
@@ -606,7 +606,7 @@ public:
 template <typename Derived>
 class DeserializerOps
 {
-    inline Derived& This() { return *static_cast<Derived*>(this); }
+    Derived& This() { return *static_cast<Derived*>(this); }
 
     template <typename T>
     T get()
@@ -635,7 +635,7 @@ class DeserializerOps
     }
 
     template <typename Ptr, typename T>
-    inline Derived& pointer(Ptr& C)
+    Derived& pointer(Ptr& C)
     {
         if (this->get<bool>())
         {
@@ -651,146 +651,146 @@ class DeserializerOps
 
 public:
     template <typename T>
-    inline typename std::enable_if<std::is_class<T>::value, Derived&>::type operator>>(T& C)
+    typename std::enable_if<std::is_class<T>::value, Derived&>::type operator>>(T& C)
     {
         C._deserialize(This());
         return This();
     }
 
     template <typename T, typename Alloc>
-    inline Derived& operator>>(std::vector<T, Alloc>& C)
+    Derived& operator>>(std::vector<T, Alloc>& C)
     {
         return assignable<decltype(C), T>(C);
     }
     template <typename T, typename Alloc>
-    inline Derived& operator>>(std::list<T, Alloc>& C)
+    Derived& operator>>(std::list<T, Alloc>& C)
     {
         return assignable<decltype(C), T>(C);
     }
     template <typename T, typename Alloc>
-    inline Derived& operator>>(std::deque<T, Alloc>& C)
+    Derived& operator>>(std::deque<T, Alloc>& C)
     {
         return assignable<decltype(C), T>(C);
     }
     template <typename T, typename Traits, typename Alloc>
-    inline Derived& operator>>(std::basic_string<T, Traits, Alloc>& C)
+    Derived& operator>>(std::basic_string<T, Traits, Alloc>& C)
     {
         return assignable<decltype(C), T>(C);
     }
     template <typename T, typename Alloc>
-    inline Derived& operator>>(std::forward_list<T, Alloc>& C)
+    Derived& operator>>(std::forward_list<T, Alloc>& C)
     {
         return assignable<decltype(C), T>(C);
     }
     template <typename T>
-    inline Derived& operator>>(std::valarray<T>& C)
+    Derived& operator>>(std::valarray<T>& C)
     {
         return assignable<decltype(C), T>(C);
     }
 
     template <typename T, size_t N>
-    inline Derived& operator>>(std::array<T, N>& C)
+    Derived& operator>>(std::array<T, N>& C)
     {
         for (auto& S : C) This() >> S;
         return This();
     }
     template <typename T, size_t S>
-    inline Derived& operator>>(Array<T, S> C)
+    Derived& operator>>(Array<T, S> C)
     {
         for (size_t i = 0; i < S; ++i) This() >> C.data[i];
         return This();
     }
 
     template <typename T, typename Sequence>
-    inline Derived& operator>>(std::queue<T, Sequence>& C)
+    Derived& operator>>(std::queue<T, Sequence>& C)
     {
         return This() >> reinterpret_cast<Impl::DerivedQueue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
-    inline Derived& operator>>(std::priority_queue<T, Sequence>& C)
+    Derived& operator>>(std::priority_queue<T, Sequence>& C)
     {
         return This() >> reinterpret_cast<Impl::DerivedPQueue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
-    inline Derived& operator>>(std::stack<T, Sequence>& C)
+    Derived& operator>>(std::stack<T, Sequence>& C)
     {
         return This() >> reinterpret_cast<Impl::DerivedStack<T, Sequence>&>(C).c;
     }
 
     template <typename T, typename Comp, typename Alloc>
-    inline Derived& operator>>(std::set<T, Comp, Alloc>& C)
+    Derived& operator>>(std::set<T, Comp, Alloc>& C)
     {
         return iteratable<decltype(C), T>(C);
     }
     template <typename T, typename Comp, typename Alloc>
-    inline Derived& operator>>(std::multiset<T, Comp, Alloc>& C)
+    Derived& operator>>(std::multiset<T, Comp, Alloc>& C)
     {
         return iteratable<decltype(C), T>(C);
     }
     template <typename T, typename Hash, typename Pred, typename Alloc>
-    inline Derived& operator>>(std::unordered_set<T, Hash, Pred, Alloc>& C)
+    Derived& operator>>(std::unordered_set<T, Hash, Pred, Alloc>& C)
     {
         return iteratable<decltype(C), T>(C);
     }
     template <typename T, typename Hash, typename Pred, typename Alloc>
-    inline Derived& operator>>(std::unordered_multiset<T, Hash, Pred, Alloc>& C)
+    Derived& operator>>(std::unordered_multiset<T, Hash, Pred, Alloc>& C)
     {
         return iteratable<decltype(C), T>(C);
     }
 
     template <typename K, typename T, typename Comp, typename Alloc>
-    inline Derived& operator>>(std::map<K, T, Comp, Alloc>& C)
+    Derived& operator>>(std::map<K, T, Comp, Alloc>& C)
     {
         return iteratable<decltype(C), std::pair<K, T>>(C);
     }
     template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-    inline Derived& operator>>(std::unordered_map<K, T, Hash, Pred, Alloc>& C)
+    Derived& operator>>(std::unordered_map<K, T, Hash, Pred, Alloc>& C)
     {
         return iteratable<decltype(C), std::pair<K, T>>(C);
     }
     template <typename K, typename T, typename Comp, typename Alloc>
-    inline Derived& operator>>(std::multimap<K, T, Comp, Alloc>& C)
+    Derived& operator>>(std::multimap<K, T, Comp, Alloc>& C)
     {
         return iteratable<decltype(C), std::pair<K, T>>(C);
     }
     template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-    inline Derived& operator>>(std::unordered_multimap<K, T, Hash, Pred, Alloc>& C)
+    Derived& operator>>(std::unordered_multimap<K, T, Hash, Pred, Alloc>& C)
     {
         return iteratable<decltype(C), std::pair<K, T>>(C);
     }
 
     template <typename T1, typename T2>
-    inline Derived& operator>>(std::pair<T1, T2>& C)
+    Derived& operator>>(std::pair<T1, T2>& C)
     {
         return This() >> C.first >> C.second;
     }
     template <typename... Ts>
-    inline Derived& operator>>(std::tuple<Ts...>& C)
+    Derived& operator>>(std::tuple<Ts...>& C)
     {
         Impl::Tuple::deserialize(This(), C);
         return This();
     }
 
     template <typename T>
-    inline Derived& operator>>(std::shared_ptr<T>& C)
+    Derived& operator>>(std::shared_ptr<T>& C)
     {
         return pointer<decltype(C), T>(C);
     }
     template <typename T, typename Deleter>
-    inline Derived& operator>>(std::unique_ptr<T, Deleter>& C)
+    Derived& operator>>(std::unique_ptr<T, Deleter>& C)
     {
         return pointer<decltype(C), T>(C);
     }
 
     template <typename T>
-    inline Derived& operator>>(std::complex<T>& C)
+    Derived& operator>>(std::complex<T>& C)
     {
         auto R = this->get<T>(), I = this->get<T>();
         C = std::complex<T>(R, I);
         return This();
     }
     template <typename Clock, typename Dur>
-    inline Derived& operator>>(std::chrono::time_point<Clock, Dur>& C)
+    Derived& operator>>(std::chrono::time_point<Clock, Dur>& C)
     {
         using rep = typename std::chrono::time_point<Clock, Dur>::rep;
         return This() >> reinterpret_cast<rep&>(C);
@@ -821,33 +821,33 @@ public:
 #endif
 
     template <typename Head, typename... Tail>
-    inline Derived& process(Head& head, Tail&&... tail)
+    Derived& process(Head& head, Tail&&... tail)
     {
         This() >> head;
         return process(std::forward<Tail>(tail)...);
     }
     template <typename T, size_t S, typename... Tail>
-    inline Derived& process(Array<T, S> head, Tail&&... tail)
+    Derived& process(Array<T, S> head, Tail&&... tail)
     {
         This() >> std::move(head);
         return process(std::forward<Tail>(tail)...);
     }
-    inline Derived& process() { return This(); }
+    Derived& process() { return This(); }
 };
 
 /// @brief This class implements the size calculation of basic data types.
 template <typename Derived>
 class CalculatorBase
 {
-    inline Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
 public:
     size_t size;
 
-    inline CalculatorBase(size_t size = 0) : size(size) {}
+    CalculatorBase(size_t size = 0) : size(size) {}
 
     template <typename T>
-    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
         const T& C)
     {
         size += sizeof(C);
@@ -855,14 +855,14 @@ public:
     }
 
     template <typename Traits, typename Alloc>
-    inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
     {
         size += sizeof(Size) + C.size();
         return This();
     }
 
     template <size_t N>
-    inline Derived& operator<<(const std::bitset<N>& C)
+    Derived& operator<<(const std::bitset<N>& C)
     {
         (void)C;
         size += Size(std::ceil(N / 8.0));
@@ -870,7 +870,7 @@ public:
     }
 
     template <typename Alloc>
-    inline Derived& operator<<(const std::vector<bool, Alloc>& C)
+    Derived& operator<<(const std::vector<bool, Alloc>& C)
     {
         size += sizeof(Size) + size_t(std::ceil(C.size() / 8.0));
         return This();
@@ -881,15 +881,15 @@ public:
 template <typename Derived>
 struct SerializerBase
 {
-    inline Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
 public:
     char* buffer;
 
-    inline SerializerBase(char* buffer = nullptr) : buffer(buffer) {}
+    SerializerBase(char* buffer = nullptr) : buffer(buffer) {}
 
     template <typename T>
-    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
         const T& C)
     {
         Impl::Number::serialize(C, buffer);
@@ -898,7 +898,7 @@ public:
     }
 
     template <typename Traits, typename Alloc>
-    inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
     {
         This() << Size(C.size());
         if (C.size() == 0) return This();
@@ -908,7 +908,7 @@ public:
     }
 
     template <size_t N>
-    inline Derived& operator<<(const std::bitset<N>& C)
+    Derived& operator<<(const std::bitset<N>& C)
     {
         Impl::BitsetDynamic::serialize(C, buffer);
         buffer += size_t(std::ceil(N / 8.0));
@@ -916,7 +916,7 @@ public:
     }
 
     template <typename Alloc>
-    inline Derived& operator<<(const std::vector<bool, Alloc>& C)
+    Derived& operator<<(const std::vector<bool, Alloc>& C)
     {
         This() << Size(C.size());
         Impl::BitsetDynamic::serialize(C, buffer);
@@ -929,7 +929,7 @@ public:
 template <typename Derived>
 struct DeserializerBase
 {
-    inline Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
     template <typename T>
     T get()
@@ -942,11 +942,10 @@ struct DeserializerBase
 public:
     const char* buffer;
 
-    inline DeserializerBase(const char* buffer = nullptr) : buffer(buffer) {}
+    DeserializerBase(const char* buffer = nullptr) : buffer(buffer) {}
 
     template <typename T>
-    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(
-        T& C)
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& C)
     {
         Impl::Number::deserialize(C, buffer);
         buffer += sizeof(C);
@@ -964,14 +963,14 @@ public:
     }
 
     template <size_t N>
-    inline Derived& operator>>(std::bitset<N>& C)
+    Derived& operator>>(std::bitset<N>& C)
     {
         Impl::BitsetDynamic::deserialize(C, buffer);
         buffer += size_t(std::ceil(N / 8.0));
         return This();
     }
     template <typename Alloc>
-    inline Derived& operator>>(std::vector<bool, Alloc>& C)
+    Derived& operator>>(std::vector<bool, Alloc>& C)
     {
         C.resize(this->get<Size>());
         Impl::BitsetDynamic::deserialize(C, buffer);
@@ -984,17 +983,17 @@ public:
 template <typename Derived>
 struct StreamSerializerBase
 {
-    inline Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
     char buffer[1024];
 
 public:
     std::basic_ostream<char>* stream;
 
-    inline StreamSerializerBase(std::basic_ostream<char>* stream) : stream(stream) {}
+    StreamSerializerBase(std::basic_ostream<char>* stream) : stream(stream) {}
 
     template <typename T>
-    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
         const T& C)
     {
         Impl::Number::serialize(C, buffer);
@@ -1003,7 +1002,7 @@ public:
     }
 
     template <typename Traits, typename Alloc>
-    inline Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
     {
         This() << Size(C.size());
         if (C.size() == 0) return This();
@@ -1012,7 +1011,7 @@ public:
     }
 
     template <size_t N>
-    inline Derived& operator<<(const std::bitset<N>& C)
+    Derived& operator<<(const std::bitset<N>& C)
     {
         auto size = size_t(std::ceil(N / 8.0));
         if (size == 0) return This();
@@ -1023,7 +1022,7 @@ public:
     }
 
     template <typename Alloc>
-    inline Derived& operator<<(const std::vector<bool, Alloc>& C)
+    Derived& operator<<(const std::vector<bool, Alloc>& C)
     {
         This() << Size(C.size());
         if (C.size() == 0) return This();
@@ -1038,7 +1037,7 @@ public:
 template <typename Derived>
 struct StreamDeserializerBase
 {
-    inline Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
     template <typename T>
     T get()
@@ -1053,11 +1052,10 @@ struct StreamDeserializerBase
 public:
     std::basic_istream<char>* stream;
 
-    inline StreamDeserializerBase(std::basic_istream<char>* stream = nullptr) : stream(stream) {}
+    StreamDeserializerBase(std::basic_istream<char>* stream = nullptr) : stream(stream) {}
 
     template <typename T>
-    inline typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(
-        T& C)
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& C)
     {
         stream->rdbuf()->sgetn(buffer, sizeof(C));
         Impl::Number::deserialize(C, buffer);
@@ -1074,7 +1072,7 @@ public:
     }
 
     template <size_t N>
-    inline Derived& operator>>(std::bitset<N>& C)
+    Derived& operator>>(std::bitset<N>& C)
     {
         auto size = size_t(std::ceil(N / 8.0));
         if (size == 0) return This();
@@ -1085,7 +1083,7 @@ public:
     }
 
     template <typename Alloc>
-    inline Derived& operator>>(std::vector<bool, Alloc>& C)
+    Derived& operator>>(std::vector<bool, Alloc>& C)
     {
         C.resize(this->get<Size>());
         if (C.size() == 0) return This();
@@ -1159,7 +1157,7 @@ struct StreamDeserializer : StreamDeserializerBase<StreamDeserializer>, Deserial
 /// @returns number of bytes that the input arguments will consume
 /// @see deserialize()
 template <typename... Ts>
-inline size_t size(Ts&&... ts)
+size_t size(Ts&&... ts)
 {
     return Calculator().process(std::forward<Ts>(ts)...).size;
 }
@@ -1178,7 +1176,7 @@ inline size_t size(Ts&&... ts)
 /// @returns The number of bytes written to sequence
 /// @see serialize()
 template <typename... Ts>
-inline size_t fill(char* data, Ts&&... ts)
+size_t fill(char* data, Ts&&... ts)
 {
     return size_t(Serializer(data).process(std::forward<Ts>(ts)...).buffer - data);
 }
@@ -1197,7 +1195,7 @@ inline size_t fill(char* data, Ts&&... ts)
 /// @returns The number of bytes consumed from char sequence
 /// @see serialize(), deserialize()
 template <typename... Ts>
-inline size_t deserialize(const char* data, Ts&&... ts)
+size_t deserialize(const char* data, Ts&&... ts)
 {
     return size_t(Deserializer(data).process(std::forward<Ts>(ts)...).buffer - data);
 }
@@ -1214,7 +1212,7 @@ inline size_t deserialize(const char* data, Ts&&... ts)
 /// @returns Array of bytes containing the serialized data
 /// @see deserialize()
 template <typename... Ts>
-inline ByteArray serialize(Ts&&... ts)
+ByteArray serialize(Ts&&... ts)
 {
     ByteArray data(Serio::size(std::forward<Ts>(ts)...), 0);
     Serio::fill(&data.front(), std::forward<Ts>(ts)...);
@@ -1235,7 +1233,7 @@ inline ByteArray serialize(Ts&&... ts)
 /// @returns The number of bytes consumed from byte array
 /// @see serialize(), deserialize()
 template <typename... Ts>
-inline size_t deserialize(const ByteArray& data, Ts&&... ts)
+size_t deserialize(const ByteArray& data, Ts&&... ts)
 {
     return deserialize(&data.front(), std::forward<Ts>(ts)...);
 }
@@ -1254,7 +1252,7 @@ inline size_t deserialize(const ByteArray& data, Ts&&... ts)
 /// @returns True if succeeds otherwise false
 /// @see serialize()
 template <typename... Ts>
-inline bool save(const std::string& path, Ts&&... ts)
+bool save(const std::string& path, Ts&&... ts)
 {
     return Impl::write(path, serialize(std::forward<Ts>(ts)...));
 }
@@ -1273,7 +1271,7 @@ inline bool save(const std::string& path, Ts&&... ts)
 /// @returns True if succeeds otherwise false
 /// @see deserialize()
 template <typename... Ts>
-inline bool load(const std::string& path, Ts&&... ts)
+bool load(const std::string& path, Ts&&... ts)
 {
     ByteArray A;
     if (!Impl::read(path, A)) return false;
@@ -1293,7 +1291,7 @@ inline bool load(const std::string& path, Ts&&... ts)
 /// @param ts Parameters to be serialized
 /// @see streamDeserialize()
 template <typename... Ts>
-inline void write(std::basic_ostream<char>* stream, Ts&&... ts)
+void write(std::basic_ostream<char>* stream, Ts&&... ts)
 {
     StreamSerializer serializer(stream);
     serializer.process(std::forward<Ts>(ts)...);
@@ -1313,7 +1311,7 @@ inline void write(std::basic_ostream<char>* stream, Ts&&... ts)
 /// @param ts Parameters to be deserialized
 /// @see serialize(), deserialize()
 template <typename... Ts>
-inline void read(std::basic_istream<char>* stream, Ts&&... ts)
+void read(std::basic_istream<char>* stream, Ts&&... ts)
 {
     StreamDeserializer deserializer(stream);
     deserializer.process(std::forward<Ts>(ts)...);
