@@ -291,61 +291,46 @@ struct Tuple<0>
 };
 
 #if __cplusplus >= 201703L
-namespace Variant
-{
-template <class Tp, size_t N>
+template <typename Tuple, Size I>
 struct Variant
 {
-    template <typename Serializer, typename Vr>
-    static void serialize(Serializer& C, const Vr& V)
+    template <typename Serializer, typename T>
+    static void serialize(Serializer& item, const T& value)
     {
-        Variant<Tp, N - 1>::serialize(C, V);
-        if (V.index() == N) C << std::get<N>(V);
+        Variant<Tuple, I - 1>::serialize(item, value);
+        if (value.index() == I) item << std::get<I>(value);
     }
-    template <typename Serializer, typename Vr>
-    static void deserialize(Serializer& C, Size index, Vr& V)
+    template <typename Deserializer, typename T>
+    static void deserialize(Deserializer& item, Size index, T& value)
     {
-        Variant<Tp, N - 1>::deserialize(C, index, V);
-        if (index == N)
+        Variant<Tuple, I - 1>::deserialize(item, index, value);
+        if (index == I)
         {
-            typename std::tuple_element<N, Tp>::type E;
-            C >> E;
-            V = std::move(E);
+            typename std::tuple_element<I, Tuple>::type elem;
+            item >> elem;
+            value = std::move(elem);
         }
     }
 };
-
-template <typename Tp>
-struct Variant<Tp, 0>
+template <typename Tuple>
+struct Variant<Tuple, 0>
 {
-    template <typename Serializer, typename Vr>
-    static void serialize(Serializer& C, const Vr& V)
+    template <typename Serializer, typename T>
+    static void serialize(Serializer& item, const T& value)
     {
-        if (V.index() == 0) C << std::get<0>(V);
+        if (value.index() == 0) item << std::get<0>(value);
     }
-    template <typename Serializer, typename Vr>
-    static void deserialize(Serializer& C, Size index, Vr& V)
+    template <typename Deserializer, typename T>
+    static void deserialize(Deserializer& item, Size index, T& value)
     {
         if (index == 0)
         {
-            typename std::tuple_element<0, Tp>::type E;
-            C >> E;
-            V = std::move(E);
+            typename std::tuple_element<0, Tuple>::type elem;
+            item >> elem;
+            value = std::move(elem);
         }
     }
 };
-
-template <typename Serializer, typename... Ts>
-void serialize(Serializer& C, const std::variant<Ts...>& V)
-{
-    Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::serialize(C, V);
-}
-template <typename Serializer, typename... Ts>
-void deserialize(Serializer& C, Size index, std::variant<Ts...>& V)
-{
-    Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(C, index, V);
-}
-}  // namespace Variant
 #endif
 
 template <typename... Ts>
@@ -563,7 +548,7 @@ public:
     Derived& operator<<(const std::variant<Ts...>& C)
     {
         This() << Size(C.index());
-        Impl::Variant::serialize(This(), C);
+        Impl::Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::serialize(This(), C);
         return This();
     }
 #endif
@@ -789,11 +774,7 @@ public:
     Derived& operator>>(std::variant<Ts...>& C)
     {
         auto index = this->get<Size>();
-        if (index == Size(-1))
-            ;  // TODO reset C somehow
-        else
-            Impl::Variant::deserialize(This(), index, C);
-
+        Impl::Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(This(), index, C);
         return This();
     }
 #endif
