@@ -143,6 +143,17 @@ bool write(const std::string& path, const std::basic_string<char>& data)
     return true;
 }
 
+template <typename T>
+Size iteratableSize(const T& value)
+{
+    return Size(value.size());
+}
+template <typename... Ts>
+Size iteratableSize(const std::forward_list<Ts...>& value)
+{
+    return Size(std::distance(value.begin(), value.end()));
+}
+
 namespace Number
 {
 bool little()
@@ -351,17 +362,6 @@ void deserialize(Serializer& C, Size index, std::variant<Ts...>& V)
 }
 }  // namespace Variant
 #endif
-
-template <typename Iter>
-size_t iteratableSize(const Iter& I)
-{
-    return I.size();
-}
-template <typename T, typename Alloc>
-size_t iteratableSize(const std::forward_list<T, Alloc>& I)
-{
-    return size_t(std::distance(I.begin(), I.end()));
-}
 
 template <typename T, typename Sequence>
 class DerivedQueue : public std::queue<T, Sequence>
