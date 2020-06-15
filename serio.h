@@ -208,56 +208,20 @@ void deserialize(T& data, const char* buffer)
 }
 }  // namespace Number
 
-namespace BitsetStatic
-{
-template <size_t N, size_t I>
 struct Bitset
 {
-    static void serialize(const std::bitset<N>& C, char* buffer)
+    template <typename T>
+    static void serialize(char* data, const T& value)
     {
-        Bitset<N, I - 1>::serialize(C, buffer);
-        buffer[I / 8] = (buffer[I / 8] & ~(1 << (I % 8))) | (bool(C[I]) << I % 8);
+        std::fill(data, data + size_t(std::ceil(value.size() / 8.0)), 0);
+        for (size_t i = 0; i < value.size(); ++i) data[i / 8] |= value[i] << (i % 8);
     }
-    static void deserialize(std::bitset<N>& C, const char* buffer)
+    template <typename T>
+    static void deserialize(const char* data, T& value)
     {
-        Bitset<N, I - 1>::deserialize(C, buffer);
-        C[I] = (buffer[I / 8] >> (I % 8)) & 1;
+        for (size_t i = 0; i < value.size(); ++i) value[i] = data[i / 8] & (1 << (i % 8));
     }
 };
-
-template <size_t N>
-struct Bitset<N, 0>
-{
-    static void serialize(const std::bitset<N>& C, char* buffer) { buffer[0] = (buffer[0] & ~1) | bool(C[0]); }
-    static void deserialize(std::bitset<N>& C, const char* buffer) { C[0] = buffer[0] & 1; }
-};
-
-template <size_t N>
-void serialize(const std::bitset<N>& C, char* buffer)
-{
-    Bitset<N, N - 1>::serialize(C, buffer);
-}
-template <size_t N>
-void deserialize(std::bitset<N>& C, const char* buffer)
-{
-    Bitset<N, N - 1>::deserialize(C, buffer);
-}
-}  // namespace BitsetStatic
-
-namespace BitsetDynamic
-{
-template <typename BitArray>
-void serialize(const BitArray& C, char* buffer)
-{
-    std::fill(buffer, buffer + size_t(std::ceil(C.size() / 8.0)), 0);
-    for (size_t i = 0; i < C.size(); ++i) buffer[i / 8] |= C[i] << (i % 8);
-}
-template <typename BitArray>
-void deserialize(BitArray& C, const char* buffer)
-{
-    for (size_t i = 0; i < C.size(); ++i) C[i] = buffer[i / 8] & (1 << (i % 8));
-}
-}  // namespace BitsetDynamic
 
 template <Size I>
 struct Tuple
@@ -869,7 +833,7 @@ public:
     template <size_t N>
     Derived& operator<<(const std::bitset<N>& C)
     {
-        Impl::BitsetDynamic::serialize(C, buffer);
+        Impl::Bitset::serialize(buffer, C);
         buffer += size_t(std::ceil(N / 8.0));
         return This();
     }
@@ -878,7 +842,7 @@ public:
     Derived& operator<<(const std::vector<bool, Alloc>& C)
     {
         This() << Size(C.size());
-        Impl::BitsetDynamic::serialize(C, buffer);
+        Impl::Bitset::serialize(buffer, C);
         buffer += size_t(std::ceil(C.size() / 8.0));
         return This();
     }
@@ -924,7 +888,7 @@ public:
     template <size_t N>
     Derived& operator>>(std::bitset<N>& C)
     {
-        Impl::BitsetDynamic::deserialize(C, buffer);
+        Impl::Bitset::deserialize(buffer, C);
         buffer += size_t(std::ceil(N / 8.0));
         return This();
     }
@@ -932,7 +896,7 @@ public:
     Derived& operator>>(std::vector<bool, Alloc>& C)
     {
         C.resize(this->get<Size>());
-        Impl::BitsetDynamic::deserialize(C, buffer);
+        Impl::Bitset::deserialize(buffer, C);
         buffer += size_t(std::ceil(C.size() / 8.0));
         return This();
     }
@@ -975,7 +939,7 @@ public:
         auto size = size_t(std::ceil(N / 8.0));
         if (size == 0) return This();
         ByteArray buffer(size, 0);
-        Impl::BitsetDynamic::serialize(C, &buffer.front());
+        Impl::Bitset::serialize(&buffer.front(), C);
         stream->rdbuf()->sputn(buffer.data(), buffer.size());
         return This();
     }
@@ -986,7 +950,7 @@ public:
         This() << Size(C.size());
         if (C.size() == 0) return This();
         ByteArray buffer(size_t(std::ceil(C.size() / 8.0)), 0);
-        Impl::BitsetDynamic::serialize(C, &buffer.front());
+        Impl::Bitset::serialize(&buffer.front(), C);
         stream->rdbuf()->sputn(buffer.data(), buffer.size());
         return This();
     }
@@ -1037,7 +1001,7 @@ public:
         if (size == 0) return This();
         ByteArray buffer(size, 0);
         stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
-        Impl::BitsetDynamic::deserialize(C, buffer.data());
+        Impl::Bitset::deserialize(buffer.data(), C);
         return This();
     }
 
@@ -1048,7 +1012,7 @@ public:
         if (C.size() == 0) return This();
         ByteArray buffer(size_t(std::ceil(C.size() / 8.0)), 0);
         stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
-        Impl::BitsetDynamic::deserialize(C, buffer.data());
+        Impl::Bitset::deserialize(buffer.data(), C);
         return This();
     }
 };
