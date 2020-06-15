@@ -119,6 +119,30 @@ using ByteArray = std::basic_string<char>;
 /// Details of implementation are here.
 namespace Impl
 {
+bool read(const std::string& path, std::basic_string<char>& data)
+{
+    std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
+    if (!stream.is_open()) return false;
+
+    stream.seekg(0, std::ios::end);
+    auto size = stream.tellg();
+    stream.seekg(0, std::ios::beg);
+    data.assign(size_t(size), 0);
+
+    if (stream.rdbuf()->sgetn(&data.front(), std::streamsize(size)) != size) return false;
+    return true;
+}
+
+bool write(const std::string& path, const std::basic_string<char>& data)
+{
+    std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
+    if (!stream.is_open()) return false;
+
+    auto size = stream.rdbuf()->sputn(data.data(), data.size());
+    if (size != std::streamsize(data.size())) return false;
+    return true;
+}
+
 namespace Number
 {
 bool little()
@@ -357,37 +381,6 @@ class DerivedStack : public std::stack<T, Sequence>
 public:
     using std::stack<T, Sequence>::c;
 };
-
-bool read(const std::string& path, ByteArray& data)
-{
-    std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
-    if (!stream.is_open()) return false;
-
-    stream.seekg(0, std::ios::end);
-    auto size = stream.tellg();
-    stream.seekg(0, std::ios::beg);
-
-    data.assign(size_t(size), 0);
-    auto rsize = stream.rdbuf()->sgetn(&data.front(), std::streamsize(size));
-    if (rsize != size) return false;
-
-    stream.close();
-    return true;
-}
-
-bool write(const std::string& path, const ByteArray& data)
-{
-    std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
-    if (!stream.is_open()) return false;
-
-    auto dsize = std::streamsize(data.size());
-    auto size = stream.rdbuf()->sputn(data.data(), dsize);
-    if (size != dsize) return false;
-
-    stream.flush();
-    stream.close();
-    return true;
-}
 }  // namespace Impl
 
 ///@brief Wrapper for raw array.
