@@ -259,51 +259,36 @@ void deserialize(BitArray& C, const char* buffer)
 }
 }  // namespace BitsetDynamic
 
-namespace Tuple
-{
-template <class Tp, size_t N>
+template <Size I>
 struct Tuple
 {
-    template <typename Serializer>
-    static void serialize(Serializer& C, const Tp& T)
+    template <typename Serializer, typename T>
+    static void serialize(Serializer& item, const T& value)
     {
-        Tuple<Tp, N - 1>::serialize(C, T);
-        C << std::get<N>(T);
+        Tuple<I - 1>::serialize(item, value);
+        item << std::get<I>(value);
     }
-    template <typename Deserializer>
-    static void deserialize(Deserializer& C, Tp& T)
+    template <typename Deserializer, typename T>
+    static void deserialize(Deserializer& item, T& value)
     {
-        Tuple<Tp, N - 1>::deserialize(C, T);
-        C >> std::get<N>(T);
-    }
-};
-
-template <class Tp>
-struct Tuple<Tp, 0>
-{
-    template <typename Serializer>
-    static void serialize(Serializer& C, const Tp& T)
-    {
-        C << std::get<0>(T);
-    }
-    template <typename Deserializer>
-    static void deserialize(Deserializer& C, Tp& T)
-    {
-        C >> std::get<0>(T);
+        Tuple<I - 1>::deserialize(item, value);
+        item >> std::get<I>(value);
     }
 };
-
-template <typename Serializer, typename... Ts>
-void serialize(Serializer& C, const std::tuple<Ts...>& tuple)
+template <>
+struct Tuple<0>
 {
-    Tuple<decltype(tuple), sizeof...(Ts) - 1>::serialize(C, tuple);
-}
-template <typename Serializer, typename... Ts>
-void deserialize(Serializer& C, std::tuple<Ts...>& tuple)
-{
-    Tuple<decltype(tuple), sizeof...(Ts) - 1>::deserialize(C, tuple);
-}
-}  // namespace Tuple
+    template <typename Serializer, typename T>
+    static void serialize(Serializer& item, const T& value)
+    {
+        item << std::get<0>(value);
+    }
+    template <typename Deserializer, typename T>
+    static void deserialize(Deserializer& item, T& value)
+    {
+        item >> std::get<0>(value);
+    }
+};
 
 #if __cplusplus >= 201703L
 namespace Variant
@@ -535,7 +520,7 @@ public:
     template <typename... Ts>
     Derived& operator<<(const std::tuple<Ts...>& C)
     {
-        Impl::Tuple::serialize(This(), C);
+        Impl::Tuple<sizeof...(Ts) - 1>::serialize(This(), C);
         return This();
     }
 
@@ -760,7 +745,7 @@ public:
     template <typename... Ts>
     Derived& operator>>(std::tuple<Ts...>& C)
     {
-        Impl::Tuple::deserialize(This(), C);
+        Impl::Tuple<sizeof...(Ts) - 1>::deserialize(This(), C);
         return This();
     }
 
