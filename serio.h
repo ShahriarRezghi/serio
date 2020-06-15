@@ -363,23 +363,23 @@ void deserialize(Serializer& C, Size index, std::variant<Ts...>& V)
 }  // namespace Variant
 #endif
 
-template <typename T, typename Sequence>
-class DerivedQueue : public std::queue<T, Sequence>
+template <typename... Ts>
+class Queue : public std::queue<Ts...>
 {
 public:
-    using std::queue<T, Sequence>::c;
+    using std::queue<Ts...>::c;
 };
-template <typename T, typename Sequence>
-class DerivedPQueue : public std::priority_queue<T, Sequence>
+template <typename... Ts>
+class Stack : public std::stack<Ts...>
 {
 public:
-    using std::priority_queue<T, Sequence>::c;
+    using std::stack<Ts...>::c;
 };
-template <typename T, typename Sequence>
-class DerivedStack : public std::stack<T, Sequence>
+template <typename... Ts>
+class PQueue : public std::priority_queue<Ts...>
 {
 public:
-    using std::stack<T, Sequence>::c;
+    using std::priority_queue<Ts...>::c;
 };
 }  // namespace Impl
 
@@ -472,17 +472,17 @@ public:
     template <typename T, typename Sequence>
     Derived& operator<<(const std::queue<T, Sequence>& C)
     {
-        return This() << reinterpret_cast<const Impl::DerivedQueue<T, Sequence>&>(C).c;
+        return This() << reinterpret_cast<const Impl::Queue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
     Derived& operator<<(const std::priority_queue<T, Sequence>& C)
     {
-        return This() << reinterpret_cast<const Impl::DerivedPQueue<T, Sequence>&>(C).c;
+        return This() << reinterpret_cast<const Impl::PQueue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
     Derived& operator<<(const std::stack<T, Sequence>& C)
     {
-        return This() << reinterpret_cast<const Impl::DerivedStack<T, Sequence>&>(C).c;
+        return This() << reinterpret_cast<const Impl::Stack<T, Sequence>&>(C).c;
     }
 
     template <typename T, typename Comp, typename Alloc>
@@ -697,17 +697,17 @@ public:
     template <typename T, typename Sequence>
     Derived& operator>>(std::queue<T, Sequence>& C)
     {
-        return This() >> reinterpret_cast<Impl::DerivedQueue<T, Sequence>&>(C).c;
+        return This() >> reinterpret_cast<Impl::Queue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
     Derived& operator>>(std::priority_queue<T, Sequence>& C)
     {
-        return This() >> reinterpret_cast<Impl::DerivedPQueue<T, Sequence>&>(C).c;
+        return This() >> reinterpret_cast<Impl::PQueue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
     Derived& operator>>(std::stack<T, Sequence>& C)
     {
-        return This() >> reinterpret_cast<Impl::DerivedStack<T, Sequence>&>(C).c;
+        return This() >> reinterpret_cast<Impl::Stack<T, Sequence>&>(C).c;
     }
 
     template <typename T, typename Comp, typename Alloc>
