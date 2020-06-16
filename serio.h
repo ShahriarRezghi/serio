@@ -487,48 +487,44 @@ public:
 
 /// @brief This class implements the serialization of basic data types to buffer.
 template <typename Derived>
-struct SerializerBase
+class SerializerBase
 {
     Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
 public:
     char* buffer;
 
-    SerializerBase(char* buffer = nullptr) : buffer(buffer) {}
+    SerializerBase(char* ptr) : buffer(ptr) {}
 
     template <typename T>
     typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
-        const T& C)
+        const T& value)
     {
-        Number::serialize(C, buffer);
-        buffer += sizeof(C);
+        Number::serialize(value, this->buffer);
+        this->buffer += sizeof(value);
         return This();
     }
-
-    template <typename Traits, typename Alloc>
-    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    template <typename... Ts>
+    Derived& operator<<(const std::basic_string<char, Ts...>& value)
     {
-        This() << Size(C.size());
-        if (C.size() == 0) return This();
-        std::memcpy(buffer, C.data(), C.size());
-        buffer += C.size();
+        This() << iteratableSize(value);
+        std::copy(value.begin(), value.end(), this->buffer);
+        this->buffer += value.size();
         return This();
     }
-
     template <size_t N>
-    Derived& operator<<(const std::bitset<N>& C)
+    Derived& operator<<(const std::bitset<N>& value)
     {
-        Bitset::serialize(buffer, C);
-        buffer += size_t(std::ceil(N / 8.0));
+        Bitset::serialize(this->buffer, value);
+        this->buffer += size_t(std::ceil(N / 8.0));
         return This();
     }
-
-    template <typename Alloc>
-    Derived& operator<<(const std::vector<bool, Alloc>& C)
+    template <typename... Ts>
+    Derived& operator<<(const std::vector<bool, Ts...>& value)
     {
-        This() << Size(C.size());
-        Bitset::serialize(buffer, C);
-        buffer += size_t(std::ceil(C.size() / 8.0));
+        This() << Size(value.size());
+        Bitset::serialize(this->buffer, value);
+        this->buffer += size_t(std::ceil(value.size() / 8.0));
         return This();
     }
 };
@@ -736,9 +732,9 @@ public:
         return This();
     }
     template <typename T, size_t N>
-    Derived& operator<<(const std::array<T, N>& C)
+    Derived& operator<<(const std::array<T, N>& value)
     {
-        for (const auto& S : C) This() << S;
+        for (const auto& S : value) This() << S;
         return This();
     }
     template <typename T, size_t S>
@@ -881,9 +877,9 @@ public:
         return This();
     }
     template <typename T, size_t S>
-    Derived& operator>>(Array<T, S> C)
+    Derived& operator>>(Array<T, S> value)
     {
-        for (size_t i = 0; i < S; ++i) This() >> C.data[i];
+        for (size_t i = 0; i < S; ++i) This() >> value.data[i];
         return This();
     }
     template <typename... Ts>
@@ -907,9 +903,9 @@ public:
         return This() >> value.first >> value.second;
     }
     template <typename... Ts>
-    Derived& operator>>(std::tuple<Ts...>& C)
+    Derived& operator>>(std::tuple<Ts...>& value)
     {
-        Tuple<sizeof...(Ts) - 1>::deserialize(This(), C);
+        Tuple<sizeof...(Ts) - 1>::deserialize(This(), value);
         return This();
     }
     template <typename T>
@@ -920,20 +916,20 @@ public:
         return This();
     }
     template <typename... Ts>
-    Derived& operator>>(std::chrono::time_point<Ts...>& C)
+    Derived& operator>>(std::chrono::time_point<Ts...>& value)
     {
         using rep = typename std::chrono::time_point<Ts...>::rep;
-        return This() >> reinterpret_cast<rep&>(C);
+        return This() >> reinterpret_cast<rep&>(value);
     }
 
 #if __cplusplus >= 201703L
     template <typename T>
-    Derived& operator>>(std::optional<T>& C)
+    Derived& operator>>(std::optional<T>& value)
     {
         if (this->get<bool>())
-            C.emplace(this->get<T>());
+            value.emplace(this->get<T>());
         else
-            C.reset();
+            value.reset();
 
         return This();
     }
