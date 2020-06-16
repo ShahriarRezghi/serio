@@ -531,7 +531,7 @@ public:
 
 /// @brief This class implements the deserialization of basic data types from buffer.
 template <typename Derived>
-struct DeserializerBase
+class DeserializerBase
 {
     Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
@@ -546,39 +546,36 @@ struct DeserializerBase
 public:
     const char* buffer;
 
-    DeserializerBase(const char* buffer = nullptr) : buffer(buffer) {}
+    DeserializerBase(const char* ptr) : buffer(ptr) {}
 
     template <typename T>
-    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& C)
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& value)
     {
-        Number::deserialize(C, buffer);
-        buffer += sizeof(C);
+        Number::deserialize(value, this->buffer);
+        this->buffer += sizeof(value);
         return This();
     }
-
-    template <typename Traits, typename Alloc>
-    Derived& operator>>(std::basic_string<char, Traits, Alloc>& C)
+    template <typename... Ts>
+    Derived& operator>>(std::basic_string<char, Ts...>& value)
     {
-        C.resize(this->get<Size>());
-        if (C.size() == 0) return This();
-        std::memcpy(&C.front(), buffer, C.size());
-        buffer += C.size();
+        value.resize(this->get<Size>());
+        std::copy(this->buffer, this->buffer + value.size(), &value[0]);
+        this->buffer += value.size();
         return This();
     }
-
     template <size_t N>
-    Derived& operator>>(std::bitset<N>& C)
+    Derived& operator>>(std::bitset<N>& value)
     {
-        Bitset::deserialize(buffer, C);
-        buffer += size_t(std::ceil(N / 8.0));
+        Bitset::deserialize(this->buffer, value);
+        this->buffer += size_t(std::ceil(N / 8.0));
         return This();
     }
-    template <typename Alloc>
-    Derived& operator>>(std::vector<bool, Alloc>& C)
+    template <typename... Ts>
+    Derived& operator>>(std::vector<bool, Ts...>& value)
     {
-        C.resize(this->get<Size>());
-        Bitset::deserialize(buffer, C);
-        buffer += size_t(std::ceil(C.size() / 8.0));
+        value.resize(this->get<Size>());
+        Bitset::deserialize(this->buffer, value);
+        this->buffer += size_t(std::ceil(value.size() / 8.0));
         return This();
     }
 };
