@@ -40,6 +40,8 @@
 #include <locale>
 #include <random>
 
+using namespace Serio;
+
 struct A
 {
     double a;
@@ -98,255 +100,158 @@ struct D : C
     SERIO_REGISTER(a, b)
 };
 
-class INIT
+struct Generator
 {
-    template <typename T, typename Seq>
-    static void add(std::queue<T, Seq>& I, T& value)
+    template <typename T>
+    T get()
     {
-        I.push(std::move(value));
-    }
-    template <typename T, typename Seq>
-    static void add(std::stack<T, Seq>& I, T& value)
-    {
-        I.push(std::move(value));
-    }
-    template <typename T, typename Seq, typename Comp>
-    static void add(std::priority_queue<T, Seq, Comp>& I, T& value)
-    {
-        I.push(std::move(value));
-    }
-    template <typename T, typename Alloc>
-    static void add(std::vector<T, Alloc>& I, T& value)
-    {
-        I.push_back(std::move(value));
-    }
-    template <typename T, typename Alloc>
-    static void add(std::list<T, Alloc>& I, T& value)
-    {
-        I.push_back(std::move(value));
-    }
-    template <typename T, typename Alloc>
-    static void add(std::deque<T, Alloc>& I, T& value)
-    {
-        I.push_back(std::move(value));
-    }
-    template <typename T, typename Alloc>
-    static void add(std::forward_list<T, Alloc>& I, T& value)
-    {
-        I.emplace_after(I.before_begin(), std::move(value));
-    }
-    template <typename T, typename Comp, typename Alloc>
-    static void add(std::set<T, Comp, Alloc>& I, T& value)
-    {
-        I.emplace(std::move(value));
-    }
-    template <typename T, typename Comp, typename Alloc>
-    static void add(std::multiset<T, Comp, Alloc>& I, T& value)
-    {
-        I.emplace(std::move(value));
-    }
-    template <typename T, typename Hash, typename Pred, typename Alloc>
-    static void add(std::unordered_set<T, Hash, Pred, Alloc>& I, T& value)
-    {
-        I.emplace(std::move(value));
-    }
-    template <typename T, typename Hash, typename Pred, typename Alloc>
-    static void add(std::unordered_multiset<T, Hash, Pred, Alloc>& I, T& value)
-    {
-        I.emplace(std::move(value));
-    }
-    template <typename K, typename T, typename Comp, typename Alloc>
-    static void add(std::map<K, T, Comp, Alloc>& I, std::pair<K, T>& value)
-    {
-        I.emplace(std::move(value));
-    }
-    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-    static void add(std::unordered_map<K, T, Hash, Pred, Alloc>& I, std::pair<K, T>& value)
-    {
-        I.emplace(std::move(value));
-    }
-    template <typename K, typename T, typename Comp, typename Alloc>
-    static void add(std::multimap<K, T, Comp, Alloc>& I, std::pair<K, T>& value)
-    {
-        I.emplace(std::move(value));
-    }
-    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-    static void add(std::unordered_multimap<K, T, Hash, Pred, Alloc>& I, std::pair<K, T>& value)
-    {
-        I.emplace(std::move(value));
-    }
-    template <typename T, typename Traits, typename Alloc>
-    static void add(std::basic_string<T, Traits, Alloc>& I, T& value)
-    {
-        I.push_back(std::move(value));
+        T value;
+        *this >> value;
+        return value;
     }
 
-    template <typename Iter>
-    static void initMap(Iter& I)
+    template <typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Generator&>::type operator>>(
+        T& value)
     {
-        auto size = 10 + size_t(rand() % 90);
-        for (size_t i = 0; i < size; ++i)
-        {
-            std::pair<typename Iter::key_type, typename Iter::mapped_type> V;
-            init(V);
-            add(I, V);
-        }
+        value = rand() % int(std::numeric_limits<T>::max());
+        if (std::is_same<bool, T>::value && rand() % 2) value = !value;
+        return *this;
     }
+    template <size_t N>
+    Generator& operator>>(std::bitset<N>& value)
+    {
+        for (size_t i = 0; i < N; ++i) value[i] = this->get<bool>();
+        return *this;
+    }
+    template <typename T>
+    typename std::enable_if<IsAssignable<T>::value, Generator&>::type operator>>(T& value)
+    {
+        value.resize(rand() % 100);
+        for (auto& item : value) *this >> item;
+        return *this;
+    }
+    template <typename T>
+    typename std::enable_if<IsIteratable<T>::value, Generator&>::type operator>>(T& value)
+    {
+        using Type = typename ValueType<T>::Type;
+        value.clear();
+        auto it = value.begin();
+        Size size = rand() % 100;
+        for (Size i = 0; i < size; ++i) it = value.emplace_hint(it, this->get<Type>());
+        return *this;
+    }
+    template <typename T>
+    typename std::enable_if<IsPointer<T>::value, Generator&>::type operator>>(T& value)
+    {
+        if (this->get<bool>())
+        {
+            auto* item = new typename T::element_type();
+            *this >> *item;
+            value.reset(item);
+        }
+        else
+            value.reset();
 
-public:
-    template <typename T>
-    static typename std::enable_if<std::is_arithmetic<T>::value, void>::type init(T& V)
-    {
-        V = rand() % int(std::numeric_limits<T>::max());
-        if (std::is_same<bool, T>::value && rand() % 2) V = !V;
+        return *this;
     }
-    template <typename Iter>
-    static typename std::enable_if<std::is_class<Iter>::value, void>::type init(Iter& I)
+    template <typename... Ts>
+    Generator& operator>>(std::vector<bool, Ts...>& value)
     {
-        auto size = 10 + size_t(rand() % 90);
-        for (size_t i = 0; i < size; ++i)
-        {
-            auto V = typename Iter::value_type();
-            init(V);
-            add(I, V);
-        }
-    }
-    template <typename T>
-    static void init(std::valarray<T>& I)
-    {
-        auto size = 10 + size_t(rand() % 90);
-        I = std::valarray<T>(T(), size);
-        for (auto& value : I) init(value);
+        value.resize(rand() % 100);
+        for (size_t i = 0; i < value.size(); ++i) value[i] = get<bool>();
+        return *this;
     }
     template <typename T, size_t N>
-    static void init(std::array<T, N>& I)
+    Generator& operator>>(std::array<T, N>& value)
     {
-        for (auto& value : I) init(value);
+        for (auto& item : value) *this >> item;
+        return *this;
     }
-
-    template <typename T>
-    static void init(std::complex<T>& C)
-    {
-        T real, imag;
-        init(real);
-        init(imag);
-        C = std::complex<T>(real, imag);
-    }
-    template <typename K, typename T>
-    static void init(std::pair<K, T>& pair)
-    {
-        init(pair.first);
-        init(pair.second);
-    }
-
-    static void init(A& a)
-    {
-        init(a.a);
-        init(a.b);
-    }
-    static void init(B& a)
-    {
-        init(a.a);
-        init(a.b);
-        init(a.c);
-    }
-    static void init(D& a)
-    {
-        init(a.a);
-        init(a.b);
-    }
-
-    template <typename K, typename T, typename Comp, typename Alloc>
-    static void init(std::map<K, T, Comp, Alloc>& I)
-    {
-        initMap(I);
-    }
-    template <typename K, typename T, typename Comp, typename Alloc>
-    static void init(std::multimap<K, T, Comp, Alloc>& I)
-    {
-        initMap(I);
-    }
-    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-    static void init(std::unordered_map<K, T, Hash, Pred, Alloc>& I)
-    {
-        initMap(I);
-    }
-    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-    static void init(std::unordered_multimap<K, T, Hash, Pred, Alloc>& I)
-    {
-        initMap(I);
-    }
-
-    template <typename T>
-    static void init(std::shared_ptr<T>& I)
-    {
-        auto* value = new T();
-        init(*value);
-        I.reset(value);
-    }
-    template <typename T, typename Deleter>
-    static void init(std::unique_ptr<T, Deleter>& I)
-    {
-        auto* value = new T();
-        init(*value);
-        I.reset(value);
-    }
-    static void init(std::chrono::steady_clock::time_point& I) { I = std::chrono::steady_clock::now(); }
-
-    template <size_t N>
-    static void init(std::bitset<N>& I)
-    {
-        for (size_t i = 0; i < N; ++i)
-        {
-            bool B;
-            init(B);
-            I[i] = B;
-        }
-    }
-
-    template <typename T>
-    static void init(std::tuple<T, T, T>& I)
-    {
-        init(std::get<0>(I));
-        init(std::get<1>(I));
-        init(std::get<2>(I));
-    }
-
     template <typename T, size_t S>
-    static void init(Serio::Array<T, S>& I)
+    Generator& operator>>(Array<T, S> value)
     {
-        for (size_t i = 0; i < S; ++i) init(I.data[i]);
+        for (size_t i = 0; i < S; ++i) *this >> value.data[i];
+        return *this;
+    }
+    template <typename... Ts>
+    Generator& operator>>(std::queue<Ts...>& value)
+    {
+        return *this >> reinterpret_cast<Queue<Ts...>&>(value).c;
+    }
+    template <typename... Ts>
+    Generator& operator>>(std::stack<Ts...>& value)
+    {
+        return *this >> reinterpret_cast<Stack<Ts...>&>(value).c;
+    }
+    template <typename... Ts>
+    Generator& operator>>(std::priority_queue<Ts...>& value)
+    {
+        return *this >> reinterpret_cast<PQueue<Ts...>&>(value).c;
+    }
+    template <typename... Ts>
+    Generator& operator>>(std::pair<Ts...>& value)
+    {
+        return *this >> value.first >> value.second;
+    }
+    template <typename... Ts>
+    Generator& operator>>(std::tuple<Ts...>& value)
+    {
+        Tuple<sizeof...(Ts) - 1>::deserialize(*this, value);
+        return *this;
+    }
+    template <typename T>
+    Generator& operator>>(std::complex<T>& value)
+    {
+        value.real(get<T>());
+        value.imag(get<T>());
+        return *this;
+    }
+    template <typename... Ts>
+    Generator& operator>>(std::chrono::time_point<Ts...>& C)
+    {
+        using rep = typename std::chrono::time_point<Ts...>::rep;
+        return *this >> reinterpret_cast<rep&>(C);
+    }
+    Generator& operator>>(A& value)  //
+    {
+        return *this >> value.a >> value.b;
+    }
+    Generator& operator>>(B& value)  //
+    {
+        return *this >> value.a >> value.b >> value.c;
+    }
+    Generator& operator>>(C& value)  //
+    {
+        return *this >> value.a;
+    }
+    Generator& operator>>(D& value)  //
+    {
+        return *this >> value.a >> value.b;
     }
 
 #if __cplusplus >= 201703L
     template <typename T>
-    static void init(std::optional<T>& I)
+    Generator& operator>>(std::optional<T>& C)
     {
-        T value;
-        init(value);
-        I.emplace(std::move(value));
+        if (this->get<bool>())
+            C.emplace(this->get<T>());
+        else
+            C.reset();
+
+        return *this;
     }
-    static void init(std::variant<int, double, std::string>& I)
+    template <typename... Ts>
+    Generator& operator>>(std::variant<Ts...>& value)
     {
-        auto index = rand() % 3;
-        if (index == 0)
-        {
-            int V;
-            init(V);
-            I = V;
-        }
-        else if (index == 1)
-        {
-            double V;
-            init(V);
-            I = V;
-        }
-        else if (index == 2)
-        {
-            std::string V;
-            init(V);
-            I = V;
-        }
+        auto index = this->get<Size>();
+        Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(*this, index, value);
+        return *this;
+    }
+    Generator& operator>>(std::monostate& value)
+    {
+        (void)value;
+        return *this;
     }
 #endif
 };
@@ -458,7 +363,8 @@ struct Process
         load3(value2);
         compare(value1, value2);
 
-        INIT::init(value1);
+        //        INIT::init(value1);
+        Generator() >> value1;
         save1(value1);
         load1(value2);
         compare(value1, value2);
@@ -535,14 +441,15 @@ TYPED_TEST(Type2, ShapredPtr) { Process<std::shared_ptr<TypeParam>>(); }
 TYPED_TEST(Type2, UniquePtr) { Process<std::unique_ptr<TypeParam>>(); }
 
 template <typename T>
-using Array = std::array<T, 50>;
-CREATE_ITER_TEST(Type2, Array, Array);
+using StdArray = std::array<T, 50>;
+CREATE_ITER_TEST(Type2, Array, StdArray);
 
 TYPED_TEST(Type2, RawArray)
 {
     TypeParam V1[50], V2[50];
     Serio::Array<TypeParam, 50> value1(V1), value2(V2);
-    INIT::init(value1);
+    //    INIT::init(value1);
+    Generator() >> value1;
     save1(value1);
     load1(value2);
     compare(value1, value2);
