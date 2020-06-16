@@ -584,52 +584,46 @@ public:
 template <typename Derived>
 struct StreamSerializerBase
 {
+    char _buffer[16];
+    std::basic_ostream<char>* _stream;
     Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
-    char buffer[1024];
-
 public:
-    std::basic_ostream<char>* stream;
-
-    StreamSerializerBase(std::basic_ostream<char>* stream) : stream(stream) {}
+    StreamSerializerBase(std::basic_ostream<char>* stream) : _stream(stream) {}
 
     template <typename T>
     typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
-        const T& C)
+        const T& value)
     {
-        Number::serialize(C, buffer);
-        stream->rdbuf()->sputn(buffer, sizeof(C));
+        Number::serialize(value, _buffer);
+        _stream->rdbuf()->sputn(_buffer, sizeof(value));
         return This();
     }
-
-    template <typename Traits, typename Alloc>
-    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    template <typename... Ts>
+    Derived& operator<<(const std::basic_string<char, Ts...>& value)
     {
-        This() << Size(C.size());
-        if (C.size() == 0) return This();
-        stream->rdbuf()->sputn(C.data(), C.size());
+        This() << Size(value.size());
+        _stream->rdbuf()->sputn(value.data(), value.size());
         return This();
     }
-
     template <size_t N>
-    Derived& operator<<(const std::bitset<N>& C)
+    Derived& operator<<(const std::bitset<N>& value)
     {
         auto size = size_t(std::ceil(N / 8.0));
         if (size == 0) return This();
-        ByteArray buffer(size, 0);
-        Bitset::serialize(&buffer.front(), C);
-        stream->rdbuf()->sputn(buffer.data(), buffer.size());
+        std::basic_string<char> buffer(size, 0);
+        Bitset::serialize(&buffer.front(), value);
+        _stream->rdbuf()->sputn(buffer.data(), buffer.size());
         return This();
     }
-
-    template <typename Alloc>
-    Derived& operator<<(const std::vector<bool, Alloc>& C)
+    template <typename... Ts>
+    Derived& operator<<(const std::vector<bool, Ts...>& value)
     {
-        This() << Size(C.size());
-        if (C.size() == 0) return This();
-        ByteArray buffer(size_t(std::ceil(C.size() / 8.0)), 0);
-        Bitset::serialize(&buffer.front(), C);
-        stream->rdbuf()->sputn(buffer.data(), buffer.size());
+        This() << Size(value.size());
+        if (value.size() == 0) return This();
+        std::basic_string<char> buffer(size_t(std::ceil(value.size() / 8.0)), 0);
+        Bitset::serialize(&buffer.front(), value);
+        _stream->rdbuf()->sputn(buffer.data(), buffer.size());
         return This();
     }
 };
