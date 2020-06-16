@@ -632,6 +632,8 @@ public:
 template <typename Derived>
 struct StreamDeserializerBase
 {
+    char _buffer[16];
+    std::basic_istream<char>* _stream;
     Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
     template <typename T>
@@ -642,49 +644,41 @@ struct StreamDeserializerBase
         return value;
     }
 
-    char buffer[1024];
-
 public:
-    std::basic_istream<char>* stream;
-
-    StreamDeserializerBase(std::basic_istream<char>* stream = nullptr) : stream(stream) {}
+    StreamDeserializerBase(std::basic_istream<char>* stream) : _stream(stream) {}
 
     template <typename T>
-    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& C)
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& value)
     {
-        stream->rdbuf()->sgetn(buffer, sizeof(C));
-        Number::deserialize(C, buffer);
+        _stream->rdbuf()->sgetn(_buffer, sizeof(value));
+        Number::deserialize(value, _buffer);
         return This();
     }
-
-    template <typename Traits, typename Alloc>
-    Derived& operator>>(std::basic_string<char, Traits, Alloc>& C)
+    template <typename... Ts>
+    Derived& operator>>(std::basic_string<char, Ts...>& value)
     {
-        C.resize(this->get<Size>());
-        if (C.size() == 0) return This();
-        stream->rdbuf()->sgetn(&C.front(), C.size());
+        value.resize(this->get<Size>());
+        _stream->rdbuf()->sgetn(&value.front(), value.size());
         return This();
     }
-
     template <size_t N>
-    Derived& operator>>(std::bitset<N>& C)
+    Derived& operator>>(std::bitset<N>& value)
     {
         auto size = size_t(std::ceil(N / 8.0));
         if (size == 0) return This();
-        ByteArray buffer(size, 0);
-        stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
-        Bitset::deserialize(buffer.data(), C);
+        std::basic_string<char> buffer(size, 0);
+        _stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
+        Bitset::deserialize(buffer.data(), value);
         return This();
     }
-
-    template <typename Alloc>
-    Derived& operator>>(std::vector<bool, Alloc>& C)
+    template <typename... Ts>
+    Derived& operator>>(std::vector<bool, Ts...>& value)
     {
-        C.resize(this->get<Size>());
-        if (C.size() == 0) return This();
-        ByteArray buffer(size_t(std::ceil(C.size() / 8.0)), 0);
-        stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
-        Bitset::deserialize(buffer.data(), C);
+        value.resize(this->get<Size>());
+        if (value.size() == 0) return This();
+        std::basic_string<char> buffer(size_t(std::ceil(value.size() / 8.0)), 0);
+        _stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
+        Bitset::deserialize(buffer.data(), value);
         return This();
     }
 };
