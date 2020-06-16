@@ -706,193 +706,6 @@ public:
 ///
 /// This class breaks more complex structurs into simple elements and passes them on to the class that
 /// handles them to calculate their size or serialize them.
-// template <typename Derived>
-// class SerializerOps
-//{
-//    Derived& This() { return *static_cast<Derived*>(this); }
-
-//    template <typename Iter>
-//    Derived& iteratable(const Iter& C)
-//    {
-//        This() << Size(iteratableSize(C));
-//        for (const auto& S : C) This() << S;
-//        return This();
-//    }
-
-// public:
-//    template <typename T>
-//    typename std::enable_if<std::is_class<T>::value, Derived&>::type operator<<(const T& C)
-//    {
-//        C._serialize(This());
-//        return This();
-//    }
-
-//    template <typename T, typename Alloc>
-//    Derived& operator<<(const std::vector<T, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-//    template <typename T, typename Alloc>
-//    Derived& operator<<(const std::list<T, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-//    template <typename T, typename Alloc>
-//    Derived& operator<<(const std::deque<T, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-//    template <typename T, typename Traits, typename Alloc>
-//    Derived& operator<<(const std::basic_string<T, Traits, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-//    template <typename T, typename Alloc>
-//    Derived& operator<<(const std::forward_list<T, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-//    template <typename T>
-//    Derived& operator<<(const std::valarray<T>& C)
-//    {
-//        return iteratable(C);
-//    }
-
-//    template <typename T, size_t N>
-//    Derived& operator<<(const std::array<T, N>& C)
-//    {
-//        for (const auto& S : C) This() << S;
-//        return This();
-//    }
-//    template <typename T, size_t S>
-//    Derived& operator<<(const Array<T, S>& C)
-//    {
-//        for (size_t i = 0; i < S; ++i) This() << C.data[i];
-//        return This();
-//    }
-
-//    template <typename T, typename Sequence>
-//    Derived& operator<<(const std::queue<T, Sequence>& C)
-//    {
-//        return This() << reinterpret_cast<const Queue<T, Sequence>&>(C).c;
-//    }
-//    template <typename T, typename Sequence>
-//    Derived& operator<<(const std::priority_queue<T, Sequence>& C)
-//    {
-//        return This() << reinterpret_cast<const PQueue<T, Sequence>&>(C).c;
-//    }
-//    template <typename T, typename Sequence>
-//    Derived& operator<<(const std::stack<T, Sequence>& C)
-//    {
-//        return This() << reinterpret_cast<const Stack<T, Sequence>&>(C).c;
-//    }
-
-//    template <typename T, typename Comp, typename Alloc>
-//    Derived& operator<<(const std::set<T, Comp, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-//    template <typename T, typename Hash, typename Pred, typename Alloc>
-//    Derived& operator<<(const std::unordered_set<T, Hash, Pred, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-//    template <typename T, typename Comp, typename Alloc>
-//    Derived& operator<<(const std::multiset<T, Comp, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-//    template <typename T, typename Hash, typename Pred, typename Alloc>
-//    Derived& operator<<(const std::unordered_multiset<T, Hash, Pred, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-
-//    template <typename K, typename T, typename Comp, typename Alloc>
-//    Derived& operator<<(const std::map<K, T, Comp, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-//    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-//    Derived& operator<<(const std::unordered_map<K, T, Hash, Pred, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-//    template <typename K, typename T, typename Comp, typename Alloc>
-//    Derived& operator<<(const std::multimap<K, T, Comp, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-//    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-//    Derived& operator<<(const std::unordered_multimap<K, T, Hash, Pred, Alloc>& C)
-//    {
-//        return iteratable(C);
-//    }
-
-//    template <typename T1, typename T2>
-//    Derived& operator<<(const std::pair<T1, T2>& C)
-//    {
-//        return This() << C.first << C.second;
-//    }
-//    template <typename... Ts>
-//    Derived& operator<<(const std::tuple<Ts...>& C)
-//    {
-//        Tuple<sizeof...(Ts) - 1>::serialize(This(), C);
-//        return This();
-//    }
-
-//    template <typename T>
-//    Derived& operator<<(const std::shared_ptr<T>& C)
-//    {
-//        This() << bool(C);
-//        if (C) This() << *C.get();
-//        return This();
-//    }
-//    template <typename T, typename Deleter>
-//    Derived& operator<<(const std::unique_ptr<T, Deleter>& C)
-//    {
-//        This() << bool(C);
-//        if (C) This() << *C.get();
-//        return This();
-//    }
-
-//    template <typename T>
-//    Derived& operator<<(const std::complex<T>& C)
-//    {
-//        return This() << C.real() << C.imag();
-//    }
-//    template <typename Clock, typename Dur>
-//    Derived& operator<<(const std::chrono::time_point<Clock, Dur>& C)
-//    {
-//        using rep = typename std::chrono::time_point<Clock, Dur>::rep;
-//        return This() << reinterpret_cast<const rep&>(C);
-//    }
-
-//#if __cplusplus >= 201703L
-//    template <typename T>
-//    Derived& operator<<(const std::optional<T>& C)
-//    {
-//        This() << C.has_value();
-//        if (C.has_value()) This() << C.value();
-//        return This();
-//    }
-//    template <typename... Ts>
-//    Derived& operator<<(const std::variant<Ts...>& C)
-//    {
-//        This() << Size(C.index());
-//        Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::serialize(This(), C);
-//        return This();
-//    }
-//#endif
-
-//    template <typename Head, typename... Tail>
-//    Derived& process(const Head& head, Tail&&... tail)
-//    {
-//        This() << head;
-//        return process(std::forward<Tail>(tail)...);
-//    }
-//    Derived& process() { return This(); }
-//};
 template <typename Derived>
 class SerializerOps
 {
@@ -1010,7 +823,7 @@ public:
 template <typename Derived>
 class DeserializerOps
 {
-    Derived& This() { return *static_cast<Derived*>(this); }
+    Derived& This() { return *reinterpret_cast<Derived*>(this); }
 
     template <typename T>
     T get()
@@ -1020,82 +833,51 @@ class DeserializerOps
         return value;
     }
 
-    template <typename Iter, typename T>
-    Derived& assignable(Iter& C)
+public:
+    template <typename T>
+    typename std::enable_if<std::is_class<T>::value && !IsAssignable<T>::value && !IsIteratable<T>::value &&
+                                !IsPointer<T>::value,
+                            Derived&>::type
+    operator>>(T& value)
     {
-        C.resize(this->get<Size>());
-        for (auto& value : C) This() >> value;
+        value._deserialize(This());
         return This();
     }
-
-    template <typename Iter, typename T>
-    Derived& iteratable(Iter& C)
+    template <typename T>
+    typename std::enable_if<IsAssignable<T>::value, Derived&>::type operator>>(T& value)
     {
-        C.clear();
-        auto it = C.begin();
+        value.resize(this->get<Size>());
+        for (auto& item : value) This() >> item;
+        return This();
+    }
+    template <typename T>
+    typename std::enable_if<IsIteratable<T>::value, Derived&>::type operator>>(T& value)
+    {
+        using Type = typename ValueType<T>::Type;
+        value.clear();
+        auto it = value.begin();
         auto size = this->get<Size>();
-        for (Size i = 0; i < size; ++i) it = C.emplace_hint(it, this->get<T>());
+        for (Size i = 0; i < size; ++i) it = value.emplace_hint(it, this->get<Type>());
         return This();
     }
-
-    template <typename Ptr, typename T>
-    Derived& pointer(Ptr& C)
+    template <typename T>
+    typename std::enable_if<IsPointer<T>::value, Derived&>::type operator>>(T& value)
     {
         if (this->get<bool>())
         {
-            auto* value = new T();
-            This() >> *value;
-            C.reset(value);
+            auto* item = new typename T::element_type();
+            This() >> *item;
+            value.reset(item);
         }
         else
-            C.reset();
+            value.reset();
 
         return This();
     }
-
-public:
-    template <typename T>
-    typename std::enable_if<std::is_class<T>::value, Derived&>::type operator>>(T& C)
-    {
-        C._deserialize(This());
-        return This();
-    }
-
-    template <typename T, typename Alloc>
-    Derived& operator>>(std::vector<T, Alloc>& C)
-    {
-        return assignable<decltype(C), T>(C);
-    }
-    template <typename T, typename Alloc>
-    Derived& operator>>(std::list<T, Alloc>& C)
-    {
-        return assignable<decltype(C), T>(C);
-    }
-    template <typename T, typename Alloc>
-    Derived& operator>>(std::deque<T, Alloc>& C)
-    {
-        return assignable<decltype(C), T>(C);
-    }
-    template <typename T, typename Traits, typename Alloc>
-    Derived& operator>>(std::basic_string<T, Traits, Alloc>& C)
-    {
-        return assignable<decltype(C), T>(C);
-    }
-    template <typename T, typename Alloc>
-    Derived& operator>>(std::forward_list<T, Alloc>& C)
-    {
-        return assignable<decltype(C), T>(C);
-    }
-    template <typename T>
-    Derived& operator>>(std::valarray<T>& C)
-    {
-        return assignable<decltype(C), T>(C);
-    }
-
     template <typename T, size_t N>
-    Derived& operator>>(std::array<T, N>& C)
+    Derived& operator>>(std::array<T, N>& value)
     {
-        for (auto& S : C) This() >> S;
+        for (auto& item : value) This() >> item;
         return This();
     }
     template <typename T, size_t S>
@@ -1104,69 +886,25 @@ public:
         for (size_t i = 0; i < S; ++i) This() >> C.data[i];
         return This();
     }
-
-    template <typename T, typename Sequence>
-    Derived& operator>>(std::queue<T, Sequence>& C)
+    template <typename... Ts>
+    Derived& operator>>(std::queue<Ts...>& value)
     {
-        return This() >> reinterpret_cast<Queue<T, Sequence>&>(C).c;
+        return This() >> reinterpret_cast<Queue<Ts...>&>(value).c;
     }
-    template <typename T, typename Sequence>
-    Derived& operator>>(std::priority_queue<T, Sequence>& C)
+    template <typename... Ts>
+    Derived& operator>>(std::stack<Ts...>& value)
     {
-        return This() >> reinterpret_cast<PQueue<T, Sequence>&>(C).c;
+        return This() >> reinterpret_cast<Stack<Ts...>&>(value).c;
     }
-    template <typename T, typename Sequence>
-    Derived& operator>>(std::stack<T, Sequence>& C)
+    template <typename... Ts>
+    Derived& operator>>(std::priority_queue<Ts...>& value)
     {
-        return This() >> reinterpret_cast<Stack<T, Sequence>&>(C).c;
+        return This() >> reinterpret_cast<PQueue<Ts...>&>(value).c;
     }
-
-    template <typename T, typename Comp, typename Alloc>
-    Derived& operator>>(std::set<T, Comp, Alloc>& C)
+    template <typename... Ts>
+    Derived& operator>>(std::pair<Ts...>& value)
     {
-        return iteratable<decltype(C), T>(C);
-    }
-    template <typename T, typename Comp, typename Alloc>
-    Derived& operator>>(std::multiset<T, Comp, Alloc>& C)
-    {
-        return iteratable<decltype(C), T>(C);
-    }
-    template <typename T, typename Hash, typename Pred, typename Alloc>
-    Derived& operator>>(std::unordered_set<T, Hash, Pred, Alloc>& C)
-    {
-        return iteratable<decltype(C), T>(C);
-    }
-    template <typename T, typename Hash, typename Pred, typename Alloc>
-    Derived& operator>>(std::unordered_multiset<T, Hash, Pred, Alloc>& C)
-    {
-        return iteratable<decltype(C), T>(C);
-    }
-
-    template <typename K, typename T, typename Comp, typename Alloc>
-    Derived& operator>>(std::map<K, T, Comp, Alloc>& C)
-    {
-        return iteratable<decltype(C), std::pair<K, T>>(C);
-    }
-    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-    Derived& operator>>(std::unordered_map<K, T, Hash, Pred, Alloc>& C)
-    {
-        return iteratable<decltype(C), std::pair<K, T>>(C);
-    }
-    template <typename K, typename T, typename Comp, typename Alloc>
-    Derived& operator>>(std::multimap<K, T, Comp, Alloc>& C)
-    {
-        return iteratable<decltype(C), std::pair<K, T>>(C);
-    }
-    template <typename K, typename T, typename Hash, typename Pred, typename Alloc>
-    Derived& operator>>(std::unordered_multimap<K, T, Hash, Pred, Alloc>& C)
-    {
-        return iteratable<decltype(C), std::pair<K, T>>(C);
-    }
-
-    template <typename T1, typename T2>
-    Derived& operator>>(std::pair<T1, T2>& C)
-    {
-        return This() >> C.first >> C.second;
+        return This() >> value.first >> value.second;
     }
     template <typename... Ts>
     Derived& operator>>(std::tuple<Ts...>& C)
@@ -1174,29 +912,17 @@ public:
         Tuple<sizeof...(Ts) - 1>::deserialize(This(), C);
         return This();
     }
-
     template <typename T>
-    Derived& operator>>(std::shared_ptr<T>& C)
+    Derived& operator>>(std::complex<T>& value)
     {
-        return pointer<decltype(C), T>(C);
-    }
-    template <typename T, typename Deleter>
-    Derived& operator>>(std::unique_ptr<T, Deleter>& C)
-    {
-        return pointer<decltype(C), T>(C);
-    }
-
-    template <typename T>
-    Derived& operator>>(std::complex<T>& C)
-    {
-        auto R = this->get<T>(), I = this->get<T>();
-        C = std::complex<T>(R, I);
+        value.real(get<T>());
+        value.imag(get<T>());
         return This();
     }
-    template <typename Clock, typename Dur>
-    Derived& operator>>(std::chrono::time_point<Clock, Dur>& C)
+    template <typename... Ts>
+    Derived& operator>>(std::chrono::time_point<Ts...>& C)
     {
-        using rep = typename std::chrono::time_point<Clock, Dur>::rep;
+        using rep = typename std::chrono::time_point<Ts...>::rep;
         return This() >> reinterpret_cast<rep&>(C);
     }
 
@@ -1212,10 +938,15 @@ public:
         return This();
     }
     template <typename... Ts>
-    Derived& operator>>(std::variant<Ts...>& C)
+    Derived& operator>>(std::variant<Ts...>& value)
     {
         auto index = this->get<Size>();
-        Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(This(), index, C);
+        Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(This(), index, value);
+        return This();
+    }
+    Derived& operator>>(std::monostate& value)
+    {
+        (void)value;
         return This();
     }
 #endif
@@ -1224,12 +955,6 @@ public:
     Derived& process(Head& head, Tail&&... tail)
     {
         This() >> head;
-        return process(std::forward<Tail>(tail)...);
-    }
-    template <typename T, size_t S, typename... Tail>
-    Derived& process(Array<T, S> head, Tail&&... tail)
-    {
-        This() >> std::move(head);
         return process(std::forward<Tail>(tail)...);
     }
     Derived& process() { return This(); }
