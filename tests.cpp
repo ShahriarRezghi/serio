@@ -256,103 +256,89 @@ struct Generator
 #endif
 };
 
-static Serio::ByteArray temporary;
-
-template <typename... Ts>
-void save1(Ts&&... ts)
-{
-    temporary = Serio::serialize(std::forward<Ts>(ts)...);
-}
-template <typename... Ts>
-void load1(Ts&&... ts)
-{
-    ASSERT_EQ(Serio::deserialize(temporary, std::forward<Ts>(ts)...), temporary.size());
-}
-
-template <typename... Ts>
-void save2(Ts&&... ts)
-{
-    std::fstream file("temp", std::ios::binary | std::ios::out);
-    ASSERT_TRUE(file.is_open());
-    Serio::write(&file, std::forward<Ts>(ts)...);
-}
-template <typename... Ts>
-void load2(Ts&&... ts)
-{
-    std::fstream file("temp", std::ios::binary | std::ios::in);
-    ASSERT_TRUE(file.is_open());
-    Serio::read(&file, std::forward<Ts>(ts)...);
-}
-
-template <typename... Ts>
-void save3(Ts&&... ts)
-{
-    Serio::save("temp", std::forward<Ts>(ts)...);
-}
-template <typename... Ts>
-void load3(Ts&&... ts)
-{
-    Serio::load("temp", std::forward<Ts>(ts)...);
-}
-
-template <typename T>
-void compare(const T& value1, const T& value2)
-{
-    EXPECT_EQ(value1, value2);
-}
-template <typename T>
-void compare(const std::valarray<T>& value1, const std::valarray<T>& value2)
-{
-    if (value1.size() == 0 && value2.size() == 0) return;
-    EXPECT_TRUE((value1 == value2).min());
-}
-template <typename T, typename Seq, typename Comp>
-void compare(std::priority_queue<T, Seq, Comp> value1, std::priority_queue<T, Seq, Comp> value2)
-{
-    while (!value1.empty() && !value2.empty())
-    {
-        compare(value1.top(), value2.top());
-        value1.pop();
-        value2.pop();
-    }
-    EXPECT_EQ(value1.empty(), value2.empty());
-}
-template <typename T>
-void compare(const std::shared_ptr<T>& value1, const std::shared_ptr<T>& value2)
-{
-    if (!value1 && !value2) return;
-    compare(*value1.get(), *value2.get());
-}
-template <typename T, typename Deleter>
-void compare(const std::unique_ptr<T, Deleter>& value1, const std::unique_ptr<T, Deleter>& value2)
-{
-    if (!value1 && !value2) return;
-    compare(*value1.get(), *value2.get());
-}
-template <typename T, size_t S>
-void compare(const Serio::Array<T, S>& value1, const Serio::Array<T, S>& value2)
-{
-    for (size_t i = 0; i < S; ++i) compare(value1.data[i], value2.data[i]);
-}
-template <typename K, typename T>
-void compare(const std::multimap<K, T>& value1, const std::multimap<K, T>& value2)
-{
-    // TODO look into this
-    using U = std::unordered_multimap<K, T>;
-    EXPECT_EQ(U(value1.begin(), value1.end()), U(value2.begin(), value2.end()));
-}
-
-std::basic_ostream<char>& operator<<(std::basic_ostream<char>& O, const std::wstring& S)
-{
-    return O << std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(S);
-}
-
-template <typename T>
+template <typename Type>
 struct Process
 {
+    std::basic_string<char> temporary;
+
+    template <typename T>
+    typename std::enable_if<!IsPointer<T>::value>::type compare(const T& value1, const T& value2)
+    {
+        EXPECT_EQ(value1, value2);
+    }
+    template <typename T>
+    void compare(const std::valarray<T>& value1, const std::valarray<T>& value2)
+    {
+        if (value1.size() == 0 && value2.size() == 0) return;
+        EXPECT_TRUE((value1 == value2).min());
+    }
+    template <typename... Ts>
+    void compare(std::priority_queue<Ts...> value1, std::priority_queue<Ts...> value2)
+    {
+        while (!value1.empty() && !value2.empty())
+        {
+            compare(value1.top(), value2.top());
+            value1.pop();
+            value2.pop();
+        }
+        EXPECT_EQ(value1.empty(), value2.empty());
+    }
+    template <typename T>
+    typename std::enable_if<IsPointer<T>::value>::type compare(const T& value1, const T& value2)
+    {
+        if (!value1 && !value2) return;
+        compare(*value1.get(), *value2.get());
+    }
+    template <typename K, typename T>
+    void compare(const std::multimap<K, T>& value1, const std::multimap<K, T>& value2)
+    {
+        using U = std::unordered_multimap<K, T>;
+        EXPECT_EQ(U(value1.begin(), value1.end()), U(value2.begin(), value2.end()));
+    }
+    template <typename T, size_t S>
+    void compare(const Serio::Array<T, S>& value1, const Serio::Array<T, S>& value2)
+    {
+        for (size_t i = 0; i < S; ++i) compare(value1.data[i], value2.data[i]);
+    }
+
+    template <typename... Ts>
+    void save1(Ts&&... ts)
+    {
+        temporary = Serio::serialize(std::forward<Ts>(ts)...);
+    }
+    template <typename... Ts>
+    void load1(Ts&&... ts)
+    {
+        ASSERT_EQ(Serio::deserialize(temporary, std::forward<Ts>(ts)...), temporary.size());
+    }
+    template <typename... Ts>
+    void save2(Ts&&... ts)
+    {
+        std::fstream file("temp", std::ios::binary | std::ios::out);
+        ASSERT_TRUE(file.is_open());
+        Serio::write(&file, std::forward<Ts>(ts)...);
+    }
+    template <typename... Ts>
+    void load2(Ts&&... ts)
+    {
+        std::fstream file("temp", std::ios::binary | std::ios::in);
+        ASSERT_TRUE(file.is_open());
+        Serio::read(&file, std::forward<Ts>(ts)...);
+    }
+    template <typename... Ts>
+    void save3(Ts&&... ts)
+    {
+        Serio::save("temp", std::forward<Ts>(ts)...);
+    }
+    template <typename... Ts>
+    void load3(Ts&&... ts)
+    {
+        Serio::load("temp", std::forward<Ts>(ts)...);
+    }
+
     Process()
     {
-        T value1 = T(), value2 = T();
+        Type value1 = {}, value2 = {};
         save1(value1);
         load1(value2);
         compare(value1, value2);
@@ -363,7 +349,19 @@ struct Process
         load3(value2);
         compare(value1, value2);
 
-        //        INIT::init(value1);
+        Generator() >> value1;
+        save1(value1);
+        load1(value2);
+        compare(value1, value2);
+        save2(value1);
+        load2(value2);
+        compare(value1, value2);
+        save3(value1);
+        load3(value2);
+        compare(value1, value2);
+    }
+    Process(Type value1, Type value2)
+    {
         Generator() >> value1;
         save1(value1);
         load1(value2);
@@ -448,17 +446,7 @@ TYPED_TEST(Type2, RawArray)
 {
     TypeParam V1[50], V2[50];
     Serio::Array<TypeParam, 50> value1(V1), value2(V2);
-    //    INIT::init(value1);
-    Generator() >> value1;
-    save1(value1);
-    load1(value2);
-    compare(value1, value2);
-    save2(value1);
-    load2(value2);
-    compare(value1, value2);
-    save3(value1);
-    load3(value2);
-    compare(value1, value2);
+    Process<Serio::Array<TypeParam, 50>>(value1, value2);
 }
 
 #if __cplusplus >= 201703L
