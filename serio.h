@@ -443,7 +443,6 @@ public:
     using std::priority_queue<Ts...>::c;
 };
 
-/// @brief This class implements the size calculation of basic data types.
 template <typename Derived>
 class CalculatorBase
 {
@@ -485,7 +484,6 @@ public:
     }
 };
 
-/// @brief This class implements the serialization of basic data types to buffer.
 template <typename Derived>
 class SerializerBase
 {
@@ -529,7 +527,6 @@ public:
     }
 };
 
-/// @brief This class implements the deserialization of basic data types from buffer.
 template <typename Derived>
 class DeserializerBase
 {
@@ -580,7 +577,6 @@ public:
     }
 };
 
-/// @brief This class implements the serialization of basic data types to stream.
 template <typename Derived>
 struct StreamSerializerBase
 {
@@ -628,7 +624,6 @@ public:
     }
 };
 
-/// @brief This class implements the deserialization of basic data types to stream.
 template <typename Derived>
 struct StreamDeserializerBase
 {
@@ -683,10 +678,6 @@ public:
     }
 };
 
-/// @brief Processes more complex structures for serialization and size calculation.
-///
-/// This class breaks more complex structurs into simple elements and passes them on to the class that
-/// handles them to calculate their size or serialize them.
 template <typename Derived>
 class SerializerOps
 {
@@ -797,10 +788,6 @@ public:
     Derived& process() { return This(); }
 };
 
-/// @brief Processes more complex structures for deserialization.
-///
-/// This class more complex structurs into simple elements and passes them on to the class that
-/// handles them to deserialize.
 template <typename Derived>
 class DeserializerOps
 {
