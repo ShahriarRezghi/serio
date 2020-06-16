@@ -116,10 +116,24 @@ using Size = uint64_t;
 /// Container of single bytes.
 using ByteArray = std::basic_string<char>;
 
-/// Details of implementation are here.
-namespace Impl
+///@brief Wrapper for raw array.
+///
+/// This class wraps the raw arrays so they can be serialized and deserialized too.
+///
+/// Example:
+/// @code
+/// int A[10];
+/// Serio::ByteArray str = Serio::serialize(Serio::Array<int>(A, 10));
+/// Serio::deserialize(str, Serio::Array<int>(A, 10));
+/// @endcode
+template <typename T, size_t Size>
+struct Array
 {
-bool read(const std::string& path, std::basic_string<char>& data)
+    T* data;
+    Array(const T* data) : data(const_cast<T*>(data)) {}
+};
+
+bool _read(const std::string& path, std::basic_string<char>& data)
 {
     std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
     if (!stream.is_open()) return false;
@@ -133,7 +147,7 @@ bool read(const std::string& path, std::basic_string<char>& data)
     return true;
 }
 
-bool write(const std::string& path, const std::basic_string<char>& data)
+bool _write(const std::string& path, const std::basic_string<char>& data)
 {
     std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
     if (!stream.is_open()) return false;
@@ -315,23 +329,264 @@ class PQueue : public std::priority_queue<Ts...>
 public:
     using std::priority_queue<Ts...>::c;
 };
-}  // namespace Impl
 
-///@brief Wrapper for raw array.
-///
-/// This class wraps the raw arrays so they can be serialized and deserialized too.
-///
-/// Example:
-/// @code
-/// int A[10];
-/// Serio::ByteArray str = Serio::serialize(Serio::Array<int>(A, 10));
-/// Serio::deserialize(str, Serio::Array<int>(A, 10));
-/// @endcode
-template <typename T, size_t Size>
-struct Array
+/// @brief This class implements the size calculation of basic data types.
+template <typename Derived>
+class CalculatorBase
 {
-    T* data;
-    Array(const T* data) : data(const_cast<T*>(data)) {}
+    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+
+public:
+    size_t size;
+
+    CalculatorBase(size_t size = 0) : size(size) {}
+
+    template <typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
+        const T& C)
+    {
+        size += sizeof(C);
+        return This();
+    }
+
+    template <typename Traits, typename Alloc>
+    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    {
+        size += sizeof(Size) + C.size();
+        return This();
+    }
+
+    template <size_t N>
+    Derived& operator<<(const std::bitset<N>& C)
+    {
+        (void)C;
+        size += Size(std::ceil(N / 8.0));
+        return This();
+    }
+
+    template <typename Alloc>
+    Derived& operator<<(const std::vector<bool, Alloc>& C)
+    {
+        size += sizeof(Size) + size_t(std::ceil(C.size() / 8.0));
+        return This();
+    }
+};
+
+/// @brief This class implements the serialization of basic data types to buffer.
+template <typename Derived>
+struct SerializerBase
+{
+    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+
+public:
+    char* buffer;
+
+    SerializerBase(char* buffer = nullptr) : buffer(buffer) {}
+
+    template <typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
+        const T& C)
+    {
+        Number::serialize(C, buffer);
+        buffer += sizeof(C);
+        return This();
+    }
+
+    template <typename Traits, typename Alloc>
+    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    {
+        This() << Size(C.size());
+        if (C.size() == 0) return This();
+        std::memcpy(buffer, C.data(), C.size());
+        buffer += C.size();
+        return This();
+    }
+
+    template <size_t N>
+    Derived& operator<<(const std::bitset<N>& C)
+    {
+        Bitset::serialize(buffer, C);
+        buffer += size_t(std::ceil(N / 8.0));
+        return This();
+    }
+
+    template <typename Alloc>
+    Derived& operator<<(const std::vector<bool, Alloc>& C)
+    {
+        This() << Size(C.size());
+        Bitset::serialize(buffer, C);
+        buffer += size_t(std::ceil(C.size() / 8.0));
+        return This();
+    }
+};
+
+/// @brief This class implements the deserialization of basic data types from buffer.
+template <typename Derived>
+struct DeserializerBase
+{
+    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+
+    template <typename T>
+    T get()
+    {
+        T value;
+        This() >> value;
+        return value;
+    }
+
+public:
+    const char* buffer;
+
+    DeserializerBase(const char* buffer = nullptr) : buffer(buffer) {}
+
+    template <typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& C)
+    {
+        Number::deserialize(C, buffer);
+        buffer += sizeof(C);
+        return This();
+    }
+
+    template <typename Traits, typename Alloc>
+    Derived& operator>>(std::basic_string<char, Traits, Alloc>& C)
+    {
+        C.resize(this->get<Size>());
+        if (C.size() == 0) return This();
+        std::memcpy(&C.front(), buffer, C.size());
+        buffer += C.size();
+        return This();
+    }
+
+    template <size_t N>
+    Derived& operator>>(std::bitset<N>& C)
+    {
+        Bitset::deserialize(buffer, C);
+        buffer += size_t(std::ceil(N / 8.0));
+        return This();
+    }
+    template <typename Alloc>
+    Derived& operator>>(std::vector<bool, Alloc>& C)
+    {
+        C.resize(this->get<Size>());
+        Bitset::deserialize(buffer, C);
+        buffer += size_t(std::ceil(C.size() / 8.0));
+        return This();
+    }
+};
+
+/// @brief This class implements the serialization of basic data types to stream.
+template <typename Derived>
+struct StreamSerializerBase
+{
+    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+
+    char buffer[1024];
+
+public:
+    std::basic_ostream<char>* stream;
+
+    StreamSerializerBase(std::basic_ostream<char>* stream) : stream(stream) {}
+
+    template <typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
+        const T& C)
+    {
+        Number::serialize(C, buffer);
+        stream->rdbuf()->sputn(buffer, sizeof(C));
+        return This();
+    }
+
+    template <typename Traits, typename Alloc>
+    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    {
+        This() << Size(C.size());
+        if (C.size() == 0) return This();
+        stream->rdbuf()->sputn(C.data(), C.size());
+        return This();
+    }
+
+    template <size_t N>
+    Derived& operator<<(const std::bitset<N>& C)
+    {
+        auto size = size_t(std::ceil(N / 8.0));
+        if (size == 0) return This();
+        ByteArray buffer(size, 0);
+        Bitset::serialize(&buffer.front(), C);
+        stream->rdbuf()->sputn(buffer.data(), buffer.size());
+        return This();
+    }
+
+    template <typename Alloc>
+    Derived& operator<<(const std::vector<bool, Alloc>& C)
+    {
+        This() << Size(C.size());
+        if (C.size() == 0) return This();
+        ByteArray buffer(size_t(std::ceil(C.size() / 8.0)), 0);
+        Bitset::serialize(&buffer.front(), C);
+        stream->rdbuf()->sputn(buffer.data(), buffer.size());
+        return This();
+    }
+};
+
+/// @brief This class implements the deserialization of basic data types to stream.
+template <typename Derived>
+struct StreamDeserializerBase
+{
+    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+
+    template <typename T>
+    T get()
+    {
+        T value;
+        This() >> value;
+        return value;
+    }
+
+    char buffer[1024];
+
+public:
+    std::basic_istream<char>* stream;
+
+    StreamDeserializerBase(std::basic_istream<char>* stream = nullptr) : stream(stream) {}
+
+    template <typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& C)
+    {
+        stream->rdbuf()->sgetn(buffer, sizeof(C));
+        Number::deserialize(C, buffer);
+        return This();
+    }
+
+    template <typename Traits, typename Alloc>
+    Derived& operator>>(std::basic_string<char, Traits, Alloc>& C)
+    {
+        C.resize(this->get<Size>());
+        if (C.size() == 0) return This();
+        stream->rdbuf()->sgetn(&C.front(), C.size());
+        return This();
+    }
+
+    template <size_t N>
+    Derived& operator>>(std::bitset<N>& C)
+    {
+        auto size = size_t(std::ceil(N / 8.0));
+        if (size == 0) return This();
+        ByteArray buffer(size, 0);
+        stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
+        Bitset::deserialize(buffer.data(), C);
+        return This();
+    }
+
+    template <typename Alloc>
+    Derived& operator>>(std::vector<bool, Alloc>& C)
+    {
+        C.resize(this->get<Size>());
+        if (C.size() == 0) return This();
+        ByteArray buffer(size_t(std::ceil(C.size() / 8.0)), 0);
+        stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
+        Bitset::deserialize(buffer.data(), C);
+        return This();
+    }
 };
 
 /// @brief Processes more complex structures for serialization and size calculation.
@@ -346,7 +601,7 @@ class SerializerOps
     template <typename Iter>
     Derived& iteratable(const Iter& C)
     {
-        This() << Size(Impl::iteratableSize(C));
+        This() << Size(iteratableSize(C));
         for (const auto& S : C) This() << S;
         return This();
     }
@@ -406,17 +661,17 @@ public:
     template <typename T, typename Sequence>
     Derived& operator<<(const std::queue<T, Sequence>& C)
     {
-        return This() << reinterpret_cast<const Impl::Queue<T, Sequence>&>(C).c;
+        return This() << reinterpret_cast<const Queue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
     Derived& operator<<(const std::priority_queue<T, Sequence>& C)
     {
-        return This() << reinterpret_cast<const Impl::PQueue<T, Sequence>&>(C).c;
+        return This() << reinterpret_cast<const PQueue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
     Derived& operator<<(const std::stack<T, Sequence>& C)
     {
-        return This() << reinterpret_cast<const Impl::Stack<T, Sequence>&>(C).c;
+        return This() << reinterpret_cast<const Stack<T, Sequence>&>(C).c;
     }
 
     template <typename T, typename Comp, typename Alloc>
@@ -469,7 +724,7 @@ public:
     template <typename... Ts>
     Derived& operator<<(const std::tuple<Ts...>& C)
     {
-        Impl::Tuple<sizeof...(Ts) - 1>::serialize(This(), C);
+        Tuple<sizeof...(Ts) - 1>::serialize(This(), C);
         return This();
     }
 
@@ -512,7 +767,7 @@ public:
     Derived& operator<<(const std::variant<Ts...>& C)
     {
         This() << Size(C.index());
-        Impl::Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::serialize(This(), C);
+        Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::serialize(This(), C);
         return This();
     }
 #endif
@@ -631,17 +886,17 @@ public:
     template <typename T, typename Sequence>
     Derived& operator>>(std::queue<T, Sequence>& C)
     {
-        return This() >> reinterpret_cast<Impl::Queue<T, Sequence>&>(C).c;
+        return This() >> reinterpret_cast<Queue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
     Derived& operator>>(std::priority_queue<T, Sequence>& C)
     {
-        return This() >> reinterpret_cast<Impl::PQueue<T, Sequence>&>(C).c;
+        return This() >> reinterpret_cast<PQueue<T, Sequence>&>(C).c;
     }
     template <typename T, typename Sequence>
     Derived& operator>>(std::stack<T, Sequence>& C)
     {
-        return This() >> reinterpret_cast<Impl::Stack<T, Sequence>&>(C).c;
+        return This() >> reinterpret_cast<Stack<T, Sequence>&>(C).c;
     }
 
     template <typename T, typename Comp, typename Alloc>
@@ -694,7 +949,7 @@ public:
     template <typename... Ts>
     Derived& operator>>(std::tuple<Ts...>& C)
     {
-        Impl::Tuple<sizeof...(Ts) - 1>::deserialize(This(), C);
+        Tuple<sizeof...(Ts) - 1>::deserialize(This(), C);
         return This();
     }
 
@@ -738,7 +993,7 @@ public:
     Derived& operator>>(std::variant<Ts...>& C)
     {
         auto index = this->get<Size>();
-        Impl::Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(This(), index, C);
+        Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(This(), index, C);
         return This();
     }
 #endif
@@ -756,265 +1011,6 @@ public:
         return process(std::forward<Tail>(tail)...);
     }
     Derived& process() { return This(); }
-};
-
-/// @brief This class implements the size calculation of basic data types.
-template <typename Derived>
-class CalculatorBase
-{
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
-
-public:
-    size_t size;
-
-    CalculatorBase(size_t size = 0) : size(size) {}
-
-    template <typename T>
-    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
-        const T& C)
-    {
-        size += sizeof(C);
-        return This();
-    }
-
-    template <typename Traits, typename Alloc>
-    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
-    {
-        size += sizeof(Size) + C.size();
-        return This();
-    }
-
-    template <size_t N>
-    Derived& operator<<(const std::bitset<N>& C)
-    {
-        (void)C;
-        size += Size(std::ceil(N / 8.0));
-        return This();
-    }
-
-    template <typename Alloc>
-    Derived& operator<<(const std::vector<bool, Alloc>& C)
-    {
-        size += sizeof(Size) + size_t(std::ceil(C.size() / 8.0));
-        return This();
-    }
-};
-
-/// @brief This class implements the serialization of basic data types to buffer.
-template <typename Derived>
-struct SerializerBase
-{
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
-
-public:
-    char* buffer;
-
-    SerializerBase(char* buffer = nullptr) : buffer(buffer) {}
-
-    template <typename T>
-    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
-        const T& C)
-    {
-        Impl::Number::serialize(C, buffer);
-        buffer += sizeof(C);
-        return This();
-    }
-
-    template <typename Traits, typename Alloc>
-    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
-    {
-        This() << Size(C.size());
-        if (C.size() == 0) return This();
-        std::memcpy(buffer, C.data(), C.size());
-        buffer += C.size();
-        return This();
-    }
-
-    template <size_t N>
-    Derived& operator<<(const std::bitset<N>& C)
-    {
-        Impl::Bitset::serialize(buffer, C);
-        buffer += size_t(std::ceil(N / 8.0));
-        return This();
-    }
-
-    template <typename Alloc>
-    Derived& operator<<(const std::vector<bool, Alloc>& C)
-    {
-        This() << Size(C.size());
-        Impl::Bitset::serialize(buffer, C);
-        buffer += size_t(std::ceil(C.size() / 8.0));
-        return This();
-    }
-};
-
-/// @brief This class implements the deserialization of basic data types from buffer.
-template <typename Derived>
-struct DeserializerBase
-{
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
-
-    template <typename T>
-    T get()
-    {
-        T value;
-        This() >> value;
-        return value;
-    }
-
-public:
-    const char* buffer;
-
-    DeserializerBase(const char* buffer = nullptr) : buffer(buffer) {}
-
-    template <typename T>
-    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& C)
-    {
-        Impl::Number::deserialize(C, buffer);
-        buffer += sizeof(C);
-        return This();
-    }
-
-    template <typename Traits, typename Alloc>
-    Derived& operator>>(std::basic_string<char, Traits, Alloc>& C)
-    {
-        C.resize(this->get<Size>());
-        if (C.size() == 0) return This();
-        std::memcpy(&C.front(), buffer, C.size());
-        buffer += C.size();
-        return This();
-    }
-
-    template <size_t N>
-    Derived& operator>>(std::bitset<N>& C)
-    {
-        Impl::Bitset::deserialize(buffer, C);
-        buffer += size_t(std::ceil(N / 8.0));
-        return This();
-    }
-    template <typename Alloc>
-    Derived& operator>>(std::vector<bool, Alloc>& C)
-    {
-        C.resize(this->get<Size>());
-        Impl::Bitset::deserialize(buffer, C);
-        buffer += size_t(std::ceil(C.size() / 8.0));
-        return This();
-    }
-};
-
-/// @brief This class implements the serialization of basic data types to stream.
-template <typename Derived>
-struct StreamSerializerBase
-{
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
-
-    char buffer[1024];
-
-public:
-    std::basic_ostream<char>* stream;
-
-    StreamSerializerBase(std::basic_ostream<char>* stream) : stream(stream) {}
-
-    template <typename T>
-    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
-        const T& C)
-    {
-        Impl::Number::serialize(C, buffer);
-        stream->rdbuf()->sputn(buffer, sizeof(C));
-        return This();
-    }
-
-    template <typename Traits, typename Alloc>
-    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
-    {
-        This() << Size(C.size());
-        if (C.size() == 0) return This();
-        stream->rdbuf()->sputn(C.data(), C.size());
-        return This();
-    }
-
-    template <size_t N>
-    Derived& operator<<(const std::bitset<N>& C)
-    {
-        auto size = size_t(std::ceil(N / 8.0));
-        if (size == 0) return This();
-        ByteArray buffer(size, 0);
-        Impl::Bitset::serialize(&buffer.front(), C);
-        stream->rdbuf()->sputn(buffer.data(), buffer.size());
-        return This();
-    }
-
-    template <typename Alloc>
-    Derived& operator<<(const std::vector<bool, Alloc>& C)
-    {
-        This() << Size(C.size());
-        if (C.size() == 0) return This();
-        ByteArray buffer(size_t(std::ceil(C.size() / 8.0)), 0);
-        Impl::Bitset::serialize(&buffer.front(), C);
-        stream->rdbuf()->sputn(buffer.data(), buffer.size());
-        return This();
-    }
-};
-
-/// @brief This class implements the deserialization of basic data types to stream.
-template <typename Derived>
-struct StreamDeserializerBase
-{
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
-
-    template <typename T>
-    T get()
-    {
-        T value;
-        This() >> value;
-        return value;
-    }
-
-    char buffer[1024];
-
-public:
-    std::basic_istream<char>* stream;
-
-    StreamDeserializerBase(std::basic_istream<char>* stream = nullptr) : stream(stream) {}
-
-    template <typename T>
-    typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& C)
-    {
-        stream->rdbuf()->sgetn(buffer, sizeof(C));
-        Impl::Number::deserialize(C, buffer);
-        return This();
-    }
-
-    template <typename Traits, typename Alloc>
-    Derived& operator>>(std::basic_string<char, Traits, Alloc>& C)
-    {
-        C.resize(this->get<Size>());
-        if (C.size() == 0) return This();
-        stream->rdbuf()->sgetn(&C.front(), C.size());
-        return This();
-    }
-
-    template <size_t N>
-    Derived& operator>>(std::bitset<N>& C)
-    {
-        auto size = size_t(std::ceil(N / 8.0));
-        if (size == 0) return This();
-        ByteArray buffer(size, 0);
-        stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
-        Impl::Bitset::deserialize(buffer.data(), C);
-        return This();
-    }
-
-    template <typename Alloc>
-    Derived& operator>>(std::vector<bool, Alloc>& C)
-    {
-        C.resize(this->get<Size>());
-        if (C.size() == 0) return This();
-        ByteArray buffer(size_t(std::ceil(C.size() / 8.0)), 0);
-        stream->rdbuf()->sgetn(&buffer.front(), buffer.size());
-        Impl::Bitset::deserialize(buffer.data(), C);
-        return This();
-    }
 };
 
 /// @brief This class calculates size of any of the supported types.
@@ -1177,7 +1173,7 @@ size_t deserialize(const ByteArray& data, Ts&&... ts)
 template <typename... Ts>
 bool save(const std::string& path, Ts&&... ts)
 {
-    return Impl::write(path, serialize(std::forward<Ts>(ts)...));
+    return _write(path, serialize(std::forward<Ts>(ts)...));
 }
 
 /// Reads data from a file and deserializes and unlimited number of input arguments (deserializable
@@ -1197,7 +1193,7 @@ template <typename... Ts>
 bool load(const std::string& path, Ts&&... ts)
 {
     ByteArray A;
-    if (!Impl::read(path, A)) return false;
+    if (!_read(path, A)) return false;
     return deserialize(A, std::forward<Ts>(ts)...) == A.size();
 }
 
