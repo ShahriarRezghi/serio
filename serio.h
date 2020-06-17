@@ -116,21 +116,13 @@ using Size = uint64_t;
 /// Container of single bytes.
 using ByteArray = std::basic_string<char>;
 
-///@brief Wrapper for raw array.
-///
-/// This class wraps the raw arrays so they can be serialized and deserialized too.
-///
-/// Example:
-/// @code
-/// int A[10];
-/// Serio::ByteArray str = Serio::serialize(Serio::Array<int>(A, 10));
-/// Serio::deserialize(str, Serio::Array<int>(A, 10));
-/// @endcode
-template <typename T, size_t Size>
+template <typename T>
 struct Array
 {
-    T* data;
-    Array(const T* data) : data(const_cast<T*>(data)) {}
+    Size size = 0;
+    T* data = nullptr;
+    Array() {}
+    Array(T* data, Size size) : size(size), data(data) {}
 };
 
 bool _read(const std::string& path, std::basic_string<char>& data)
@@ -713,10 +705,11 @@ public:
         for (const auto& S : value) This() << S;
         return This();
     }
-    template <typename T, size_t S>
-    Derived& operator<<(const Array<T, S>& value)
+    template <typename T>
+    Derived& operator<<(const Array<T>& value)
     {
-        for (size_t i = 0; i < S; ++i) This() << value.data[i];
+        This() << Size(value.size);
+        for (Size i = 0; i < value.size; ++i) This() << value.data[i];
         return This();
     }
     template <typename... Ts>
@@ -848,10 +841,13 @@ public:
         for (auto& item : value) This() >> item;
         return This();
     }
-    template <typename T, size_t S>
-    Derived& operator>>(Array<T, S> value)
+    template <typename T>
+    Derived& operator>>(Array<T>& value)
     {
-        for (size_t i = 0; i < S; ++i) This() >> value.data[i];
+        value.size = get<Size>();
+        if (value.size <= 0) return This();
+        if (value.data == nullptr) value.data = new T[value.size];
+        for (Size i = 0; i < value.size; ++i) This() >> value.data[i];
         return This();
     }
     template <typename... Ts>

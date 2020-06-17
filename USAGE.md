@@ -9,7 +9,7 @@
 - [Custom Structures and Classes](#custom-structures-and-classes)
 - [Custom Containers](#custom-containers)
 - [Raw Arrays](#raw-arrays)
-- [Conditions](#conditions)
+- [Conditional](#conditional)
 
 # Introduction
 This library is easy to use. Here is an explanation of the API. ```Serio``` has two type of API:
@@ -222,11 +222,11 @@ private:
 Here we do the job of ```SERIO_REGISTER``` manually. We define ```_serialize()``` function that serializes size first and then all the items the container holds. Then we define ```_deserialize()``` function that deserializes size and resizes the container and then deserializes all the items. Please note that if you serialize size of vector it will have size_t type and it's size will be platform dependent so we use ```Serio::Size``` here and the serialized data will be portable. Now your container is ready to be serialized and deserialized.
 
 # Raw Arrays
-You can serialize raw arrays (currently fixed size) using a structure provided by ```Serio``` which is ```Serio::Array<T, Size>```. Here is an example:
+You can serialize raw arrays using a structure provided by ```Serio``` which is ```Serio::Array<T>```. Here is an example:
 
 ``` c++
 int A[10];
-Serio::ByteArray str = Serio::serialize(Serio::Array<int, 10>(A));
+Serio::ByteArray str = Serio::serialize(Serio::Array<int>(A, 10));
 ```
 
 Here is an example deserialization of above example:
@@ -234,8 +234,21 @@ Here is an example deserialization of above example:
 ``` c++
 int A[10];
 Serio::ByteArray str = "<serialized-data>";
-Serio::deserialize(str, Serio::Array<int, 10>(A));
+Serio::Array<int> temp(A, 10);
+Serio::deserialize(str, temp);
 ```
 
-# Conditions
+Here is another example where we don't know the size of array that has been serialized:
+
+``` c++
+Serio::ByteArray str = "<serialized-data>";
+Serio::Array<int> temp;
+Serio::deserialize(str, temp);
+// use temp.data
+delete[] temp.data;
+```
+
+This example shows that if you don't set ```Serio::Array<T>```'s data (if it is nullptr) the data will be allocated using new operator (but only if there is anything to be deserialized) and it will be filled. Note that if ```Serio::Array<T>```'s data is allocated by the library you will have to delete it yourself once you're done with it otherwise there will be a memory leak.
+
+# Conditional
 There will be some rare cases when we need to serialize and deserialize data conditionally. In order to achieve this the recommended way is using ```std::variant``` but it you want to do it another way you can do it by having a custom class and implementing the details of serialization and deserialization yourself like we did in [Custom Containers](#custom-containers) section.

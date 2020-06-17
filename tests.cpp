@@ -168,10 +168,10 @@ struct Generator
         for (auto& item : value) *this >> item;
         return *this;
     }
-    template <typename T, size_t S>
-    Generator& operator>>(Array<T, S> value)
+    template <typename T>
+    Generator& operator>>(Array<T> value)
     {
-        for (size_t i = 0; i < S; ++i) *this >> value.data[i];
+        for (Size i = 0; i < value.size; ++i) *this >> value.data[i];
         return *this;
     }
     template <typename... Ts>
@@ -295,10 +295,11 @@ struct Process
         using U = std::unordered_multimap<K, T>;
         EXPECT_EQ(U(value1.begin(), value1.end()), U(value2.begin(), value2.end()));
     }
-    template <typename T, size_t S>
-    void compare(const Serio::Array<T, S>& value1, const Serio::Array<T, S>& value2)
+    template <typename T>
+    void compare(const Serio::Array<T>& value1, const Serio::Array<T>& value2)
     {
-        for (size_t i = 0; i < S; ++i) compare(value1.data[i], value2.data[i]);
+        compare(value1.size, value2.size);
+        for (size_t i = 0; i < value1.size; ++i) compare(value1.data[i], value2.data[i]);
     }
 
     template <typename... Ts>
@@ -445,8 +446,8 @@ CREATE_ITER_TEST(Type2, Array, StdArray);
 TYPED_TEST(Type2, RawArray)
 {
     TypeParam V1[50], V2[50];
-    Serio::Array<TypeParam, 50> value1(V1), value2(V2);
-    Process<Serio::Array<TypeParam, 50>>(value1, value2);
+    Serio::Array<TypeParam> value1(V1, 50), value2(V2, 50);
+    Process<Serio::Array<TypeParam>>(value1, value2);
 }
 
 #if __cplusplus >= 201703L
