@@ -62,7 +62,7 @@
 #endif
 
 #ifndef SERIO_SIZE
-#define SERIO_SIZE 8
+#define SERIO_SIZE 64
 #endif
 
 /// @brief Macro for registering custom classes and structures.
@@ -99,17 +99,17 @@
 /// Main namespace of the library.
 namespace Serio
 {
-#if SERIO_SIZE == 8
-/// Yype of the size of containers and such that is serialized and deserialized.
+#if SERIO_SIZE == 64
+/// Type of the size of containers and such that is serialized and deserialized.
 using Size = uint64_t;
-#elif SERIO_SIZE == 4
+#elif SERIO_SIZE == 32
 /// Type of the size of containers and such that is serialized and deserialized.
 using Size = uint32_t;
-#elif SERIO_SIZE == 2
+#elif SERIO_SIZE == 16
 /// Type of the size of containers and such that is serialized and deserialized.
 using Size = uint16_t;
 #else
-static_assert(false, "SERIO_SIZE can only be 2, 4 or 8.");
+static_assert(false, "SERIO_SIZE can only be 16, 32 or 64 bits.");
 using Size = uint64_t;
 #endif
 
