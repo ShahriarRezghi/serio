@@ -160,59 +160,127 @@ Size iteratableSize(const std::forward_list<Ts...>& value)
     return Size(std::distance(value.begin(), value.end()));
 }
 
-namespace Number
+template <Size I>
+struct Integer
 {
-bool little()
+    using Type = void;
+#ifdef __SIZEOF_INT128__
+    static_assert(I == 1 || I == 2 || I == 4 || I == 8 || I == 16, "Arithmetic type not supported.");
+#else
+    static_assert(I == 1 || I == 2 || I == 4 || I == 8, "Arithmetic type not supported.");
+#endif
+};
+template <>
+struct Integer<1>
 {
-    short test = 1;
-    auto ptr = reinterpret_cast<char*>(&test);
-    return ptr[0];
-}
+    using Type = uint8_t;
+};
+template <>
+struct Integer<2>
+{
+    using Type = uint16_t;
+};
+template <>
+struct Integer<4>
+{
+    using Type = uint32_t;
+};
+template <>
+struct Integer<8>
+{
+    using Type = uint64_t;
+};
+#ifdef __SIZEOF_INT128__
+template <>
+struct Integer<16>
+{
+    using Type = unsigned __int128;
+};
+#endif
 
-template <size_t N, size_t I>
-struct Number
+template <Size I>
+struct Raw
 {
-    static void lserialize(const char* ptr, char* buffer)
+    template <typename T>
+    static void _serialize(uint8_t* ptr, const T& data)
     {
-        Number<N, I - 1>::lserialize(ptr, buffer);
-        buffer[I] = ptr[I];
+        *ptr = uint8_t(data >> I);
+        if constexpr (I < sizeof(T) * 8 - 8) Raw<I + 8>::_serialize(ptr + 1, data);
     }
-    static void bserialize(const char* ptr, char* buffer)
+    template <typename T>
+    static void _deserialize(const uint8_t* ptr, T& data)
     {
-        Number<N, I - 1>::bserialize(ptr, buffer);
-        buffer[I] = ptr[N - I - 1];
+        data |= T(*ptr) << I;
+        if constexpr (I < sizeof(T) * 8 - 8) Raw<I + 8>::_deserialize(ptr + 1, data);
     }
-    static void deserialize(char* ptr, const char* buffer)
+    template <typename T>
+    static void serialize(char* ptr, const T& data)
     {
-        Number<N, I - 1>::deserialize(ptr, buffer);
-        ptr[I] = buffer[I];
+        using Type = typename Integer<sizeof(T)>::Type;
+        Raw<I>::_serialize(reinterpret_cast<uint8_t*>(ptr), reinterpret_cast<const Type&>(data));
+    }
+    template <typename T>
+    static void deserialize(const char* ptr, T& data)
+    {
+        using Type = typename Integer<sizeof(T)>::Type;
+        reinterpret_cast<Type&>(data) = 0;
+        Raw<I>::_deserialize(reinterpret_cast<const uint8_t*>(ptr), reinterpret_cast<Type&>(data));
     }
 };
 
-template <size_t N>
-struct Number<N, 0>
-{
-    static void lserialize(const char* ptr, char* buffer) { buffer[0] = ptr[0]; }
-    static void bserialize(const char* ptr, char* buffer) { buffer[0] = ptr[N - 1]; }
-    static void deserialize(char* ptr, const char* buffer) { ptr[0] = buffer[0]; }
-};
+// namespace Number
+//{
+// bool little()
+//{
+//    short test = 1;
+//    auto ptr = reinterpret_cast<char*>(&test);
+//    return ptr[0];
+//}
 
-template <typename T>
-void serialize(const T& data, char* buffer)
-{
-    auto ptr = reinterpret_cast<const char*>(&data);
-    if (little())
-        Number<sizeof(T), sizeof(T) - 1>::lserialize(ptr, buffer);
-    else
-        Number<sizeof(T), sizeof(T) - 1>::bserialize(ptr, buffer);
-}
-template <typename T>
-void deserialize(T& data, const char* buffer)
-{
-    auto ptr = reinterpret_cast<char*>(&data);
-    Number<sizeof(T), sizeof(T) - 1>::deserialize(ptr, buffer);
-}
-}  // namespace Number
+// template <size_t N, size_t I>
+// struct Number
+//{
+//    static void lserialize(const char* ptr, char* buffer)
+//    {
+//        Number<N, I - 1>::lserialize(ptr, buffer);
+//        buffer[I] = ptr[I];
+//    }
+//    static void bserialize(const char* ptr, char* buffer)
+//    {
+//        Number<N, I - 1>::bserialize(ptr, buffer);
+//        buffer[I] = ptr[N - I - 1];
+//    }
+//    static void deserialize(char* ptr, const char* buffer)
+//    {
+//        Number<N, I - 1>::deserialize(ptr, buffer);
+//        ptr[I] = buffer[I];
+//    }
+//};
+
+// template <size_t N>
+// struct Number<N, 0>
+//{
+//    static void lserialize(const char* ptr, char* buffer) { buffer[0] = ptr[0]; }
+//    static void bserialize(const char* ptr, char* buffer) { buffer[0] = ptr[N - 1]; }
+//    static void deserialize(char* ptr, const char* buffer) { ptr[0] = buffer[0]; }
+//};
+
+// template <typename T>
+// void serialize(const T& data, char* buffer)
+//{
+//    auto ptr = reinterpret_cast<const char*>(&data);
+//    if (little())
+//        Number<sizeof(T), sizeof(T) - 1>::lserialize(ptr, buffer);
+//    else
+//        Number<sizeof(T), sizeof(T) - 1>::bserialize(ptr, buffer);
+//}
+// template <typename T>
+// void deserialize(T& data, const char* buffer)
+//{
+//    auto ptr = reinterpret_cast<char*>(&data);
+//    Number<sizeof(T), sizeof(T) - 1>::deserialize(ptr, buffer);
+//}
+//}  // namespace Number
 
 struct Bitset
 {
@@ -452,14 +520,12 @@ public:
         size += sizeof(C);
         return This();
     }
-
     template <typename Traits, typename Alloc>
     Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
     {
         size += sizeof(Size) + C.size();
         return This();
     }
-
     template <size_t N>
     Derived& operator<<(const std::bitset<N>& C)
     {
@@ -467,7 +533,6 @@ public:
         size += Size(std::ceil(N / 8.0));
         return This();
     }
-
     template <typename Alloc>
     Derived& operator<<(const std::vector<bool, Alloc>& C)
     {
@@ -490,7 +555,8 @@ public:
     typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
         const T& value)
     {
-        Number::serialize(value, this->buffer);
+        Raw<0>::serialize(this->buffer, value);
+        //        Number::serialize(value, this->buffer);
         this->buffer += sizeof(value);
         return This();
     }
@@ -540,7 +606,8 @@ public:
     template <typename T>
     typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& value)
     {
-        Number::deserialize(value, this->buffer);
+        Raw<0>::deserialize(this->buffer, value);
+        //        Number::deserialize(value, this->buffer);
         this->buffer += sizeof(value);
         return This();
     }
@@ -583,7 +650,8 @@ public:
     typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
         const T& value)
     {
-        Number::serialize(value, _buffer);
+        Raw<0>::serialize(_buffer, value);
+        //        Number::serialize(value, _buffer);
         _stream->rdbuf()->sputn(_buffer, sizeof(value));
         return This();
     }
@@ -638,7 +706,8 @@ public:
     typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator>>(T& value)
     {
         _stream->rdbuf()->sgetn(_buffer, sizeof(value));
-        Number::deserialize(value, _buffer);
+        Raw<0>::deserialize(_buffer, value);
+        //        Number::deserialize(value, _buffer);
         return This();
     }
     template <typename... Ts>
