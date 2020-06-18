@@ -768,6 +768,11 @@ public:
         if (value) This() << *value.get();
         return This();
     }
+    template <typename T>
+    Derived& operator<<(const std::weak_ptr<T>& value)
+    {
+        return This() << value.lock();
+    }
     template <typename T, size_t N>
     Derived& operator<<(const std::array<T, N>& value)
     {
@@ -903,6 +908,11 @@ public:
             value.reset();
 
         return This();
+    }
+    template <typename T>
+    Derived& operator>>(std::weak_ptr<T>& value)
+    {
+        static_assert(std::is_same<decltype(value), std::weak_ptr<T>>::value, "Weak pointer in not deserializable.");
     }
     template <typename T, size_t N>
     Derived& operator>>(std::array<T, N>& value)

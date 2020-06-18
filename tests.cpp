@@ -40,7 +40,7 @@
 #include <locale>
 #include <random>
 
-using namespace Serio;
+using Serio::Size;
 
 struct A
 {
@@ -114,8 +114,8 @@ struct Generator
     typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Generator&>::type operator>>(
         T& value)
     {
-        value = rand() % int(std::numeric_limits<T>::max());
-        if (std::is_same<bool, T>::value && rand() % 2) value = !value;
+        value = T(rand());
+        if (std::is_same<T, bool>::value) value = rand() % 2;
         return *this;
     }
     template <size_t N>
@@ -125,16 +125,16 @@ struct Generator
         return *this;
     }
     template <typename T>
-    typename std::enable_if<IsAssignable<T>::value, Generator&>::type operator>>(T& value)
+    typename std::enable_if<Serio::IsAssignable<T>::value, Generator&>::type operator>>(T& value)
     {
         value.resize(rand() % 100);
         for (auto& item : value) *this >> item;
         return *this;
     }
     template <typename T>
-    typename std::enable_if<IsIteratable<T>::value, Generator&>::type operator>>(T& value)
+    typename std::enable_if<Serio::IsIteratable<T>::value, Generator&>::type operator>>(T& value)
     {
-        using Type = typename ValueType<T>::Type;
+        using Type = typename Serio::ValueType<T>::Type;
         value.clear();
         auto it = value.begin();
         Size size = rand() % 100;
@@ -142,7 +142,7 @@ struct Generator
         return *this;
     }
     template <typename T>
-    typename std::enable_if<IsPointer<T>::value, Generator&>::type operator>>(T& value)
+    typename std::enable_if<Serio::IsPointer<T>::value, Generator&>::type operator>>(T& value)
     {
         if (this->get<bool>())
         {
@@ -169,7 +169,7 @@ struct Generator
         return *this;
     }
     template <typename T>
-    Generator& operator>>(Array<T> value)
+    Generator& operator>>(Serio::Array<T> value)
     {
         for (Size i = 0; i < value.size; ++i) *this >> value.data[i];
         return *this;
@@ -177,17 +177,17 @@ struct Generator
     template <typename... Ts>
     Generator& operator>>(std::queue<Ts...>& value)
     {
-        return *this >> reinterpret_cast<Queue<Ts...>&>(value).c;
+        return *this >> reinterpret_cast<Serio::Queue<Ts...>&>(value).c;
     }
     template <typename... Ts>
     Generator& operator>>(std::stack<Ts...>& value)
     {
-        return *this >> reinterpret_cast<Stack<Ts...>&>(value).c;
+        return *this >> reinterpret_cast<Serio::Stack<Ts...>&>(value).c;
     }
     template <typename... Ts>
     Generator& operator>>(std::priority_queue<Ts...>& value)
     {
-        return *this >> reinterpret_cast<PQueue<Ts...>&>(value).c;
+        return *this >> reinterpret_cast<Serio::PQueue<Ts...>&>(value).c;
     }
     template <typename... Ts>
     Generator& operator>>(std::pair<Ts...>& value)
@@ -197,7 +197,7 @@ struct Generator
     template <typename... Ts>
     Generator& operator>>(std::tuple<Ts...>& value)
     {
-        Tuple<sizeof...(Ts) - 1>::deserialize(*this, value);
+        Serio::Tuple<sizeof...(Ts) - 1>::deserialize(*this, value);
         return *this;
     }
     template <typename T>
@@ -245,7 +245,7 @@ struct Generator
     Generator& operator>>(std::variant<Ts...>& value)
     {
         auto index = this->get<Size>();
-        Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(*this, index, value);
+        Serio::Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(*this, index, value);
         return *this;
     }
     Generator& operator>>(std::monostate& value)
@@ -262,7 +262,7 @@ struct Process
     std::basic_string<char> temporary;
 
     template <typename T>
-    typename std::enable_if<!IsPointer<T>::value>::type compare(const T& value1, const T& value2)
+    typename std::enable_if<!Serio::IsPointer<T>::value>::type compare(const T& value1, const T& value2)
     {
         EXPECT_EQ(value1, value2);
     }
@@ -284,7 +284,7 @@ struct Process
         EXPECT_EQ(value1.empty(), value2.empty());
     }
     template <typename T>
-    typename std::enable_if<IsPointer<T>::value>::type compare(const T& value1, const T& value2)
+    typename std::enable_if<Serio::IsPointer<T>::value>::type compare(const T& value1, const T& value2)
     {
         if (!value1 && !value2) return;
         compare(*value1.get(), *value2.get());
