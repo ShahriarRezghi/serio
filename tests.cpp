@@ -339,7 +339,7 @@ struct Process
 
     Process()
     {
-        Type value1, value2;
+        Type value1 = Type(), value2 = Type();
         save1(value1);
         load1(value2);
         compare(value1, value2);
