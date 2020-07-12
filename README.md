@@ -68,7 +68,7 @@ This means that you are trying to serialize or deserialize a custom structure or
 # Use Cases
 This library can have a lot of applications. Here is some:
 
-+ It can be used to save precessed information on files and read them later a lot faster (e.g. saving processed datasets).
++ It can be used to save processed information on files and read them later a lot faster (e.g. saving processed datasets).
 + It can be used to turn text files into binary file and read it much faster later on.
 + The serialized can be used to easily send and receive data in binary form through sockets (network or otherwise).
 + It can also be used to save program options and restore them on startup.
