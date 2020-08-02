@@ -28,17 +28,13 @@
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef SSERIALIZATION_H
-#define SSERIALIZATION_H
+#pragma once
 
 #include <array>
 #include <bitset>
-#include <cassert>
 #include <chrono>
 #include <complex>
 #include <cstdint>
-#include <cstdio>
-#include <cstring>
 #include <deque>
 #include <forward_list>
 #include <fstream>
@@ -234,16 +230,14 @@ struct Raw
     static void serialize(char* ptr, const T& data)
     {
         using Type = typename Integer<sizeof(T)>::Type;
-        _Raw<(sizeof(T) - 1) * 8>::serialize(reinterpret_cast<uint8_t*>(ptr) + sizeof(T) - 1,
-                                             reinterpret_cast<const Type&>(data));
+        _Raw<(sizeof(T) - 1) * 8>::serialize((uint8_t*)ptr + sizeof(T) - 1, *(const Type*)&data);
     }
     template <typename T>
     static void deserialize(const char* ptr, T& data)
     {
         using Type = typename Integer<sizeof(T)>::Type;
-        reinterpret_cast<Type&>(data) = 0;
-        _Raw<(sizeof(T) - 1) * 8>::deserialize(reinterpret_cast<const uint8_t*>(ptr) + sizeof(T) - 1,
-                                               reinterpret_cast<Type&>(data));
+        *(Type*)&data = 0;
+        _Raw<(sizeof(T) - 1) * 8>::deserialize((const uint8_t*)ptr + sizeof(T) - 1, *(Type*)&data);
     }
 };
 
@@ -471,7 +465,7 @@ public:
 template <typename Derived>
 class CalculatorBase
 {
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return (Derived&)*this; }
 
 public:
     size_t size;
@@ -509,7 +503,7 @@ public:
 template <typename Derived>
 class SerializerBase
 {
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return (Derived&)*this; }
 
 public:
     char* buffer;
@@ -552,7 +546,7 @@ public:
 template <typename Derived>
 class DeserializerBase
 {
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return (Derived&)*this; }
 
     template <typename T>
     T get()
@@ -604,7 +598,7 @@ struct StreamSerializerBase
 {
     char _buffer[16];
     std::basic_ostream<char>* _stream;
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return (Derived&)*this; }
 
 public:
     StreamSerializerBase(std::basic_ostream<char>* stream) : _stream(stream) {}
@@ -651,7 +645,7 @@ struct StreamDeserializerBase
 {
     char _buffer[16];
     std::basic_istream<char>* _stream;
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return (Derived&)*this; }
 
     template <typename T>
     T get()
@@ -703,7 +697,7 @@ public:
 template <typename Derived>
 class SerializerOps
 {
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return (Derived&)*this; }
 
 public:
     template <typename T>
@@ -750,20 +744,20 @@ public:
     template <typename... Ts>
     Derived& operator<<(const std::queue<Ts...>& value)
     {
-        return This() << reinterpret_cast<const Queue<Ts...>&>(value).c;
+        return This() << ((const Queue<Ts...>*)&value)->c;
     }
     template <typename... Ts>
     Derived& operator<<(const std::stack<Ts...>& value)
     {
-        return This() << reinterpret_cast<const Stack<Ts...>&>(value).c;
+        return This() << ((const Stack<Ts...>*)&value)->c;
     }
     template <typename... Ts>
     Derived& operator<<(const std::priority_queue<Ts...>& value)
     {
-        return This() << reinterpret_cast<const PQueue<Ts...>&>(value).c;
+        return This() << ((const PQueue<Ts...>*)&value)->c;
     }
-    template <typename... Ts>
-    Derived& operator<<(const std::pair<Ts...>& value)
+    template <typename T1, typename T2>
+    Derived& operator<<(const std::pair<T1, T2>& value)
     {
         return This() << value.first << value.second;
     }
@@ -782,7 +776,7 @@ public:
     Derived& operator<<(const std::chrono::time_point<Ts...>& value)
     {
         using rep = typename std::chrono::time_point<Ts...>::rep;
-        return This() << reinterpret_cast<const rep&>(value);
+        return This() << *(const rep*)&value;
     }
 
 #if __cplusplus >= 201703L
@@ -819,7 +813,7 @@ public:
 template <typename Derived>
 class DeserializerOps
 {
-    Derived& This() { return *reinterpret_cast<Derived*>(this); }
+    Derived& This() { return (Derived&)*this; }
 
     template <typename T>
     T get()
@@ -893,20 +887,20 @@ public:
     template <typename... Ts>
     Derived& operator>>(std::queue<Ts...>& value)
     {
-        return This() >> reinterpret_cast<Queue<Ts...>&>(value).c;
+        return This() >> ((Queue<Ts...>*)&value)->c;
     }
     template <typename... Ts>
     Derived& operator>>(std::stack<Ts...>& value)
     {
-        return This() >> reinterpret_cast<Stack<Ts...>&>(value).c;
+        return This() >> ((Stack<Ts...>*)&value)->c;
     }
     template <typename... Ts>
     Derived& operator>>(std::priority_queue<Ts...>& value)
     {
-        return This() >> reinterpret_cast<PQueue<Ts...>&>(value).c;
+        return This() >> ((PQueue<Ts...>*)&value)->c;
     }
-    template <typename... Ts>
-    Derived& operator>>(std::pair<Ts...>& value)
+    template <typename T1, typename T2>
+    Derived& operator>>(std::pair<T1, T2>& value)
     {
         return This() >> value.first >> value.second;
     }
@@ -927,7 +921,7 @@ public:
     Derived& operator>>(std::chrono::time_point<Ts...>& value)
     {
         using rep = typename std::chrono::time_point<Ts...>::rep;
-        return This() >> reinterpret_cast<rep&>(value);
+        return This() >> *(rep*)&value;
     }
 
 #if __cplusplus >= 201703L
@@ -1187,5 +1181,3 @@ void read(std::basic_istream<char>* stream, Ts&&... ts)
     deserializer.process(std::forward<Ts>(ts)...);
 }
 }  // namespace Serio
-
-#endif  // SSERIALIZATION_H
