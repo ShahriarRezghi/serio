@@ -474,28 +474,28 @@ public:
 
     template <typename T>
     typename std::enable_if<std::is_arithmetic<T>::value || std::is_enum<T>::value, Derived&>::type operator<<(
-        const T& C)
+        const T& value)
     {
-        size += sizeof(C);
+        size += sizeof(value);
         return This();
     }
     template <typename Traits, typename Alloc>
-    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& C)
+    Derived& operator<<(const std::basic_string<char, Traits, Alloc>& value)
     {
-        size += sizeof(Size) + C.size();
+        size += sizeof(Size) + value.size();
         return This();
     }
     template <size_t N>
-    Derived& operator<<(const std::bitset<N>& C)
+    Derived& operator<<(const std::bitset<N>& value)
     {
-        (void)C;
+        (void)value;
         size += Size(std::ceil(N / 8.0));
         return This();
     }
     template <typename Alloc>
-    Derived& operator<<(const std::vector<bool, Alloc>& C)
+    Derived& operator<<(const std::vector<bool, Alloc>& value)
     {
-        size += sizeof(Size) + size_t(std::ceil(C.size() / 8.0));
+        size += sizeof(Size) + size_t(std::ceil(value.size() / 8.0));
         return This();
     }
 };
