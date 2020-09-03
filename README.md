@@ -9,7 +9,7 @@
 - [Use Cases](#use-cases)
 - [Tests](#tests)
 - [Contribution and Questions](#contribution-and-questions)
-- [TODO](#todo)
+- [Contributing](#contributing)
 - [License](#license)
 
 # Serio 
@@ -33,7 +33,7 @@ You can use CMake to install the library. Do these in the project directory:
 
 ``` shell
 mkdir build && cd build
-cmake -DBUILD_TESTS=OFF .. && cmake --install .
+cmake -DSERIO_BUILD_TESTS=OFF .. && cmake --install .
 ```
 
 And then you can include it this way:
@@ -41,6 +41,8 @@ And then you can include it this way:
 ``` c++
 #include <serio/serio.h>
 ```
+
+You can also add the project as CMake subdirectory and set the include path to ```${NEYSON_INCLUDE_DIR}```.
 
 # Usage
 You can checkout [USAGE.md](USAGE.md) to learn how to use the library.
@@ -72,12 +74,12 @@ This library can have a lot of applications. Here is some:
 + It can also be used to save program options and restore them on startup.
 
 # Tests
-The tests are written with ```Google Test``` library. You won't have to run the tests but if you want to do these in the project directory:
+The tests are written with ```Google Test``` library. You won't have to run the tests but if you want to, do these in the project directory:
 
 ``` shell
 mkdir build && cd build
-cmake -DBUILD_TESTS=ON ..
-make && ./Tests
+cmake -DSERIO_BUILD_TESTS=ON ..
+make && ./tests
 ```
 
 Then you can run the tests executable. Also note that tests might take a long time to compile so please be patient.
