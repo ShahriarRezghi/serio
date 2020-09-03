@@ -23,7 +23,7 @@ Serio is a C++11 library (with support for new data types like variant and optio
 + Permissive License
 
 # Installation
-If you plan to run the tests please clone the project recursively to get ```gtest``` too:
+If you plan to run the tests please clone the project recursively to get ```googletest``` too:
 
 ``` shell
 git clone --recursive https://github.com/ShahriarSS/Serio.git
@@ -41,7 +41,6 @@ And then you can include it this way:
 ``` c++
 #include <serio/serio.h>
 ```
-
 
 # Usage
 You can checkout [USAGE.md](USAGE.md) to learn how to use the library.
@@ -86,8 +85,8 @@ Then you can run the tests executable. Also note that tests might take a long ti
 # Contribution and Questions
 You can report bugs, ask questions and request features on [issues page](../../issues).
 
-# TODO
-You can view the TODO file [here](TODO.md) to see what is left to be done.
+# Contributing
+You can report bugs, ask questions and request features on [issues page](../../issues) but please don't send pull requests.
 
 # License
 This library is licensed under BSD 3-Clause permissive license. You can read it [here](LICENSE.md).
