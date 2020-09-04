@@ -17,6 +17,362 @@ before_install:
 matrix:
   include:
     - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-3.9
+          packages:
+            - clang-3.9
+      env:
+        - MATRIX_EVAL="CC=clang-3.9 && CXX=clang++-3.9"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-4.0
+          packages:
+            - clang-4.0
+      env:
+        - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-5.0
+          packages:
+            - clang-5.0
+      env:
+        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-6.0
+          packages:
+            - clang-6.0
+      env:
+        - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-7
+          packages:
+            - clang-7
+      env:
+        - MATRIX_EVAL="CC=clang-7 && CXX=clang++-7"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-8
+          packages:
+            - clang-8
+      env:
+        - MATRIX_EVAL="CC=clang-8 && CXX=clang++-8"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-9
+          packages:
+            - clang-9
+      env:
+        - MATRIX_EVAL="CC=clang-9 && CXX=clang++-9"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-10
+          packages:
+            - clang-10
+      env:
+        - MATRIX_EVAL="CC=clang-10 && CXX=clang++-10"
+
+
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+            - gcc-5
+      env:
+        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+            - gcc-6
+      env:
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - gcc-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+            - gcc-8
+      env:
+        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-9
+            - gcc-9
+      env:
+        - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
+
+    - os: linux
+      arch: ppc64le
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-10
+            - gcc-10
+      env:
+        - MATRIX_EVAL="CC=gcc-10 && CXX=g++-10"
+
+
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-3.9
+          packages:
+            - clang-3.9
+      env:
+        - MATRIX_EVAL="CC=clang-3.9 && CXX=clang++-3.9"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-4.0
+          packages:
+            - clang-4.0
+      env:
+        - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-5.0
+          packages:
+            - clang-5.0
+      env:
+        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-6.0
+          packages:
+            - clang-6.0
+      env:
+        - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-7
+          packages:
+            - clang-7
+      env:
+        - MATRIX_EVAL="CC=clang-7 && CXX=clang++-7"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-8
+          packages:
+            - clang-8
+      env:
+        - MATRIX_EVAL="CC=clang-8 && CXX=clang++-8"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-9
+          packages:
+            - clang-9
+      env:
+        - MATRIX_EVAL="CC=clang-9 && CXX=clang++-9"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-10
+          packages:
+            - clang-10
+      env:
+        - MATRIX_EVAL="CC=clang-10 && CXX=clang++-10"
+
+
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+            - gcc-5
+      env:
+        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+            - gcc-6
+      env:
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - gcc-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+            - gcc-8
+      env:
+        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-9
+            - gcc-9
+      env:
+        - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
+
+    - os: linux
+      arch: s390x
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-10
+            - gcc-10
+      env:
+        - MATRIX_EVAL="CC=gcc-10 && CXX=g++-10"
+
+
+
+    - os: linux
       arch: arm64
       dist: bionic
       addons:
@@ -195,6 +551,7 @@ matrix:
 
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -206,6 +563,7 @@ matrix:
         - MATRIX_EVAL="CC=clang-3.9 && CXX=clang++-3.9"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -217,6 +575,7 @@ matrix:
         - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -228,6 +587,7 @@ matrix:
         - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -239,6 +599,7 @@ matrix:
         - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -250,6 +611,7 @@ matrix:
         - MATRIX_EVAL="CC=clang-7 && CXX=clang++-7"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -261,6 +623,7 @@ matrix:
         - MATRIX_EVAL="CC=clang-8 && CXX=clang++-8"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -272,6 +635,7 @@ matrix:
         - MATRIX_EVAL="CC=clang-9 && CXX=clang++-9"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -285,6 +649,7 @@ matrix:
 
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -297,6 +662,7 @@ matrix:
         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -309,6 +675,7 @@ matrix:
         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -321,6 +688,7 @@ matrix:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -333,6 +701,7 @@ matrix:
         - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
@@ -345,6 +714,7 @@ matrix:
         - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
 
     - os: linux
+      arch: amd64
       dist: bionic
       addons:
         apt:
