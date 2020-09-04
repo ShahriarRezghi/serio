@@ -1,7 +1,7 @@
 # Table of Contents
 - [Table of Contents](#table-of-contents)
 - [Serio](#serio)
-- [Installation](#installation)
+- [Build & Install](#build--install)
 - [Usage](#usage)
 - [Notes](#notes)
 - [Supported Types](#supported-types)
@@ -13,36 +13,47 @@
 - [License](#license)
 
 # Serio 
-Serio is a C++11 library (with support for new data types like variant and optional introduced in C++17) that makes serialization of C++ containers and other data types and custom classes and structures possible. Features:
+Serio is a C++11 library (with support for new data types like variant and optional introduced in C++17) that makes serialization of C++ containers and other data types and custom classes and structures fast and easy. Features:
 
 + Fast
 + Extremely Easy to Use
 + Single-Header
 + Endian-Independent
-+ No External Dependencies (Only STL) 
++ No External Dependencies (Only STL)
 + Permissive License
 
-# Installation
-If you plan to run the tests please clone the project recursively to get ```googletest``` too:
+# Build & Install
+If you want to install the library you can clone the project by:
 
 ``` shell
 git clone --recursive https://github.com/ShahriarSS/Serio.git
 ```
 
-You can use CMake to install the library. Do these in the project directory:
+Then go into the project directory and create build directory:
 
 ``` shell
-mkdir build && cd build
-cmake -DSERIO_BUILD_TESTS=OFF .. && cmake --install .
+cd Serio
+mkdir build
+cd build
 ```
 
-And then you can include it this way:
+In order to build and install the library:
+
+``` shell
+cmake -DCMAKE_BUILD_TYPE=Release -DSERIO_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/ ..
+cmake --build .
+sudo cmake --install .
+```
+
+```sudo``` might be needed or not depending on the install destination. 
+
+You can include the library like this:
 
 ``` c++
 #include <serio/serio.h>
 ```
 
-You can also add the project as CMake subdirectory and set the include path to ```${NEYSON_INCLUDE_DIR}```.
+You can also add the project as CMake subdirectory and set the include path to ```${SERIO_INCLUDE_DIRS}```.
 
 # Usage
 You can checkout [USAGE.md](USAGE.md) to learn how to use the library.
@@ -74,7 +85,7 @@ This library can have a lot of applications. Here is some:
 + It can also be used to save program options and restore them on startup.
 
 # Tests
-The tests are written with ```Google Test``` library. You won't have to run the tests but if you want to, do these in the project directory:
+You won't have to run the tests but if you want to, do these in the project directory:
 
 ``` shell
 mkdir build && cd build
@@ -88,7 +99,7 @@ Then you can run the tests executable. Also note that tests might take a long ti
 You can report bugs, ask questions and request features on [issues page](../../issues).
 
 # Contributing
-You can report bugs, ask questions and request features on [issues page](../../issues) but please don't send pull requests.
+You can report bugs, ask questions and request features on [issues page](../../issues). Pull requests are not accepted right now.
 
 # License
 This library is licensed under BSD 3-Clause permissive license. You can read it [here](LICENSE.md).
