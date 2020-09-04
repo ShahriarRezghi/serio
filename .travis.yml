@@ -13,7 +13,7 @@ script:
 
 matrix:
   include:
-      - os: osx
+    - os: osx
       osx_image: xcode7.3
       compiler: clang
       env: OSX 7.3 AMD64 Clang
