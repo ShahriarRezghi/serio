@@ -13,6 +13,340 @@ script:
 
 matrix:
   include:
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          packages:
+            - clang-3.9
+      env:
+        - MATRIX_EVAL="CC=clang-3.9 && CXX=clang++-3.9"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-4.0
+          packages:
+            - clang-4.0
+      env:
+        - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-5.0
+          packages:
+            - clang-5.0
+      env:
+        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-6.0
+          packages:
+            - clang-6.0
+      env:
+        - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-7
+          packages:
+            - clang-7
+      env:
+        - MATRIX_EVAL="CC=clang-7 && CXX=clang++-7"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-8
+          packages:
+            - clang-8
+      env:
+        - MATRIX_EVAL="CC=clang-8 && CXX=clang++-8"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-9
+          packages:
+            - clang-9
+      env:
+        - MATRIX_EVAL="CC=clang-9 && CXX=clang++-9"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          packages:
+            - clang-10
+      env:
+        - MATRIX_EVAL="CC=clang-10 && CXX=clang++-10"
+
+
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+            - gcc-5
+      env:
+        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+            - gcc-6
+      env:
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - gcc-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+            - gcc-8
+      env:
+        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-9
+            - gcc-9
+      env:
+        - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
+
+    - os: linux
+      arch: arm64
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-10
+            - gcc-10
+      env:
+        - MATRIX_EVAL="CC=gcc-10 && CXX=g++-10"
+
+
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          packages:
+            - clang-3.9
+      env:
+        - MATRIX_EVAL="CC=clang-3.9 && CXX=clang++-3.9"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-4.0
+          packages:
+            - clang-4.0
+      env:
+        - MATRIX_EVAL="CC=clang-4.0 && CXX=clang++-4.0"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-5.0
+          packages:
+            - clang-5.0
+      env:
+        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-6.0
+          packages:
+            - clang-6.0
+      env:
+        - MATRIX_EVAL="CC=clang-6.0 && CXX=clang++-6.0"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-7
+          packages:
+            - clang-7
+      env:
+        - MATRIX_EVAL="CC=clang-7 && CXX=clang++-7"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-8
+          packages:
+            - clang-8
+      env:
+        - MATRIX_EVAL="CC=clang-8 && CXX=clang++-8"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-bionic-9
+          packages:
+            - clang-9
+      env:
+        - MATRIX_EVAL="CC=clang-9 && CXX=clang++-9"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          packages:
+            - clang-10
+      env:
+        - MATRIX_EVAL="CC=clang-10 && CXX=clang++-10"
+
+
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+            - gcc-5
+      env:
+        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+            - gcc-6
+      env:
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - gcc-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+            - gcc-8
+      env:
+        - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-9
+            - gcc-9
+      env:
+        - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
+
+    - os: linux
+      dist: bionic
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-10
+            - gcc-10
+      env:
+        - MATRIX_EVAL="CC=gcc-10 && CXX=g++-10"
+
+
+
     - os: osx
       osx_image: xcode7.3
       compiler: clang
@@ -117,463 +451,3 @@ matrix:
       osx_image: xcode12u
       compiler: clang
       env: OSX 12u AMD64 Clang
-
-
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 Clang 3.6
-        - CC=clang-3.6
-        - CXX=clang++-3.6
-      addons:
-        apt:
-          packages:
-            - clang-3.6
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 Clang 3.7
-        - CC=clang-3.7
-        - CXX=clang++-3.7
-      addons:
-        apt:
-          packages:
-            - clang-3.7
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 Clang 3.8
-        - CC=clang-3.8
-        - CXX=clang++-3.8
-      addons:
-        apt:
-          packages:
-            - clang-3.8
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 Clang 3.9
-        - CC=clang-3.9
-        - CXX=clang++-3.9
-      addons:
-        apt:
-          packages:
-            - clang-3.9
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 Clang 4.0
-        - CC=clang-4.0
-        - CXX=clang++-4.0
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-4.0
-          packages:
-            - clang-4.0
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 Clang 5.0
-        - CC=clang-5.0
-        - CXX=clang++-5.0
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-5.0
-          packages:
-            - clang-5.0
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 Clang 6.0
-        - CC=clang-6.0
-        - CXX=clang++-6.0
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-6.0
-          packages:
-            - clang-6.0
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 Clang 7
-        - CC=clang-7
-        - CXX=clang++-7
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-7
-          packages:
-            - clang-7
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 Clang 8
-        - CC=clang-8
-        - CXX=clang++-8
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-8
-          packages:
-            - clang-8
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 Clang 9
-        - CC=clang-9
-        - CXX=clang++-9
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-9
-          packages:
-            - clang-9
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 Clang 10
-        - CC=clang-10
-        - CXX=clang++-10
-      addons:
-        apt:
-          packages:
-            - clang-10
-
-
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 GCC 5
-        - CC=gcc-5
-        - CXX=g++-5
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-            - gcc-5
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 GCC 6
-        - CC=gcc-6
-        - CXX=g++-6
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-6
-            - gcc-6
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 GCC 7
-        - CC=gcc-7
-        - CXX=g++-7
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-            - gcc-7
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 GCC 8
-        - CC=gcc-8
-        - CXX=g++-8
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-8
-            - gcc-8
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 GCC 9
-        - CC=gcc-9
-        - CXX=g++-9
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-9
-            - gcc-9
-
-    - os: linux
-      arch: arm64
-      dist: bionic
-      env:
-        - Linux ARM64 GCC 10
-        - CC=gcc-10
-        - CXX=g++-10
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-10
-            - gcc-10
-
-
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 Clang 3.6
-        - CC=clang-3.6
-        - CXX=clang++-3.6
-      addons:
-        apt:
-          packages:
-            - clang-3.6
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 Clang 3.7
-        - CC=clang-3.7
-        - CXX=clang++-3.7
-      addons:
-        apt:
-          packages:
-            - clang-3.7
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 Clang 3.8
-        - CC=clang-3.8
-        - CXX=clang++-3.8
-      addons:
-        apt:
-          packages:
-            - clang-3.8
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 Clang 3.9
-        - CC=clang-3.9
-        - CXX=clang++-3.9
-      addons:
-        apt:
-          packages:
-            - clang-3.9
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 Clang 4.0
-        - CC=clang-4.0
-        - CXX=clang++-4.0
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-4.0
-          packages:
-            - clang-4.0
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 Clang 5.0
-        - CC=clang-5.0
-        - CXX=clang++-5.0
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-5.0
-          packages:
-            - clang-5.0
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 Clang 6.0
-        - CC=clang-6.0
-        - CXX=clang++-6.0
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-6.0
-          packages:
-            - clang-6.0
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 Clang 7
-        - CC=clang-7
-        - CXX=clang++-7
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-7
-          packages:
-            - clang-7
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 Clang 8
-        - CC=clang-8
-        - CXX=clang++-8
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-8
-          packages:
-            - clang-8
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 Clang 9
-        - CC=clang-9
-        - CXX=clang++-9
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-bionic-9
-          packages:
-            - clang-9
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 Clang 10
-        - CC=clang-10
-        - CXX=clang++-10
-      addons:
-        apt:
-          packages:
-            - clang-10
-
-
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 GCC 5
-        - CC=gcc-5
-        - CXX=g++-5
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-            - gcc-5
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 GCC 6
-        - CC=gcc-6
-        - CXX=g++-6
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-6
-            - gcc-6
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 GCC 7
-        - CC=gcc-7
-        - CXX=g++-7
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-            - gcc-7
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 GCC 8
-        - CC=gcc-8
-        - CXX=g++-8
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-8
-            - gcc-8
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 GCC 9
-        - CC=gcc-9
-        - CXX=g++-9
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-9
-            - gcc-9
-
-    - os: linux
-      dist: bionic
-      env:
-        - Linux AMD64 GCC 10
-        - CC=gcc-10
-        - CXX=g++-10
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-10
-            - gcc-10
-
