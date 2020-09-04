@@ -122,7 +122,7 @@ matrix:
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 Clang 3.6
         - CC=clang-3.6
@@ -134,7 +134,7 @@ matrix:
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 Clang 3.7
         - CC=clang-3.7
@@ -146,7 +146,7 @@ matrix:
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 Clang 3.8
         - CC=clang-3.8
@@ -158,7 +158,7 @@ matrix:
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 Clang 3.9
         - CC=clang-3.9
@@ -170,7 +170,7 @@ matrix:
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 Clang 4.0
         - CC=clang-4.0
@@ -178,13 +178,13 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-4.0
+            - llvm-toolchain-bionic-4.0
           packages:
             - clang-4.0
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 Clang 5.0
         - CC=clang-5.0
@@ -192,13 +192,13 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-5.0
+            - llvm-toolchain-bionic-5.0
           packages:
             - clang-5.0
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 Clang 6.0
         - CC=clang-6.0
@@ -206,13 +206,13 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-6.0
+            - llvm-toolchain-bionic-6.0
           packages:
             - clang-6.0
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 Clang 7
         - CC=clang-7
@@ -220,13 +220,13 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-7
+            - llvm-toolchain-bionic-7
           packages:
             - clang-7
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 Clang 8
         - CC=clang-8
@@ -234,13 +234,13 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-8
+            - llvm-toolchain-bionic-8
           packages:
             - clang-8
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 Clang 9
         - CC=clang-9
@@ -248,13 +248,13 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-9
+            - llvm-toolchain-bionic-9
           packages:
             - clang-9
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 Clang 10
         - CC=clang-10
@@ -268,7 +268,7 @@ matrix:
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 GCC 5
         - CC=gcc-5
@@ -283,7 +283,7 @@ matrix:
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 GCC 6
         - CC=gcc-6
@@ -298,7 +298,7 @@ matrix:
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 GCC 7
         - CC=gcc-7
@@ -313,7 +313,7 @@ matrix:
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 GCC 8
         - CC=gcc-8
@@ -328,7 +328,7 @@ matrix:
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 GCC 9
         - CC=gcc-9
@@ -343,7 +343,7 @@ matrix:
 
     - os: linux
       arch: arm64
-      dist: xenial
+      dist: bionic
       env:
         - Linux ARM64 GCC 10
         - CC=gcc-10
@@ -359,7 +359,7 @@ matrix:
 
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 Clang 3.6
         - CC=clang-3.6
@@ -370,7 +370,7 @@ matrix:
             - clang-3.6
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 Clang 3.7
         - CC=clang-3.7
@@ -381,7 +381,7 @@ matrix:
             - clang-3.7
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 Clang 3.8
         - CC=clang-3.8
@@ -392,7 +392,7 @@ matrix:
             - clang-3.8
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 Clang 3.9
         - CC=clang-3.9
@@ -403,7 +403,7 @@ matrix:
             - clang-3.9
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 Clang 4.0
         - CC=clang-4.0
@@ -411,12 +411,12 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-4.0
+            - llvm-toolchain-bionic-4.0
           packages:
             - clang-4.0
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 Clang 5.0
         - CC=clang-5.0
@@ -424,12 +424,12 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-5.0
+            - llvm-toolchain-bionic-5.0
           packages:
             - clang-5.0
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 Clang 6.0
         - CC=clang-6.0
@@ -437,12 +437,12 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-6.0
+            - llvm-toolchain-bionic-6.0
           packages:
             - clang-6.0
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 Clang 7
         - CC=clang-7
@@ -450,12 +450,12 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-7
+            - llvm-toolchain-bionic-7
           packages:
             - clang-7
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 Clang 8
         - CC=clang-8
@@ -463,12 +463,12 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-8
+            - llvm-toolchain-bionic-8
           packages:
             - clang-8
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 Clang 9
         - CC=clang-9
@@ -476,12 +476,12 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-xenial-9
+            - llvm-toolchain-bionic-9
           packages:
             - clang-9
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 Clang 10
         - CC=clang-10
@@ -494,7 +494,7 @@ matrix:
 
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 GCC 5
         - CC=gcc-5
@@ -508,7 +508,7 @@ matrix:
             - gcc-5
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 GCC 6
         - CC=gcc-6
@@ -522,7 +522,7 @@ matrix:
             - gcc-6
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 GCC 7
         - CC=gcc-7
@@ -536,7 +536,7 @@ matrix:
             - gcc-7
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 GCC 8
         - CC=gcc-8
@@ -550,7 +550,7 @@ matrix:
             - gcc-8
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 GCC 9
         - CC=gcc-9
@@ -564,7 +564,7 @@ matrix:
             - gcc-9
 
     - os: linux
-      dist: xenial
+      dist: bionic
       env:
         - Linux AMD64 GCC 10
         - CC=gcc-10
