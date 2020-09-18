@@ -231,17 +231,41 @@ struct _Raw<0>
 struct Raw
 {
     template <typename T>
-    static void serialize(char* ptr, const T& data)
+    static void _serialize(char* ptr, const T& data)
     {
         using Type = typename Integer<sizeof(T)>::Type;
         _Raw<(sizeof(T) - 1) * 8>::serialize((uint8_t*)ptr + sizeof(T) - 1, *(const Type*)&data);
     }
     template <typename T>
-    static void deserialize(const char* ptr, T& data)
+    static void _deserialize(const char* ptr, T& data)
     {
         using Type = typename Integer<sizeof(T)>::Type;
         *(Type*)&data = 0;
         _Raw<(sizeof(T) - 1) * 8>::deserialize((const uint8_t*)ptr + sizeof(T) - 1, *(Type*)&data);
+    }
+
+    template <typename T>
+    static typename std::enable_if<!std::is_floating_point<T>::value, void>::type serialize(char* ptr, const T& data)
+    {
+        _serialize(ptr, data);
+    }
+    template <typename T>
+    static typename std::enable_if<!std::is_floating_point<T>::value, void>::type deserialize(const char* ptr, T& data)
+    {
+        _deserialize(ptr, data);
+    }
+
+    template <typename T>
+    static typename std::enable_if<std::is_floating_point<T>::value, void>::type serialize(char* ptr, const T& data)
+    {
+        static_assert(std::numeric_limits<T>::is_iec559, "Only IEEE 754 floating point type is supported.");
+        _serialize(ptr, data);
+    }
+    template <typename T>
+    static typename std::enable_if<std::is_floating_point<T>::value, void>::type deserialize(const char* ptr, T& data)
+    {
+        static_assert(std::numeric_limits<T>::is_iec559, "Only IEEE 754 floating point type is supported.");
+        _deserialize(ptr, data);
     }
 };
 
