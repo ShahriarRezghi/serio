@@ -29,7 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 3.5)
-project(Serio LANGUAGES CXX)
+project(Serio VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -38,15 +38,42 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     set(SERIO_MASTER ON CACHE INTERNAL "")
 endif()
 
-option(SERIO_BUILD_TESTS "Build Neyson Tests" ${SERIO_MASTER})
-set(SERIO_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/" CACHE INTERNAL "")
-file(GLOB HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/serio/serio.h")
+set(SERIO_VERSION ${PROJECT_VERSION} CACHE INTERNAL "")
+set(SERIO_LIBRARIES "serio" CACHE INTERNAL "")
+set(SERIO_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/"
+    "${CMAKE_CURRENT_BINARY_DIR}/gen/" CACHE INTERNAL "")
+
+option(SERIO_BUILD_TESTS "Build Serio Tests" ${SERIO_MASTER})
+option(SERIO_INSTALL_LIB "Install Serio Library" ${SERIO_MASTER})
+
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/serio/config.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/gen/serio/config.h")
+file(GLOB HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/serio/serio.h"
+    "${CMAKE_CURRENT_BINARY_DIR}/gen/serio/config.h")
 
 add_library(serio INTERFACE)
 target_include_directories(serio INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/gen/>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/>")
-install(FILES ${HEADERS} DESTINATION include/serio)
+
+if(SERIO_INSTALL_LIB)
+    install(TARGETS serio
+        EXPORT serioConfig
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin)
+    install(FILES ${HEADERS}
+        DESTINATION include/serio)
+    install(EXPORT serioConfig
+        NAMESPACE serio::
+        DESTINATION lib/cmake/serio)
+    export(TARGETS serio
+        NAMESPACE serio::
+        FILE "${PROJECT_BINARY_DIR}/serioConfig.cmake")
+endif()
 
 if(SERIO_BUILD_TESTS)
     if(WIN32)
@@ -62,4 +89,4 @@ if(SERIO_BUILD_TESTS)
     add_executable(tests ${HEADERS} "test/main.cpp")
     target_link_libraries(tests serio gtest gtest_main)
     add_test(NAME serio_test COMMAND tests)
-endif(SERIO_BUILD_TESTS)
+endif()

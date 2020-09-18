@@ -32,6 +32,8 @@
 
 #pragma once
 
+#include <serio/config.h>
+
 #include <array>
 #include <bitset>
 #include <chrono>
