@@ -95,9 +95,6 @@ make && ./tests
 
 Then you can run the tests executable. Also note that tests might take a long time to compile so please be patient.
 
-# Contribution and Questions
-You can report bugs, ask questions and request features on [issues page](../../issues).
-
 # Contributing
 You can report bugs, ask questions and request features on [issues page](../../issues). Pull requests are not accepted right now.
 
