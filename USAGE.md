@@ -1,6 +1,7 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [Introduction](#introduction)
+- [Version](#version)
 - [String API](#string-api)
 - [Raw Buffer API](#raw-buffer-api)
 - [Stream API](#stream-api)
@@ -15,11 +16,20 @@
 This library is easy to use. Here is an explanation of the API. ```Serio``` has two type of API:
 
 + Serialization to and deserialization from buffers which is preferred way of using ```Serio``` because this API is very fast.
-+ Serialization to and deserialization from streams which is used where the memory is not enough to use the buffer API or you have a special stream that has to be used instead of buffer API.
++ Serialization to and deserialization from streams which is used where the memory is not enough to use the buffer API or you have a special stream that has to be used instead.
 
 Functions that serialize take unlimited number of supported data types and serialize them into a string or raw array or stream.
 
 Functions that deserialize take unlimited number of supported data types and deserialize them from a string or raw array or stream.
+
+# Version
+You can use these C++ marcos to get information about library version:
+
+```
+SERIO_VERSION_MAJOR
+SERIO_VERSION_MINOR
+SERIO_VERSION_PATCH
+```
 
 # String API
 This API contains 4 functions ```Serio::serialize()```, ```Serio::deserialize()```, ```Serio::save()``` and ```Serio::load()``` which are explained below.

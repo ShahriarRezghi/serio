@@ -53,7 +53,7 @@ You can include the library like this:
 #include <serio/serio.h>
 ```
 
-You can also add the project as CMake subdirectory and set the include path to ```${SERIO_INCLUDE_DIRS}```.
+You can also add the project as CMake subdirectory and use ```${SERIO_LIBRARIES}``` and ```${SERIO_INCLUDE_DIRS}``` CMake variables.
 
 # Usage
 You can checkout [USAGE.md](USAGE.md) to learn how to use the library.
