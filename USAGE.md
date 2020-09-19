@@ -22,6 +22,12 @@ Functions that serialize take unlimited number of supported data types and seria
 
 Functions that deserialize take unlimited number of supported data types and deserialize them from a string or raw array or stream.
 
+You can include the library like this:
+
+``` c++
+#include <serio/serio.h>
+```
+
 # Version
 You can use these C++ marcos to get information about library version:
 

@@ -2,13 +2,13 @@
 - [Table of Contents](#table-of-contents)
 - [Serio](#serio)
 - [Build & Install](#build--install)
+- [CMake Submodule](#cmake-submodule)
 - [Usage](#usage)
 - [Notes](#notes)
 - [Supported Types](#supported-types)
 - [Debugging](#debugging)
 - [Use Cases](#use-cases)
 - [Tests](#tests)
-- [Contribution and Questions](#contribution-and-questions)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -17,7 +17,7 @@ Serio is a C++11 library (with support for new data types like ```variant``` and
 
 + Fast
 + Extremely Easy to Use
-+ Single-Header
++ Header-only
 + Endian-Independent
 + No External Dependencies (Only STL)
 + Permissive License
@@ -47,13 +47,25 @@ sudo cmake --install .
 
 ```sudo``` might be needed or not depending on the install destination. 
 
-You can include the library like this:
+# CMake Submodule
+If you have installed the library you can add it to your CMake project like this:
 
-``` c++
-#include <serio/serio.h>
+``` cmake
+find_package(serio REQUIRED)
+add_executable(myexec main.cpp)
+target_link_libraries(myexec serio::serio)
 ```
 
-You can also add the project as CMake subdirectory and use ```${SERIO_LIBRARIES}``` and ```${SERIO_INCLUDE_DIRS}``` CMake variables.
+Or if you prefer to use the library as a subdirectory you can add it to your CMake project like this:
+
+``` cmake
+add_subdirectory(Serio)
+add_executable(myexec main.cpp)
+target_link_libraries(myexec ${SERIO_LIBRARIES})
+target_include_directories(myexec PUBLIC ${SERIO_INCLUDE_DIRS})
+```
+
+Please note that these are examples and you might want to change some stuff like the path given to ```add_subdirectory```.
 
 # Usage
 You can checkout [USAGE.md](USAGE.md) to learn how to use the library.
