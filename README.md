@@ -23,7 +23,7 @@ Serio is a C++11 library (with support for new data types like ```variant``` and
 + Permissive License
 
 # Build & Install
-If you want to install the library you can clone the project by:
+If you want to install the library you can download the [latest release](https://github.com/ShahriarSS/Serio/releases/latest). If you want the latest changes (might not be stable so use the releases for production) you can clone the project:
 
 ``` shell
 git clone --recursive https://github.com/ShahriarSS/Serio.git
