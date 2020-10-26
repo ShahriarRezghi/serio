@@ -35,6 +35,7 @@
 #include <serio/config.h>
 
 #include <array>
+#include <atomic>
 #include <bitset>
 #include <chrono>
 #include <complex>
@@ -869,6 +870,11 @@ public:
         using rep = typename std::chrono::time_point<Ts...>::rep;
         return This() << *(const rep*)&value;
     }
+    template <typename... Ts>
+    Derived& operator<<(const std::atomic<Ts...>& value)
+    {
+        return This() << value.load();
+    }
 
 #if __cplusplus >= 201703L
     template <typename T>
@@ -1057,6 +1063,12 @@ public:
     {
         using rep = typename std::chrono::time_point<Ts...>::rep;
         return This() >> *(rep*)&value;
+    }
+    template <typename T>
+    Derived& operator>>(std::atomic<T>& value)
+    {
+        value.store(this->get<T>());
+        return This();
     }
 
 #if __cplusplus >= 201703L
