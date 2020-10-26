@@ -39,6 +39,7 @@
 #include <chrono>
 #include <complex>
 #include <cstdint>
+#include <cstring>
 #include <deque>
 #include <forward_list>
 #include <fstream>
@@ -147,6 +148,13 @@ bool _write(const std::string& path, const std::basic_string<char>& data)
     auto size = stream.rdbuf()->sputn(data.data(), data.size());
     if (size != std::streamsize(data.size())) return false;
     return true;
+}
+
+bool _little()
+{
+    uint32_t value = 0x01020304;
+    char data[4] = {4, 3, 2, 1}, *list = (char*)&value;
+    return data[0] == list[0] && data[1] == list[1] && data[2] == list[2] && data[3] == list[3];
 }
 
 template <typename T>
@@ -526,6 +534,7 @@ public:
         size += sizeof(Size) + size_t(std::ceil(value.size() / 8.0));
         return This();
     }
+    void write(const void*, size_t len) { size += len; }
 };
 
 template <typename Derived>
@@ -568,6 +577,11 @@ public:
         Bitset::serialize(this->buffer, value);
         this->buffer += size_t(std::ceil(value.size() / 8.0));
         return This();
+    }
+    void write(const void* data, size_t len)
+    {
+        std::memcpy(this->buffer, data, len);
+        this->buffer += len;
     }
 };
 
@@ -619,12 +633,17 @@ public:
         this->buffer += size_t(std::ceil(value.size() / 8.0));
         return This();
     }
+    void read(void* data, size_t len)
+    {
+        std::memcpy(data, this->buffer, len);
+        this->buffer += len;
+    }
 };
 
 template <typename Derived>
 struct StreamSerializerBase
 {
-    char _buffer[16];
+    char _buffer[32];
     std::basic_ostream<char>* _stream;
     Derived& This() { return (Derived&)*this; }
 
@@ -666,12 +685,13 @@ public:
         _stream->rdbuf()->sputn(buffer.data(), buffer.size());
         return This();
     }
+    void write(const void* data, size_t len) { _stream->write((const char*)data, len); }
 };
 
 template <typename Derived>
 struct StreamDeserializerBase
 {
-    char _buffer[16];
+    char _buffer[32];
     std::basic_istream<char>* _stream;
     Derived& This() { return (Derived&)*this; }
 
@@ -720,6 +740,7 @@ public:
         Bitset::deserialize(buffer.data(), value);
         return This();
     }
+    void read(void* data, size_t len) { _stream->read((char*)data, len); }
 };
 
 template <typename Derived>
@@ -728,6 +749,48 @@ class SerializerOps
     Derived& This() { return (Derived&)*this; }
 
 public:
+    template <typename T, typename... Ts>
+    typename std::enable_if<std::is_arithmetic<T>::value && !std::is_same<T, bool>::value, Derived&>::type operator<<(
+        const std::vector<T, Ts...>& value)
+    {
+        This() << iteratableSize(value);
+        if (_little())
+            This().write(value.data(), value.size() * sizeof(T));
+        else
+            for (const auto& item : value) This() << item;
+        return This();
+    }
+    template <typename T, typename... Ts>
+    typename std::enable_if<std::is_arithmetic<T>::value, Derived&>::type operator<<(
+        const std::basic_string<T, Ts...>& value)
+    {
+        This() << iteratableSize(value);
+        if (_little())
+            This().write(value.data(), value.size() * sizeof(T));
+        else
+            for (const auto& item : value) This() << item;
+        return This();
+    }
+    template <typename T, size_t N>
+    typename std::enable_if<std::is_arithmetic<T>::value, Derived&>::type operator<<(const std::array<T, N>& value)
+    {
+        if (_little())
+            This().write(value.data(), value.size() * sizeof(T));
+        else
+            for (const auto& S : value) This() << S;
+        return This();
+    }
+    template <typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value, Derived&>::type operator<<(const Array<T>& value)
+    {
+        This() << Size(value.size);
+        if (_little())
+            This().write(value.data, value.size * sizeof(T));
+        else
+            for (Size i = 0; i < value.size; ++i) This() << value.data[i];
+        return This();
+    }
+
     template <typename T>
     typename std::enable_if<std::is_class<T>::value && !IsAssignable<T>::value && !IsIteratable<T>::value &&
                                 !IsPointer<T>::value,
@@ -757,13 +820,13 @@ public:
         return This() << value.lock();
     }
     template <typename T, size_t N>
-    Derived& operator<<(const std::array<T, N>& value)
+    typename std::enable_if<!std::is_arithmetic<T>::value, Derived&>::type operator<<(const std::array<T, N>& value)
     {
         for (const auto& S : value) This() << S;
         return This();
     }
     template <typename T>
-    Derived& operator<<(const Array<T>& value)
+    typename std::enable_if<!std::is_arithmetic<T>::value, Derived&>::type operator<<(const Array<T>& value)
     {
         This() << Size(value.size);
         for (Size i = 0; i < value.size; ++i) This() << value.data[i];
@@ -852,6 +915,50 @@ class DeserializerOps
     }
 
 public:
+    template <typename T, typename... Ts>
+    typename std::enable_if<std::is_arithmetic<T>::value && !std::is_same<T, bool>::value, Derived&>::type operator>>(
+        std::vector<T, Ts...>& value)
+    {
+        value.resize(this->get<Size>());
+        if (_little())
+            This().read(value.data(), value.size() * sizeof(T));
+        else
+            for (auto& item : value) This() >> item;
+        return This();
+    }
+    template <typename T, typename... Ts>
+    typename std::enable_if<std::is_arithmetic<T>::value, Derived&>::type operator>>(std::basic_string<T, Ts...>& value)
+    {
+        value.resize(this->get<Size>());
+        if (_little())
+            This().read((T*)value.data(), value.size() * sizeof(T));
+        else
+            for (auto& item : value) This() >> item;
+        return This();
+    }
+    template <typename T, size_t N>
+    typename std::enable_if<std::is_arithmetic<T>::value, Derived&>::type operator>>(std::array<T, N>& value)
+    {
+        if (_little())
+            This().read(value.data(), value.size() * sizeof(T));
+        else
+            for (auto& item : value) This() >> item;
+        return This();
+    }
+    template <typename T>
+    typename std::enable_if<std::is_arithmetic<T>::value, Derived&>::type operator>>(Array<T>& value)
+    {
+        value.size = get<Size>();
+        if (value.size <= 0) return This();
+        if (value.data == nullptr) value.data = new T[value.size];
+
+        if (_little())
+            This().read(value.data, value.size * sizeof(T));
+        else
+            for (Size i = 0; i < value.size; ++i) This() >> value.data[i];
+        return This();
+    }
+
     template <typename T>
     typename std::enable_if<std::is_class<T>::value && !IsAssignable<T>::value && !IsIteratable<T>::value &&
                                 !IsPointer<T>::value,
@@ -898,13 +1005,13 @@ public:
         static_assert(std::is_same<decltype(value), std::weak_ptr<T>>::value, "Weak pointer in not deserializable.");
     }
     template <typename T, size_t N>
-    Derived& operator>>(std::array<T, N>& value)
+    typename std::enable_if<!std::is_arithmetic<T>::value, Derived&>::type operator>>(std::array<T, N>& value)
     {
         for (auto& item : value) This() >> item;
         return This();
     }
     template <typename T>
-    Derived& operator>>(Array<T>& value)
+    typename std::enable_if<!std::is_arithmetic<T>::value, Derived&>::type operator>>(Array<T>& value)
     {
         value.size = get<Size>();
         if (value.size <= 0) return This();
