@@ -133,9 +133,8 @@ bool _read(const std::string& path, std::basic_string<char>& data)
     if (!stream.is_open()) return false;
 
     stream.seekg(0, std::ios::end);
-    auto size = stream.tellg();
+    data.assign(size_t(stream.tellg()), 0);
     stream.seekg(0, std::ios::beg);
-    data.assign(size_t(size), 0);
 
     if (stream.rdbuf()->sgetn(&data.front(), std::streamsize(size)) != size) return false;
     return true;
@@ -145,7 +144,6 @@ bool _write(const std::string& path, const std::basic_string<char>& data)
 {
     std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
     if (!stream.is_open()) return false;
-
     auto size = stream.rdbuf()->sputn(data.data(), data.size());
     if (size != std::streamsize(data.size())) return false;
     return true;
