@@ -28,7 +28,7 @@ You have two options:
 + Installing the library system-wide.
 + Adding to your ```CMake``` project as a subdirectory.
 
-You can download the latest release and extract (or you can clone the repository but the latest release is more stable).
+You can download the [latest release](https://github.com/ShahriarSS/Serio/releases/latest) and extract (or you can clone the repository but the latest release is more stable).
 
 ## System-Wide Installation
 You can do these in the ```serio``` directory:
