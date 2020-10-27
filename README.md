@@ -1,8 +1,9 @@
 # Table of Contents
 - [Table of Contents](#table-of-contents)
 - [Serio](#serio)
-- [Build & Install](#build--install)
-- [CMake Submodule](#cmake-submodule)
+- [Install](#install)
+  - [System-Wide Installation](#system-wide-installation)
+  - [CMake Subdirectory](#cmake-subdirectory)
 - [Usage](#usage)
 - [Notes](#notes)
 - [Supported Types](#supported-types)
@@ -13,42 +14,35 @@
 - [License](#license)
 
 # Serio 
-Serio is a C++11 library (with support for new data types like ```variant``` and ```optional``` introduced in C++17) that makes serialization of C++ containers and other data types and custom classes and structures fast and easy. Features:
+Serio is a C++11 library (with support for new data types introduced in C++17) that makes serialization of C++ containers and other data types and custom structures fast and easy. Some of the features are:
 
-+ Fast
++ Very Fast
 + Extremely Easy to Use
-+ Header-only
 + Endian-Independent
-+ No External Dependencies (Only STL)
++ Header-only
++ No External Dependencies
 + Permissive License
 
-# Build & Install
-If you want to install the library you can download the [latest release](https://github.com/ShahriarSS/Serio/releases/latest). If you want the latest changes (might not be stable so use the releases for production) you can clone the project:
+# Install
+You have two options:
++ Installing the library system-wide.
++ Adding to your ```CMake``` project as a subdirectory.
+
+You can download the latest release and extract (or you can clone the repository but the latest release is more stable).
+
+## System-Wide Installation
+You can do these in the ```serio``` directory:
 
 ``` shell
-git clone --recursive https://github.com/ShahriarSS/Serio.git
-```
-
-Then go into the project directory and create build directory:
-
-``` shell
-cd Serio
-mkdir build
-cd build
-```
-
-In order to build and install the library:
-
-``` shell
-cmake -DCMAKE_BUILD_TYPE=Release -DSERIO_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/usr/local/ ..
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DSERIO_BUILD_TESTS=OFF ..
 cmake --build .
 sudo cmake --install .
 ```
 
-```sudo``` might be needed or not depending on the install destination. 
+```sudo``` might be needed or not depending on the install destination. You can use ```CMAKE_INSTALL_PREFIX``` CMake variable to control the install destination.
 
-# CMake Submodule
-If you have installed the library you can add it to your CMake project like this:
+Then you can use it with various build systems. Here is an example of ```CMake```:
 
 ``` cmake
 find_package(serio REQUIRED)
@@ -56,7 +50,8 @@ add_executable(myexec main.cpp)
 target_link_libraries(myexec serio::serio)
 ```
 
-Or if you prefer to use the library as a subdirectory you can add it to your CMake project like this:
+## CMake Subdirectory
+You can put the ```serio``` directory inside your project's directory and add it as a subdirectory. For example:
 
 ``` cmake
 add_subdirectory(Serio)
@@ -64,8 +59,6 @@ add_executable(myexec main.cpp)
 target_link_libraries(myexec ${SERIO_LIBRARIES})
 target_include_directories(myexec PUBLIC ${SERIO_INCLUDE_DIRS})
 ```
-
-Please note that these are examples and you might want to change some stuff like the path given to ```add_subdirectory```.
 
 # Usage
 You can checkout [USAGE.md](USAGE.md) to learn how to use the library.
@@ -76,7 +69,7 @@ You can checkout [USAGE.md](USAGE.md) to learn how to use the library.
 + Doing ```using namespace Serio``` is not a good idea(because it may cause some conflicts).
 
 # Supported Types
-Supported data types: [C++ containers](http://www.cplusplus.com/reference/stl/), raw arrays, std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::optional (C++17), std::variant (C++17) and any struct or class that you register. If there is a data type in STL that you want to be supported (and is not) please open an issue on the [issues page](../../issues).
+Supported data types: [C++ containers](http://www.cplusplus.com/reference/stl/), raw arrays, std::string, std::complex, std::pair, std::tuple, std::chrono::time_point, std::bitset, std::shared_ptr, std::unique_ptr, std::atomic, std::optional (C++17), std::variant (C++17) and any struct or class that you register. If there is a data type in STL that you want to be supported (and is not) please open an issue on the [issues page](../../issues).
 
 # Debugging
 Here is tip to help you debug a specific error using this library. If you get errors that look like these:
@@ -97,7 +90,7 @@ This library can have a lot of applications. Here is some:
 + It can also be used to save program options and restore them on startup.
 
 # Tests
-You won't have to run the tests but if you want to, do these in the project directory:
+You won't have to run the tests but if you want to, do these in the project directory (you might want to clone recursively to get google test library):
 
 ``` shell
 mkdir build && cd build
