@@ -127,7 +127,7 @@ struct Array
     Array(T* data, Size size) : size(size), data(data) {}
 };
 
-bool _read(const std::string& path, std::basic_string<char>& data)
+inline bool _read(const std::string& path, ByteArray& data)
 {
     std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
     if (!stream.is_open()) return false;
@@ -137,25 +137,26 @@ bool _read(const std::string& path, std::basic_string<char>& data)
     stream.seekg(0, std::ios::beg);
     data.assign(size_t(size), 0);
 
-    if (stream.rdbuf()->sgetn(&data.front(), std::streamsize(size)) != size) return false;
-    return true;
+    return size == stream.rdbuf()->sgetn(&data.front(), std::streamsize(size));
 }
-
-bool _write(const std::string& path, const std::basic_string<char>& data)
+inline bool _write(const std::string& path, const ByteArray& data)
 {
     std::basic_ofstream<char> stream(path, std::ios::binary | std::ios::out);
     if (!stream.is_open()) return false;
-
     auto size = stream.rdbuf()->sputn(data.data(), data.size());
-    if (size != std::streamsize(data.size())) return false;
-    return true;
+    return size == std::streamsize(data.size());
 }
 
-bool _little()
+inline bool _little_()
 {
     uint32_t value = 0x01020304;
     char data[4] = {4, 3, 2, 1}, *list = (char*)&value;
     return data[0] == list[0] && data[1] == list[1] && data[2] == list[2] && data[3] == list[3];
+}
+inline static bool _little()
+{
+    static bool little = _little_();
+    return little;
 }
 
 template <typename T>
