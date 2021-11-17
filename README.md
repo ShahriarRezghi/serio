@@ -101,7 +101,7 @@ make && ./tests
 Then you can run the tests executable. Also note that tests might take a long time to compile so please be patient.
 
 # Contributing
-You can report bugs, ask questions and request features on [issues page](../../issues). Pull requests are not accepted right now.
+You can report bugs, ask questions and request features on [issues page](../../issues).
 
 # License
 This library is licensed under BSD 3-Clause permissive license. You can read it [here](LICENSE.md).
