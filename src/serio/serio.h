@@ -127,6 +127,15 @@ struct Array
     Array(T* data, Size size) : size(size), data(data) {}
 };
 
+template <typename T, size_t N>
+struct FixedArray
+{
+    T* data = nullptr;
+    FixedArray() {}
+    FixedArray(T* data) : data(data) {}
+    size_t size() const { return N; }
+};
+
 inline bool _read(const std::string& path, ByteArray& data)
 {
     std::basic_ifstream<char> stream(path, std::ios::binary | std::ios::in);
@@ -782,6 +791,15 @@ public:
             for (const auto& S : value) This() << S;
         return This();
     }
+    template <typename T, size_t N>
+    typename std::enable_if<std::is_arithmetic<T>::value, Derived&>::type operator<<(const FixedArray<T, N>& value)
+    {
+        if (_little())
+            This().write(value.data, value.size() * sizeof(T));
+        else
+            for (Size i = 0; i < value.size(); ++i) This() << value.data[i];
+        return This();
+    }
     template <typename T>
     typename std::enable_if<std::is_arithmetic<T>::value, Derived&>::type operator<<(const Array<T>& value)
     {
@@ -825,6 +843,12 @@ public:
     typename std::enable_if<!std::is_arithmetic<T>::value, Derived&>::type operator<<(const std::array<T, N>& value)
     {
         for (const auto& S : value) This() << S;
+        return This();
+    }
+    template <typename T, size_t N>
+    typename std::enable_if<!std::is_arithmetic<T>::value, Derived&>::type operator<<(const FixedArray<T, N>& value)
+    {
+        for (Size i = 0; i < value.size(); ++i) This() << value.data[i];
         return This();
     }
     template <typename T>
@@ -952,6 +976,15 @@ public:
             for (auto& item : value) This() >> item;
         return This();
     }
+    template <typename T, size_t N>
+    typename std::enable_if<std::is_arithmetic<T>::value, Derived&>::type operator>>(FixedArray<T, N> value)
+    {
+        if (_little())
+            This().read(value.data, value.size() * sizeof(T));
+        else
+            for (Size i = 0; i < value.size(); ++i) This() >> value.data[i];
+        return This();
+    }
     template <typename T>
     typename std::enable_if<std::is_arithmetic<T>::value, Derived&>::type operator>>(Array<T>& value)
     {
@@ -1015,6 +1048,12 @@ public:
     typename std::enable_if<!std::is_arithmetic<T>::value, Derived&>::type operator>>(std::array<T, N>& value)
     {
         for (auto& item : value) This() >> item;
+        return This();
+    }
+    template <typename T, size_t N>
+    typename std::enable_if<!std::is_arithmetic<T>::value, Derived&>::type operator>>(FixedArray<T, N> value)
+    {
+        for (Size i = 0; i < value.size(); ++i) This() >> value.data[i];
         return This();
     }
     template <typename T>

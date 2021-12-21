@@ -176,6 +176,12 @@ struct Generator
         for (Size i = 0; i < value.size; ++i) *this >> value.data[i];
         return *this;
     }
+    template <typename T, size_t N>
+    Generator& operator>>(Serio::FixedArray<T, N> value)
+    {
+        for (Size i = 0; i < value.size(); ++i) *this >> value.data[i];
+        return *this;
+    }
     template <typename... Ts>
     Generator& operator>>(std::queue<Ts...>& value)
     {
@@ -302,6 +308,12 @@ struct Process
     {
         compare(value1.size, value2.size);
         for (size_t i = 0; i < value1.size; ++i) compare(value1.data[i], value2.data[i]);
+    }
+    template <typename T, size_t N>
+    void compare(const Serio::FixedArray<T, N>& value1, const Serio::FixedArray<T, N>& value2)
+    {
+        compare(value1.size(), value2.size());
+        for (size_t i = 0; i < value1.size(); ++i) compare(value1.data[i], value2.data[i]);
     }
 
     template <typename... Ts>
@@ -450,6 +462,13 @@ TYPED_TEST(Type2, RawArray)
     TypeParam V1[50], V2[50];
     Serio::Array<TypeParam> value1(V1, 50), value2(V2, 50);
     Process<Serio::Array<TypeParam>>(value1, value2);
+}
+
+TYPED_TEST(Type2, FixedArray)
+{
+    TypeParam V1[50], V2[50];
+    Serio::FixedArray<TypeParam, 50> value1(V1), value2(V2);
+    Process<Serio::FixedArray<TypeParam, 50>>(value1, value2);
 }
 
 #if __cplusplus >= 201703L

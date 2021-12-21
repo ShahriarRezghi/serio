@@ -264,7 +264,20 @@ Serio::deserialize(str, temp);
 delete[] temp.data;
 ```
 
-This example shows that if you don't set ```Serio::Array<T>```'s data (if it is nullptr) the data will be allocated using new operator (but only if there is anything to be deserialized) and it will be filled. Note that if ```Serio::Array<T>```'s data is allocated by the library you will have to delete it yourself once you're done with it otherwise there will be a memory leak.
+This example shows that if you don't set ```Serio::Array<T>```'s data (if it is nullptr) the data will be allocated using new operator (but only if there is anything to be deserialized) and it will be filled. Note that if ```Serio::Array<T>```'s data is allocated by the library you will have to delete it yourself once you're done with it otherwise there will be a memory leak. If the size of the array is known and there is no need for allocation, you can use ```Serio::FixedArray<T, N>```. Here is an example:
+
+``` c++
+int A[10];
+Serio::ByteArray str = Serio::serialize(Serio::FixedArray<int, 10>(A));
+```
+
+Here is an example deserialization of above example:
+
+``` c++
+int A[10];
+Serio::ByteArray str = "<serialized-data>";
+Serio::deserialize(str, Serio::FixedArray<int, 10>(A));
+```
 
 # Conditional
 There will be some rare cases when we need to serialize and deserialize data conditionally. In order to achieve this the recommended way is using ```std::variant``` but it you want to do it another way you can do it by having a custom class and implementing the details of serialization and deserialization yourself like we did in [Custom Containers](#custom-containers) section.
