@@ -924,9 +924,9 @@ public:
 #endif
 
     template <typename Head, typename... Tail>
-    Derived& process(const Head& head, Tail&&... tail)
+    Derived& process(Head&& head, Tail&&... tail)
     {
-        This() << head;
+        This() << std::forward<Head>(head);
         return process(std::forward<Tail>(tail)...);
     }
     Derived& process() { return This(); }
@@ -1137,9 +1137,9 @@ public:
 #endif
 
     template <typename Head, typename... Tail>
-    Derived& process(Head& head, Tail&&... tail)
+    Derived& process(Head&& head, Tail&&... tail)
     {
-        This() >> head;
+        This() >> std::forward<Head>(head);
         return process(std::forward<Tail>(tail)...);
     }
     Derived& process() { return This(); }
