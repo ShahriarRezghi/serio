@@ -754,6 +754,21 @@ public:
     void read(void* data, size_t len) { _stream->read((char*)data, len); }
 };
 
+template <typename T>
+struct CustomClass
+{
+    template <typename Serializer>
+    void serialize(const T& value, Serializer& C)
+    {
+        value._serialize(C);
+    }
+    template <typename Deserializer>
+    void deserialize(T& value, Deserializer& C)
+    {
+        value._deserialize(C);
+    }
+};
+
 template <typename Derived>
 class SerializerOps
 {
@@ -817,7 +832,7 @@ public:
                             Derived&>::type
     operator<<(const T& value)
     {
-        value._serialize(This());
+        CustomClass<T>().serialize(value, This());
         return This();
     }
     template <typename T>
@@ -1005,7 +1020,7 @@ public:
                             Derived&>::type
     operator>>(T& value)
     {
-        value._deserialize(This());
+        CustomClass<T>().deserialize(value, This());
         return This();
     }
     template <typename T>

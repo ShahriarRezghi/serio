@@ -204,6 +204,35 @@ Serio::ByteArray str = "<serialized-data>";
 Serio::serialize(points);
 ```
 
+The method explained above is the preferred one, but sometimes you don't have access to the classes you are trying to serialize. In these cases, you can register the class from outside. For example:
+
+``` c++
+struct Point
+{
+    int x, y;
+};
+
+namespace Serio
+{
+template <>
+struct CustomClass<Point>
+{
+    template <typename Serializer>
+    void serialize(const Point& value, Serializer& C)
+    {
+        C << value.x << value.y;
+    }
+    template <typename Deserializer>
+    void deserialize(Point& value, Deserializer& C)
+    {
+        C >> value.x >> value.y;
+    }
+};
+}  // namespace Serio
+```
+
+In this method, the ```Serio::CustomClass``` class has to specialized for the type that you are trying to serialize.
+
 # Custom Containers
 Here is an example of how to make custom containers compatible. Since the size of container is variable we can't use ```SERIO_REGISTER``` macro like we did before. We'll have to implement some of the details ourselves.
 
