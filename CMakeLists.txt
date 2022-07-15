@@ -57,7 +57,7 @@ add_library(serio INTERFACE)
 target_include_directories(serio INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/gen/>"
-    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/>")
+    "$<INSTALL_INTERFACE:include>")
 
 if(SERIO_INSTALL_LIB)
     install(TARGETS serio
