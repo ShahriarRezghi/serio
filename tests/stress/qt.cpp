@@ -28,8 +28,21 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pragma once
+#include "helper.h"
 
-#define SERIO_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
-#define SERIO_VERSION_MINOR @PROJECT_VERSION_MINOR@
-#define SERIO_VERSION_PATCH @PROJECT_VERSION_PATCH@
+#ifdef SERIO_TEST_QT
+template <typename T>
+using QtArray = QVarLengthArray<T, 50>;
+
+TEST_101(Type2, QVector, QVector);
+TEST_101(Type2, QtArray, QtArray);
+TEST_101(Type2, QList, QList);
+TEST_10(Type1, QSet, QSet);
+TEST_101(Type1, QStack, QStack);
+TEST_101(Type1, QQueue, QQueue);
+TEST_20(Type1, QMap, QMap);
+TEST_20(Type1, QHash, QHash);
+TEST_20(Type1, QMultiMap, QMultiMap);
+TEST_20(Type1, QMultiHash, QMultiHash);
+TEST(QStringList, Test) { ProcessAll<QStringList>(); }
+#endif

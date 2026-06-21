@@ -28,8 +28,13 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pragma once
+#include "helper.h"
 
-#define SERIO_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
-#define SERIO_VERSION_MINOR @PROJECT_VERSION_MINOR@
-#define SERIO_VERSION_PATCH @PROJECT_VERSION_PATCH@
+TEST_101(Type1, Set, std::set);
+TEST_101(Type1, Multiset, std::multiset);
+TEST_10(Type1, Unorderedset, std::unordered_set);
+TEST_10(Type1, UnorderedMultiset, std::unordered_multiset);
+TEST_201(Type1, Map, std::map);
+TEST_20(Type1, Multimap, std::multimap);
+TEST_201(Type1, UnorderedMap, std::unordered_map);
+TEST_201(Type1, UnorderedMultimap, std::unordered_multimap);

@@ -1,7 +1,7 @@
 /*
   BSD 3-Clause License
 
-  Copyright (c) 2019-2020, Shahriar Rezghi <shahriar25.ss@gmail.com>
+  Copyright (c) 2019-2024, Shahriar Rezghi <shahriar.rezghi.sh@gmail.com>
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@
 #include <gtest/gtest-typed-test.h>
 #include <gtest/gtest.h>
 #include <serio/serio.h>
+//
+#include <serio/qt.h>
 
 #include <cfloat>
 #include <cmath>
@@ -43,6 +45,8 @@
 #include <random>
 
 using Serio::Size;
+
+#define MAX_SIZE 100
 
 struct A
 {
@@ -127,24 +131,24 @@ struct Generator
         return *this;
     }
     template <typename T>
-    typename std::enable_if<Serio::IsAssignable<T>::value, Generator&>::type operator>>(T& value)
+    typename std::enable_if<Serio::Impl::IsResizable<T>::value, Generator&>::type operator>>(T& value)
     {
-        value.resize(rand() % 100);
+        value.resize(rand() % MAX_SIZE);
         for (auto& item : value) *this >> item;
         return *this;
     }
     template <typename T>
-    typename std::enable_if<Serio::IsIteratable<T>::value, Generator&>::type operator>>(T& value)
+    typename std::enable_if<Serio::Impl::IsAppendable<T>::value, Generator&>::type operator>>(T& value)
     {
-        using Type = typename Serio::ValueType<T>::Type;
+        using Type = typename Serio::Impl::ValueType<T>::Type;
         value.clear();
         auto it = value.begin();
-        Size size = rand() % 100;
+        Size size = rand() % MAX_SIZE;
         for (Size i = 0; i < size; ++i) it = value.emplace_hint(it, this->get<Type>());
         return *this;
     }
     template <typename T>
-    typename std::enable_if<Serio::IsPointer<T>::value, Generator&>::type operator>>(T& value)
+    typename std::enable_if<Serio::Impl::IsPointer<T>::value, Generator&>::type operator>>(T& value)
     {
         if (this->get<bool>())
         {
@@ -160,7 +164,7 @@ struct Generator
     template <typename... Ts>
     Generator& operator>>(std::vector<bool, Ts...>& value)
     {
-        value.resize(rand() % 100);
+        value.resize(rand() % MAX_SIZE);
         for (size_t i = 0; i < value.size(); ++i) value[i] = get<bool>();
         return *this;
     }
@@ -173,29 +177,29 @@ struct Generator
     template <typename T>
     Generator& operator>>(Serio::Array<T> value)
     {
-        for (Size i = 0; i < value.size; ++i) *this >> value.data[i];
+        for (auto& item : value) *this >> item;
         return *this;
     }
     template <typename T, size_t N>
     Generator& operator>>(Serio::FixedArray<T, N> value)
     {
-        for (Size i = 0; i < value.size(); ++i) *this >> value.data[i];
+        for (auto& item : value) *this >> item;
         return *this;
     }
     template <typename... Ts>
     Generator& operator>>(std::queue<Ts...>& value)
     {
-        return *this >> reinterpret_cast<Serio::Queue<Ts...>&>(value).c;
+        return *this >> reinterpret_cast<Serio::Impl::Queue<Ts...>&>(value).c;
     }
     template <typename... Ts>
     Generator& operator>>(std::stack<Ts...>& value)
     {
-        return *this >> reinterpret_cast<Serio::Stack<Ts...>&>(value).c;
+        return *this >> reinterpret_cast<Serio::Impl::Stack<Ts...>&>(value).c;
     }
     template <typename... Ts>
     Generator& operator>>(std::priority_queue<Ts...>& value)
     {
-        return *this >> reinterpret_cast<Serio::PQueue<Ts...>&>(value).c;
+        return *this >> reinterpret_cast<Serio::Impl::PQueue<Ts...>&>(value).c;
     }
     template <typename... Ts>
     Generator& operator>>(std::pair<Ts...>& value)
@@ -205,7 +209,7 @@ struct Generator
     template <typename... Ts>
     Generator& operator>>(std::tuple<Ts...>& value)
     {
-        Serio::Tuple<sizeof...(Ts) - 1>::deserialize(*this, value);
+        Serio::Impl::Tuple<sizeof...(Ts) - 1>::deserialize(*this, value);
         return *this;
     }
     template <typename T>
@@ -253,12 +257,57 @@ struct Generator
     Generator& operator>>(std::variant<Ts...>& value)
     {
         auto index = this->get<Size>();
-        Serio::Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(*this, index, value);
+        Serio::Impl::Variant<std::tuple<Ts...>, sizeof...(Ts) - 1>::deserialize(*this, index, value);
         return *this;
     }
     Generator& operator>>(std::monostate& value)
     {
         (void)value;
+        return *this;
+    }
+#endif
+
+#ifdef SERIO_USE_QT
+    Generator& operator>>(QChar& value)
+    {
+        value = QChar(this->get<char16_t>());
+        return *this;
+    }
+    Generator& operator>>(QStringList& value)
+    {
+        value.clear();
+        Size size = rand() % MAX_SIZE;
+        for (Size i = 0; i < size; ++i) value.append(this->get<QString>());
+        return *this;
+    }
+    template <typename T>
+    Generator& operator>>(QList<T>& value)
+    {
+        value.clear();
+        Size size = rand() % MAX_SIZE;
+        for (Size i = 0; i < size; ++i) value.append(this->get<T>());
+        return *this;
+    }
+    template <typename T>
+    Generator& operator>>(QSet<T>& value)
+    {
+        value.clear();
+        Size size = rand() % MAX_SIZE;
+        for (Size i = 0; i < size; ++i) value.insert(this->get<T>());
+        return *this;
+    }
+    template <typename T>
+    typename std::enable_if<Serio::Impl::IsQtMap<T>::value, Generator&>::type operator>>(T& value)
+    {
+        using K = typename T::key_type;
+        using V = typename T::mapped_type;
+
+        value.clear();
+        Size size = rand() % MAX_SIZE;
+        for (Size i = 0; i < size; ++i)
+        {
+            value.insert(this->get<K>(), this->get<V>());
+        }
         return *this;
     }
 #endif
@@ -268,9 +317,10 @@ template <typename Type>
 struct Process
 {
     std::basic_string<char> temporary;
+    std::string password;
 
     template <typename T>
-    typename std::enable_if<!Serio::IsPointer<T>::value>::type compare(const T& value1, const T& value2)
+    typename std::enable_if<!Serio::Impl::IsPointer<T>::value>::type compare(const T& value1, const T& value2)
     {
         EXPECT_EQ(value1, value2);
     }
@@ -292,7 +342,7 @@ struct Process
         EXPECT_EQ(value1.empty(), value2.empty());
     }
     template <typename T>
-    typename std::enable_if<Serio::IsPointer<T>::value>::type compare(const T& value1, const T& value2)
+    typename std::enable_if<Serio::Impl::IsPointer<T>::value>::type compare(const T& value1, const T& value2)
     {
         if (!value1 && !value2) return;
         compare(*value1.get(), *value2.get());
@@ -306,49 +356,57 @@ struct Process
     template <typename T>
     void compare(const Serio::Array<T>& value1, const Serio::Array<T>& value2)
     {
-        compare(value1.size, value2.size);
-        for (size_t i = 0; i < value1.size; ++i) compare(value1.data[i], value2.data[i]);
+        compare(value1.size(), value2.size());
+        for (size_t i = 0; i < value1.size(); ++i) compare(value1[i], value2[i]);
     }
     template <typename T, size_t N>
     void compare(const Serio::FixedArray<T, N>& value1, const Serio::FixedArray<T, N>& value2)
     {
         compare(value1.size(), value2.size());
-        for (size_t i = 0; i < value1.size(); ++i) compare(value1.data[i], value2.data[i]);
+        for (size_t i = 0; i < value1.size(); ++i) compare(value1[i], value2[i]);
     }
 
     template <typename... Ts>
     void save1(Ts&&... ts)
     {
-        temporary = Serio::serialize(std::forward<Ts>(ts)...);
+        Serio::SOptions options;
+        options.checksum = rand() % 2 == 0;
+        options.compress = (rand() % 2 == 0) ? rand() % 23 : 0;
+        options.password.resize((rand() % 2 == 0) ? rand() % 17 : 0);
+        for (auto& c : options.password) c = rand() % 128;
+        temporary = Serio::serialize({}, std::forward<Ts>(ts)...);  // TODO options
+        password = options.password;
     }
     template <typename... Ts>
     void load1(Ts&&... ts)
     {
-        ASSERT_EQ(Serio::deserialize(temporary, std::forward<Ts>(ts)...), temporary.size());
+        Serio::DOptions options;
+        options.password = password;
+        Serio::deserialize({}, temporary, std::forward<Ts>(ts)...);  // TODO options
     }
     template <typename... Ts>
     void save2(Ts&&... ts)
     {
         std::fstream file("temp", std::ios::binary | std::ios::out);
         ASSERT_TRUE(file.is_open());
-        Serio::write(&file, std::forward<Ts>(ts)...);
+        Serio::write({}, &file, std::forward<Ts>(ts)...);
     }
     template <typename... Ts>
     void load2(Ts&&... ts)
     {
         std::fstream file("temp", std::ios::binary | std::ios::in);
         ASSERT_TRUE(file.is_open());
-        Serio::read(&file, std::forward<Ts>(ts)...);
+        Serio::read({}, &file, std::forward<Ts>(ts)...);
     }
     template <typename... Ts>
     void save3(Ts&&... ts)
     {
-        Serio::save("temp", std::forward<Ts>(ts)...);
+        Serio::save({}, "temp", std::forward<Ts>(ts)...);
     }
     template <typename... Ts>
     void load3(Ts&&... ts)
     {
-        Serio::load("temp", std::forward<Ts>(ts)...);
+        Serio::load({}, "temp", std::forward<Ts>(ts)...);
     }
 
     Process()
@@ -396,27 +454,35 @@ using BasicTypes =
 using FullTypes = ::testing::Types<bool, char, wchar_t, char16_t, char32_t, signed char, short, int, long, long long,
                                    unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long,
                                    float, double, long double, A, B, D, std::complex<int>, std::complex<float>,
-                                   std::chrono::steady_clock::time_point, std::bitset<50>, std::string, std::wstring>;
+                                   std::chrono::steady_clock::time_point, std::bitset<50>, std::string, std::wstring
+#ifdef SERIO_USE_QT
+                                   ,
+                                   QString, QByteArray
+#endif
+                                   >;
 
-#define CREATE_ITER_TEST_0(TEST, NAME, TYPE) \
+#define TEST_10(TEST, NAME, TYPE) \
     TYPED_TEST(TEST, NAME##Depth0) { Process<TYPE<TypeParam>>(); }
 
-#define CREATE_ITER_TEST_1(TEST, NAME, TYPE) \
+#define TEST_11(TEST, NAME, TYPE) \
     TYPED_TEST(TEST, NAME##Depth1) { Process<TYPE<TYPE<TypeParam>>>(); }
 
-#define CREATE_ITER_TEST(TEST, NAME, TYPE) \
-    CREATE_ITER_TEST_0(TEST, NAME, TYPE)   \
-    CREATE_ITER_TEST_1(TEST, NAME, TYPE)
+#define TEST_101(TEST, NAME, TYPE) \
+    TEST_10(TEST, NAME, TYPE)      \
+    TEST_11(TEST, NAME, TYPE)
 
-#define CREATE_MAP_TEST_0(TEST, NAME, TYPE) \
+#define TEST_20(TEST, NAME, TYPE) \
     TYPED_TEST(TEST, NAME##Depth0) { Process<TYPE<TypeParam, TypeParam>>(); }
 
-#define CREATE_MAP_TEST_1(TEST, NAME, TYPE) \
+#define TEST_21(TEST, NAME, TYPE) \
     TYPED_TEST(TEST, NAME##Depth1) { Process<TYPE<TypeParam, TYPE<TypeParam, TypeParam>>>(); }
 
-#define CREATE_MAP_TEST(TEST, NAME, TYPE) \
-    CREATE_MAP_TEST_0(TEST, NAME, TYPE)   \
-    CREATE_MAP_TEST_1(TEST, NAME, TYPE)
+#define TEST_201(TEST, NAME, TYPE) \
+    TEST_20(TEST, NAME, TYPE)      \
+    TEST_21(TEST, NAME, TYPE)
+
+#define TEST_30(TEST, NAME, TYPE) \
+    TYPED_TEST(TEST, NAME##Depth0) { Process<TYPE<TypeParam, TypeParam, TypeParam>>(); }
 
 template <typename T>
 struct Type1 : public ::testing::Test
@@ -429,33 +495,34 @@ struct Type2 : public ::testing::Test
 TYPED_TEST_SUITE(Type1, BasicTypes);
 TYPED_TEST_SUITE(Type2, FullTypes);
 
-CREATE_ITER_TEST_0(Type1, PQueue, std::priority_queue);
-TYPED_TEST(Type1, Complex) { Process<std::complex<TypeParam>>(); }
-CREATE_ITER_TEST_0(Type1, ValArray, std::valarray)
-CREATE_ITER_TEST(Type1, Set, std::set);
-CREATE_ITER_TEST(Type1, Multiset, std::multiset);
-CREATE_ITER_TEST_0(Type1, Unorderedset, std::unordered_set);
-CREATE_ITER_TEST_0(Type1, UnorderedMultiset, std::unordered_multiset);
-CREATE_MAP_TEST(Type1, Map, std::map);
-CREATE_MAP_TEST_0(Type1, Multimap, std::multimap);
-CREATE_MAP_TEST(Type1, UnorderedMap, std::unordered_map);
-CREATE_MAP_TEST(Type1, UnorderedMultimap, std::unordered_multimap);
-
-TYPED_TEST(Type2, Basic) { Process<TypeParam>(); }
-TYPED_TEST(Type2, Pair) { Process<std::pair<TypeParam, TypeParam>>(); }
-TYPED_TEST(Type2, Tuple) { Process<std::tuple<TypeParam, TypeParam, TypeParam>>(); }
-CREATE_ITER_TEST(Type2, Vector, std::vector);
-CREATE_ITER_TEST(Type2, List, std::list);
-CREATE_ITER_TEST(Type2, Deque, std::deque);
-CREATE_ITER_TEST_0(Type2, Queue, std::queue);
-CREATE_ITER_TEST_0(Type2, Stack, std::stack);
-CREATE_ITER_TEST(Type2, ForwardList, std::forward_list);
-TYPED_TEST(Type2, ShapredPtr) { Process<std::shared_ptr<TypeParam>>(); }
-TYPED_TEST(Type2, UniquePtr) { Process<std::unique_ptr<TypeParam>>(); }
-
 template <typename T>
 using StdArray = std::array<T, 50>;
-CREATE_ITER_TEST(Type2, Array, StdArray);
+
+TYPED_TEST(Type2, Basic) { Process<TypeParam>(); }
+
+TEST_10(Type1, PQueue, std::priority_queue);
+TEST_10(Type1, Complex, std::complex)
+TEST_10(Type1, ValArray, std::valarray)
+TEST_101(Type1, Set, std::set);
+TEST_101(Type1, Multiset, std::multiset);
+TEST_10(Type1, Unorderedset, std::unordered_set);
+TEST_10(Type1, UnorderedMultiset, std::unordered_multiset);
+TEST_201(Type1, Map, std::map);
+TEST_20(Type1, Multimap, std::multimap);
+TEST_201(Type1, UnorderedMap, std::unordered_map);
+TEST_201(Type1, UnorderedMultimap, std::unordered_multimap);
+
+TEST_20(Type2, Pair, std::pair);
+TEST_30(Type2, Tuple, std::tuple);
+TEST_101(Type2, Vector, std::vector);
+TEST_101(Type2, List, std::list);
+TEST_101(Type2, Deque, std::deque);
+TEST_10(Type2, Queue, std::queue);
+TEST_10(Type2, Stack, std::stack);
+TEST_101(Type2, ForwardList, std::forward_list);
+TEST_10(Type2, ShapredPtr, std::shared_ptr);
+TEST_10(Type2, UniquePtr, std::unique_ptr);
+TEST_101(Type2, Array, StdArray);
 
 TYPED_TEST(Type2, RawArray)
 {
@@ -472,8 +539,25 @@ TYPED_TEST(Type2, FixedArray)
 }
 
 #if __cplusplus >= 201703L
-TYPED_TEST(Type2, Optional) { Process<std::optional<TypeParam>>(); }
-TEST(Variant, Test) { Process<std::variant<int, double, std::string>>(); }
+TEST_10(Type2, Optional, std::optional);
+TEST(Variant, Test) { Process<std::variant<bool, char, int, double, std::string>>(); }
+#endif
+
+#ifdef SERIO_USE_QT
+template <typename T>
+using QtArray = QVarLengthArray<T, 50>;
+
+TEST_101(Type2, QVector, QVector);
+TEST_101(Type2, QtArray, QtArray);
+TEST_101(Type2, QList, QList);
+TEST_101(Type1, QSet, QSet);
+// TEST_101(Type1, QStack, QStack);  // TODO
+// TEST_101(Type1, QQueue, QQueue);  // TODO
+TEST_20(Type1, QMap, QMap);
+TEST_20(Type1, QHash, QHash);
+TEST_20(Type1, QMultiMap, QMultiMap);
+TEST_20(Type1, QMultiHash, QMultiHash);
+TEST(QStringList, Test) { Process<QStringList>(); }
 #endif
 
 int main(int argc, char** argv)

@@ -28,8 +28,26 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pragma once
+#include "helper.h"
 
-#define SERIO_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
-#define SERIO_VERSION_MINOR @PROJECT_VERSION_MINOR@
-#define SERIO_VERSION_PATCH @PROJECT_VERSION_PATCH@
+template <typename T>
+using StdArray = std::array<T, 50>;
+
+TEST_101(Type2, Array, StdArray);
+TEST_101(Type2, Vector, std::vector);
+TEST_101(Type2, List, std::list);
+TEST_101(Type2, Deque, std::deque);
+TEST_10(Type2, Queue, std::queue);
+TEST_10(Type2, Stack, std::stack);
+TEST_101(Type2, ForwardList, std::forward_list);
+TEST_10(Type1, PQueue, std::priority_queue);
+TEST_10(Type1, ValArray, std::valarray)
+
+TYPED_TEST(Type2, FixedArray)
+{
+    TypeParam V1[50], V2[50];
+    Serio::StaticArrayView<TypeParam, 50> value1(V1), value2(V2);
+    ProcessAll<Serio::StaticArrayView<TypeParam, 50>>(value1, value2);
+}
+
+// TODO test PointerView with vector deserialization

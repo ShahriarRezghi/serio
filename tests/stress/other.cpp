@@ -28,8 +28,35 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pragma once
+#include "helper.h"
 
-#define SERIO_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
-#define SERIO_VERSION_MINOR @PROJECT_VERSION_MINOR@
-#define SERIO_VERSION_PATCH @PROJECT_VERSION_PATCH@
+TYPED_TEST(Type2, Basic) { ProcessAll<TypeParam>(); }
+TEST_10(Type1, Complex, std::complex);
+TEST_20(Type2, Pair, std::pair);
+TEST_30(Type2, Tuple, std::tuple);
+TEST_10(Type2, ShapredPtr, std::shared_ptr);
+TEST_10(Type2, UniquePtr, std::unique_ptr);
+
+#if __cplusplus >= 201703L
+TEST_10(Type2, Optional, std::optional);
+TEST(Variant, Test) { ProcessAll<std::variant<bool, char, int, double, std::string>>(); }
+#endif
+
+TEST(Base64, EncodeDecode)
+{
+    for (size_t i = 0; i < 1000; ++i)
+    {
+        std::string input(rand() % 100, 0);
+        for (auto &c : input) c = rand() % 256 - 128;
+
+        std::string temp(Serio::Impl::b64encSize(input.size()), 0);
+        Serio::Impl::base64Encode((const uint8_t *)input.data(), &temp[0], input.size());
+
+        std::string output(Serio::Impl::b64decSize(temp.data(), temp.size()), 0);
+        Serio::Impl::base64Decode((const uint8_t *)temp.data(), (uint8_t *)output.data(), temp.size());
+
+        ASSERT_EQ(input, output);
+    }
+}
+
+// TODO test std::string_view and std::span
