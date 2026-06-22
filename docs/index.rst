@@ -17,5 +17,5 @@ Serio Namespace
 ===============
 .. toggle:: Json Namespace Documentation
 
-   .. doxygennamespace:: Neyson::Json
+   .. doxygennamespace:: Serio
       :members:
