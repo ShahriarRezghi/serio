@@ -53,3 +53,5 @@ compile_commands.json
 
 # Build directory
 build/
+.cache/
+docs/_build/
