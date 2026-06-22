@@ -57,19 +57,19 @@ Serio is configured through standard CMake options:
      - Default
      - Effect
    * - ``SERIO_ENABLE_COMPRESSION``
-     - ``ON``
+     - ``OFF``
      - Build zstd support so binary output can be compressed.
    * - ``SERIO_ENABLE_ENCRYPTION``
-     - ``ON``
+     - ``OFF``
      - Build libsodium support so binary output can be encrypted.
    * - ``SERIO_BUILD_SHARED``
-     - ``ON``
+     - ``OFF``
      - Build a shared library (``OFF`` builds static).
    * - ``SERIO_BUILD_TESTS``
-     - ``ON``
+     - ``OFF``
      - Build the test suite.
    * - ``SERIO_INSTALL_LIB``
-     - master
+     - false if used as sub directory, true otherwise
      - Install rules (on by default for a top-level build).
 
 .. note::

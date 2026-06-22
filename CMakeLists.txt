@@ -43,11 +43,11 @@ set(SERIO_LIBRARIES "serio" CACHE INTERNAL "")
 set(SERIO_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/"
     "${CMAKE_CURRENT_BINARY_DIR}/gen/" CACHE INTERNAL "")
 
-option(SERIO_BUILD_TESTS "Build Serio Tests" ON)
+option(SERIO_BUILD_TESTS "Build Serio Tests" OFF)
 option(SERIO_INSTALL_LIB "Install Serio Library" ${SERIO_MASTER})
-option(SERIO_ENABLE_COMPRESSION "Enable Compression functionallity" ON) # TODO turn off
-option(SERIO_ENABLE_ENCRYPTION "Enable Encryption functionallity" ON) # TODO turn off
-option(SERIO_BUILD_SHARED "Build Serio as a Shared Library" ON)
+option(SERIO_ENABLE_COMPRESSION "Enable Compression functionallity" OFF)
+option(SERIO_ENABLE_ENCRYPTION "Enable Encryption functionallity" OFF)
+option(SERIO_BUILD_SHARED "Build Serio as a Shared Library" OFF)
 
 if(NOT SERIO_BUILD_SHARED AND SERIO_ENABLE_ENCRYPTION)
     message(FATAL_ERROR "Static library can't be built when encryption is enabled")
