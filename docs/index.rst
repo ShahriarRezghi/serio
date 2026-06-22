@@ -13,14 +13,9 @@ Welcome to Serio's documentation!
    introduction
 
 
-Indices and tables
-==================
+Serio Namespace
+===============
+.. toggle:: Json Namespace Documentation
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-
-API Reference
-=============
-.. doxygenindex::
+   .. doxygennamespace:: Neyson::Json
+      :members:
