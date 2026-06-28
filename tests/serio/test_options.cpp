@@ -47,7 +47,7 @@ TEST(Options, ChecksumDetectsCorruption)
     EXPECT_THROW(Serio::deserialize<Serio::Binary>({}, bytes, out), Serio::Exception);
 }
 
-// ---- Compression ----
+#ifdef SERIO_USE_COMPRESSION
 
 TEST(Options, CompressLevel1)
 {
@@ -106,7 +106,9 @@ TEST(Options, CompressRoundtripCustomType)
     EXPECT_EQ(out, orig);
 }
 
-// ---- Encryption ----
+#endif
+
+#ifdef SERIO_USE_ENCRYPTION
 
 TEST(Options, EncryptDecrypt)
 {
@@ -217,6 +219,8 @@ TEST(Options, EncryptStringPassword)
     EXPECT_EQ(out, orig);
 }
 
+#endif
+
 // ---- maxLength ----
 
 TEST(Options, MaxLengthAccepted)
@@ -316,6 +320,8 @@ TEST(Options, StreamWithChecksumThrows)
     EXPECT_THROW(Serio::write<Serio::Binary>(sopt, oss, 42), Serio::Exception);
 }
 
+#ifdef SERIO_USE_COMPRESSION
+
 TEST(Options, StreamWithCompressionThrows)
 {
     Serio::SerializeOptions sopt;
@@ -324,6 +330,10 @@ TEST(Options, StreamWithCompressionThrows)
     EXPECT_THROW(Serio::write<Serio::Binary>(sopt, oss, 42), Serio::Exception);
 }
 
+#endif
+
+#ifdef SERIO_USE_ENCRYPTION
+
 TEST(Options, StreamWithEncryptionThrows)
 {
     Serio::SerializeOptions sopt;
@@ -331,3 +341,5 @@ TEST(Options, StreamWithEncryptionThrows)
     std::ostringstream oss;
     EXPECT_THROW(Serio::write<Serio::Binary>(sopt, oss, 42), Serio::Exception);
 }
+
+#endif

@@ -30,7 +30,7 @@
 
 cmake_minimum_required(VERSION 3.21)
 project(Serio VERSION 1.0.0 LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SERIO_MASTER OFF CACHE INTERNAL "")
@@ -43,7 +43,7 @@ set(SERIO_LIBRARIES "serio" CACHE INTERNAL "")
 set(SERIO_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/"
     "${CMAKE_CURRENT_BINARY_DIR}/gen/" CACHE INTERNAL "")
 
-option(SERIO_BUILD_TESTS "Build Serio Tests" OFF)
+option(SERIO_BUILD_TESTS "Build Serio Tests" ${SERIO_MASTER})
 option(SERIO_INSTALL_LIB "Install Serio Library" ${SERIO_MASTER})
 option(SERIO_ENABLE_COMPRESSION "Enable Compression functionallity" OFF)
 option(SERIO_ENABLE_ENCRYPTION "Enable Encryption functionallity" OFF)

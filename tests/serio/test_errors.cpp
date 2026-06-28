@@ -91,6 +91,8 @@ TEST(Errors, CorruptedChecksumThrows)
 
 // ---- Wrong password ----
 
+#ifdef SERIO_USE_ENCRYPTION
+
 TEST(Errors, WrongDecryptPasswordThrows)
 {
     Serio::SerializeOptions sopt;
@@ -111,6 +113,8 @@ TEST(Errors, MissingPasswordWhenEncrypted)
     int out;
     EXPECT_THROW(Serio::deserialize<Serio::Binary>({}, bytes, out), Serio::Exception);
 }
+
+#endif
 
 // ---- maxLength exceeded ----
 
